@@ -12,9 +12,9 @@
 - Dos proyectos de despliegue, una sola rama `main`, sin microservicios ni Redis ni colas ni Kubernetes.
 
 ## Entornos
-- Produccion Railway: proyecto `ceo-construcciones`; `api` tiene root `/apps/api`, `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=3000`, `NODE_ENV=production` y healthcheck `/api/health`.
-- Produccion Vercel: equipo Broco Solutions, proyecto `ceo-construcciones`, root `apps/web`, Next.js.
-- Vercel: configurar `NEXT_PUBLIC_API_URL` con el HTTPS real de la API cuando Railway tenga dominio, NO exponer `DATABASE_URL` en Vercel.
+- Produccion Railway: proyecto `ceo-construcciones`; `api` tiene root `/apps/api`, `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `PORT=3000`, `HOSTNAME=0.0.0.0`, `NODE_ENV=production`, inicio `node .next/standalone/server.js` y healthcheck `/api/health`. En Railway, el contenedor no debe depender de `pnpm`.
+- Produccion Vercel: equipo Broco Solutions, proyecto `ceo-construcciones-web`, root `apps/web`, Next.js.
+- Vercel: `NEXT_PUBLIC_API_URL=https://api-production-7324.up.railway.app` configurada. NO exponer `DATABASE_URL` en Vercel.
 - Railway: URL publica API necesaria para comunicar el frontend; CORS permitido exclusivamente desde dominio frontend si se accede cross-origin desde browser.
 - Se recomienda que el frontend llame a la API a traves de un proxy server-side/rewrite en Vercel para simplificar CORS y cookies. Definir una unica via antes de implementar auth.
 - No ejecutar migraciones de produccion automaticamente hasta definir revisiones/backup.
@@ -25,15 +25,14 @@
 - API publica: https://api-production-7324.up.railway.app/api/health
 - Vercel: https://vercel.com/broco-solutions/ceo-construcciones-web - proyecto `ceo-construcciones-web`, conectado a `main`, root `apps/web`.
 - `NEXT_PUBLIC_API_URL` configurada en Vercel para development/preview/production.
-- Next.js actualizado por parche de seguridad; verificar deployment Railway en `SUCCESS` y healthcheck en vivo.
+- Next.js actualizado por parche de seguridad. Railway API deployment `SUCCESS` y `/api/health` paso el healthcheck de Railway el 16/10/2026.
 - No se implemento funcionalidad de negocio.
 
 ## Antes de desarrollar funcionalidades
-1. Confirmar HTTP 200 real de `/api/health` y deployment API `SUCCESS`.
-2. Definir CORS o proxy same-origin antes de usar cookies de sesion desde la web.
-3. Definir autenticacion y autorizacion por roles en el PRD aprobado.
-4. Aplicar migraciones Prisma versionadas con respaldo; nunca `db push` a produccion.
-5. Bucket Railway solo cuando se requieran adjuntos.
+1. Definir CORS o proxy same-origin antes de usar cookies de sesion desde la web.
+2. Definir autenticacion y autorizacion por roles en el PRD aprobado.
+3. Aplicar migraciones Prisma versionadas con respaldo; nunca `db push` a produccion.
+4. Bucket Railway solo cuando se requieran adjuntos.
 
 ## Trabajo local
 ```bash
