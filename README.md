@@ -3,7 +3,7 @@
 **Estado:** scaffold tecnico SIN logica de negocio. Renzo define el PRD y desarrolla funcionalidades posteriormente.
 
 ## Stack cerrado
-- Monorepo GitHub: `Broco-Solutions/ceo-construcciones` (pendiente de crear).
+- Monorepo GitHub: `Broco-Solutions/ceo-construcciones` (creado, privado, rama `main`).
 - Node.js 24, pnpm 10, TypeScript, Next.js App Router en ambas apps.
 - Frontend: `apps/web`, despliegue en Vercel.
 - Backend REST: `apps/api`, despliegue en Railway. Healthcheck GET `/api/health`.
@@ -19,12 +19,21 @@
 - Se recomienda que el frontend llame a la API a traves de un proxy server-side/rewrite en Vercel para simplificar CORS y cookies. Definir una unica via antes de implementar auth.
 - No ejecutar migraciones de produccion automaticamente hasta definir revisiones/backup.
 
-## Acciones pendientes para finalizar bootstrap
-1. Crear repo PRIVADO `Broco-Solutions/ceo-construcciones` y subir este contenido; NO crear carpetas anidadas adicionales al cargarlo.
-2. Conectar repo main a Railway service `api`, root `/apps/api`; confirmar acceso GitHub App.
-3. Conectar el mismo repo main a Vercel proyecto `ceo-construcciones`, root `apps/web`.
-4. Esperar deploy de ambos; verificar HTTPS, `/api/health`, Vercel `READY` y logs. Configurar URL publica en Vercel.
-5. Antes de desarrollo de negocio, agregar autenticacion real y autorizacion por roles como primer requisito funcional; definir politica de backups y entornos.
+## Estado de infraestructura (16/10/2026)
+- Repo GitHub: https://github.com/Broco-Solutions/ceo-construcciones (privado, rama `main`).
+- Railway: https://railway.com/project/d2fb9213-5508-4b3d-91a8-b6bd86451ceb - servicio `api` desde `main` (`/apps/api`) y PostgreSQL.
+- API publica: https://api-production-7324.up.railway.app/api/health
+- Vercel: https://vercel.com/broco-solutions/ceo-construcciones-web - proyecto `ceo-construcciones-web`, conectado a `main`, root `apps/web`.
+- `NEXT_PUBLIC_API_URL` configurada en Vercel para development/preview/production.
+- Next.js actualizado por parche de seguridad; verificar deployment Railway en `SUCCESS` y healthcheck en vivo.
+- No se implemento funcionalidad de negocio.
+
+## Antes de desarrollar funcionalidades
+1. Confirmar HTTP 200 real de `/api/health` y deployment API `SUCCESS`.
+2. Definir CORS o proxy same-origin antes de usar cookies de sesion desde la web.
+3. Definir autenticacion y autorizacion por roles en el PRD aprobado.
+4. Aplicar migraciones Prisma versionadas con respaldo; nunca `db push` a produccion.
+5. Bucket Railway solo cuando se requieran adjuntos.
 
 ## Trabajo local
 ```bash
