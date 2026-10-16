@@ -1,0 +1,3 @@
+# Instrucciones para agentes de desarrollo
+
+Lee README.md antes de cambiar codigo. Mantene monorepo pnpm con apps/web (Vercel) y apps/api (Railway). Ambos Next.js/TS; Prisma/Postgres solo en api. No crear sistemas de autenticacion improvisados ni escribir secretos. No introducir colas, monitores, Redis, microservicios, SaaS externos ni almacenamiento de documentos sin requerimiento validado. Todo modulo y cada cambio de dominio requieren PRD aprobado por Renzo. Probar build y healthcheck. Para despliegues usar Git integrado y migrations versionadas con respaldo. No modificar configuracion Railway o Vercel sin razon documentada.

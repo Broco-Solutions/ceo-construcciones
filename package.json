@@ -1,0 +1,1 @@
+{"name":"ceo-construcciones","private":true,"packageManager":"pnpm@10.18.3","scripts":{"dev:web":"pnpm --dir apps/web dev","dev:api":"pnpm --dir apps/api dev","build":"pnpm --dir apps/web build && pnpm --dir apps/api build"}}
