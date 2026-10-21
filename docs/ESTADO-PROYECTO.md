@@ -1,6 +1,6 @@
 # Estado del proyecto — CEO Construcciones
 
-**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, verificación técnica y PR en preparación. No mergeado ni desplegado. `apps/web` sin modificaciones.
+**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, verificación técnica aprobada y [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
 
 ## Referencias de continuidad
 
@@ -40,7 +40,7 @@ OpenAPI contiene85 rutas y114 operaciones (incluye plantillas/preview/commit por
 
 ## Git, revisión y despliegue
 
-Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). PR final pendiente de creación y registro en este archivo. CI y revisión remota pendientes.
+Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota en verificación; se corrigieron las comillas del healthcheck del contenedor de pruebas detectadas por la primera corrida. Revisión humana pendiente.
 
 Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. Vercel y apps/web no se modificaron.
 
