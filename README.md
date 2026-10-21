@@ -1,6 +1,6 @@
 # CEO Construcciones - infraestructura inicial
 
-**Estado:** infraestructura base operativa, SIN logica de negocio. Borrador funcional en docs/PRD-ETAPA-1.md, pendiente de aprobacion.
+**Estado:** infraestructura base operativa, SIN lógica de negocio. Definición funcional base aprobada internamente en [PRD Etapa 1 v1.0](docs/PRD-ETAPA-1.md); validaciones operativas con CEO pendientes. Desarrollo con Codex/Claude Code aún no iniciado.
 
 ## Stack cerrado
 - Monorepo GitHub: `Broco-Solutions/ceo-construcciones` (creado, privado, rama `main`).
@@ -42,6 +42,13 @@ pnpm dev:web
 pnpm dev:api
 ```
 
+## Documentación funcional y continuidad
+- [PRD Etapa 1 v1.0](docs/PRD-ETAPA-1.md): alcance funcional consolidado y criterios de aceptación.
+- [Análisis Excel](docs/ANALISIS-EXCEL-PRESUPUESTOS.md): hallazgos y reglas pendientes.
+- [Instrucciones globales del proyecto ChatGPT](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md): rol del orquestador, fuentes y agentes.
+- [Estado del proyecto](docs/ESTADO-PROYECTO.md): situación real y próximo paso.
+- [AGENTS.md](AGENTS.md): reglas vinculantes para agentes de código.
+
 ## Reglas para Codex / Claude Code
 - Respetar la estructura existente y NO introducir frameworks alternativos sin justificacion.
 - Gestionar datos mediante Prisma y migraciones versionadas; nunca `db push` sobre produccion.
@@ -49,4 +56,4 @@ pnpm dev:api
 - Secretos unicamente en variables Railway/Vercel; nunca en Git.
 - Implementar tests de flujos criticos cuando se definan.
 - Mantener interfase en espanol y priorizar rapidez, simplicidad y uso movil en obra.
-- No agregar modulos por inferencia: tomar el PRD aprobado como fuente del alcance.
+- No agregar módulos por inferencia: tomar el PRD v1.0, sujeto al contrato/Anexo I y validaciones explícitas, como fuente del alcance.
