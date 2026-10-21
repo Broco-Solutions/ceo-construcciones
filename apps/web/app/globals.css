@@ -251,3 +251,32 @@ textarea.input{min-height:72px;resize:vertical}
 }
 .mobmenu{position:fixed;inset:0;z-index:70;background:rgba(15,28,66,.35);display:flex;justify-content:flex-end}
 .mobmenu nav{background:var(--ceo-d);width:min(300px,85%);height:100%;overflow:auto;padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+
+/* ---------- componentes táctiles (demo móvil) ---------- */
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;display:flex;flex-direction:column;gap:8px}
+.pcard h4{font-size:14px}
+.act{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:13px 14px;text-align:left;width:100%}
+.act .ic{width:38px;height:38px;border-radius:11px;background:#e7edfc;color:var(--ceo);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.act .ic svg{width:20px;height:20px}
+.act b{display:block;color:var(--ink);font-size:14px}
+.act span{font-size:12px;color:var(--muted)}
+.act .cnt{margin-left:auto;background:#e8a33a;color:#2a1a00;font-size:11px;font-weight:800;border-radius:10px;padding:2px 8px}
+.act.lockd{opacity:.55}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-weight:800;color:var(--ceo)}
+.qty input{width:58px;text-align:center;border:1px solid var(--line);border-radius:8px;padding:5px 2px;font-variant-numeric:tabular-nums;font-weight:700}
+.line{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2)}
+.line:last-child{border-bottom:0}
+.line .d{flex:1;min-width:0}
+.line .d b{display:block;color:var(--ink);font-size:13px}
+.line .d span{font-size:11.5px;color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+.toggle input{width:18px;height:18px;accent-color:var(--ceo)}
+.timeline{display:flex;flex-direction:column;gap:0}
+.timeline div{display:flex;gap:10px;padding-bottom:12px;position:relative}
+.timeline div:not(:last-child):before{content:"";position:absolute;left:7px;top:16px;bottom:0;width:2px;background:var(--line)}
+.timeline i{width:16px;height:16px;border-radius:50%;background:var(--line);flex:none;margin-top:2px}
+.timeline .ok i{background:var(--ok)}
+.timeline .now i{background:var(--surface);border:3px solid var(--ceo)}
+.timeline b{display:block;font-size:12.5px;color:var(--ink)}
+.timeline span{font-size:11.5px;color:var(--muted)}

@@ -110,7 +110,15 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
   const e = error instanceof ApiError ? error : null;
   const msg = e?.message ?? (error as Error)?.message ?? 'Error inesperado';
   const rows = e && e.details && !Array.isArray(e.details) && typeof e.details === 'object' ? (e.details as Record<string, unknown>) : null;
-  const issues = e && Array.isArray(e.details) ? (e.details as { path?: unknown[]; message?: string; row?: number; errors?: string[] }[]) : null;
+  type Issue = { path?: unknown[]; message?: string; row?: number; errors?: string[] };
+  let issues: Issue[] | null = e && Array.isArray(e.details) ? (e.details as Issue[]) : null;
+  const flat = rows as { fieldErrors?: Record<string, string[]>; formErrors?: string[] } | null;
+  if (flat && (flat.fieldErrors || flat.formErrors)) {
+    issues = [
+      ...(flat.formErrors ?? []).map((m) => ({ message: m })),
+      ...Object.entries(flat.fieldErrors ?? {}).map(([k, v]) => ({ path: [k], message: v.join('; ') })),
+    ];
+  }
   return (
     <div className={`alert ${e?.status === 409 || e?.status === 429 ? 'warn' : 'bad'}`} role="alert">
       <div className="row" style={{ gap: 8 }}>

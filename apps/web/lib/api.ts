@@ -130,7 +130,13 @@ export function newIdempotencyKey() {
 /** Errores de campo a partir de details (issues Zod o filas). */
 export function fieldErrors(err: unknown): Record<string, string> {
   const out: Record<string, string> = {};
-  if (!(err instanceof ApiError) || !Array.isArray(err.details)) return out;
+  if (!(err instanceof ApiError) || !err.details) return out;
+  const flat = err.details as { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
+  if (!Array.isArray(err.details) && flat.fieldErrors) {
+    for (const [k, v] of Object.entries(flat.fieldErrors)) if (v?.length) out[k] = v.join('; ');
+    return out;
+  }
+  if (!Array.isArray(err.details)) return out;
   for (const issue of err.details as { path?: (string | number)[]; message?: string }[]) {
     if (issue?.path && issue.message) out[issue.path.join('.')] = issue.message;
   }
