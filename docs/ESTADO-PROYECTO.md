@@ -26,7 +26,7 @@ OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit p
 
 ## Verificaciones ejecutadas
 
-- Node24.19.0, pnpm10.18.3, PostgreSQL16.15 local aislado (producción observada usa18; CI efímero usa18).
+- Node24.19.0, pnpm10.18.3, PostgreSQL16.15 local aislado (producción observada usa18; CI efímero18 aprobado).
 - Instalación limpia desde copia de fuentes sin node_modules/.next: `pnpm install --frozen-lockfile`, generación Prisma y typecheck correctos.
 - Migración aplicada en una segunda base vacía de pruebas; comparación esquema/BD sin drift.
 - Suite final completa:73/73 pruebas aprobadas en 14 archivos con RUN_INTEGRATION=1 y RUN_RUNTIME=1 (sin omisiones). Incluye 71 pruebas unitarias/integración/contratos y 2 HTTP de runtime.
@@ -42,7 +42,7 @@ OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit p
 
 ## Git, revisión y despliegue
 
-Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota en verificación; la configuración de pruebas limita el pool a 3 conexiones para verificar concurrencia en un entorno con recursos acotados. Revisión humana pendiente.
+Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota aprobada sobre el backend `6d5acdd` con Node24/PostgreSQL18 y pool de 3 conexiones: [corrida completa](https://github.com/Broco-Solutions/ceo-construcciones/actions/runs/39647981079). Incluye instalación, migración, typecheck, tests, build y runtime HTTP. La revisión posterior `54d8365` corrige una aserción de test para identificar materiales por ID, sin depender del orden físico de PostgreSQL; no modifica lógica funcional. Revisión humana pendiente.
 
 Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. La configuración de Vercel y apps/web no se modificaron; la integración GitHub/Vercel generó un preview automático del PR, sin despliegue productivo solicitado.
 

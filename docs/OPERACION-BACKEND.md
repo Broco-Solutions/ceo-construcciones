@@ -39,9 +39,10 @@ pnpm --filter @ceo/api typecheck
 pnpm --filter @ceo/api test
 RUN_INTEGRATION=1 pnpm --filter @ceo/api test
 pnpm --filter @ceo/api build
+pnpm --filter @ceo/api test:runtime
 ```
 
-La segunda ejecución de tests activa **todos** los archivos de integración; sin esa variable se omiten las suites contra PostgreSQL. Las pruebas crean datos de prueba con identificadores únicos y no necesitan borrar producción. La verificación inicial de la misión utilizó PostgreSQL local 16.15; la imagen productiva observada es PostgreSQL 18. La receta Docker usa 18 para poder repetir aceptación en la misma versión mayor antes de producción, sin afirmar que esa repetición ya ocurrió. La suite prueba los servicios y también debe complementarse con un smoke HTTP contra el artefacto generado. La base local puede conservarse para inspeccionar las trazas.
+La segunda ejecución de tests activa **todos** los archivos de integración; sin esa variable se omiten las suites contra PostgreSQL. Las pruebas crean datos de prueba con identificadores únicos y no necesitan borrar producción. La verificación inicial de la misión utilizó PostgreSQL local 16.15; la imagen productiva observada es PostgreSQL 18. La receta Docker usa 18 para poder repetir aceptación en la misma versión mayor antes de producción, la CI de la misión ya repitió y aprobó instalación, migración, flujos, build y runtime sobre PostgreSQL18 efímero; ver evidencia enlazada en ESTADO. La suite prueba los servicios; test:runtime verifica además el smoke HTTP contra el artefacto generado. Para ejecutar todo junto después del build: RUN_INTEGRATION=1 RUN_RUNTIME=1 pnpm --filter @ceo/api test. La base local puede conservarse para inspeccionar las trazas.
 
 `db:deploy` aplica las migraciones ya versionadas. Para desarrollar una migración nueva se usa `pnpm --filter @ceo/api db:migrate --name nombre_del_cambio` sobre una base local de desarrollo, se revisa el SQL y se versiona. No usar `db push` en producción ni ejecutar `migrate dev` contra Railway.
 

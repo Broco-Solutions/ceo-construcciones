@@ -38,4 +38,4 @@ Todos los módulos RF01–13 con rutas, validaciones, permisos, esquemas OpenAPI
 
 - 22/10: lectura y rama creadas; repositorio inicial sin negocio; desarrollo en curso.
 
-- 22/10: módulos integrados, revisión independiente corregida, contrato de 85 rutas/114 operaciones, suite73/73, build y runtime Node24 correctos; instalación limpia, dump/restauración local y audit sin avisos conocidos. Pendiente PR y verificación CI remota.
+- 22/10: módulos integrados, revisión independiente corregida, contrato de 85 rutas/114 operaciones, suite73/73, build y runtime Node24 correctos; instalación limpia, dump/restauración local y audit sin avisos conocidos. PR#1 abierto sin merge; CI remota Node24/PostgreSQL18 aprobada. Quedan revisión humana y actividades productivas/datos CEO delimitadas en ESTADO.
