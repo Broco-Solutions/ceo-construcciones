@@ -42,11 +42,13 @@ OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit p
 
 ## Git, revisión y despliegue
 
-Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota aprobada sobre el backend `6d5acdd` con Node24/PostgreSQL18 y pool de 3 conexiones: [corrida completa](https://github.com/Broco-Solutions/ceo-construcciones/actions/runs/39647981079). Incluye instalación, migración, typecheck, tests, build y runtime HTTP. La revisión posterior `54d8365` corrige una aserción de test para identificar materiales por ID, sin depender del orden físico de PostgreSQL; no modifica lógica funcional. Revisión humana pendiente.
+Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota aprobada sobre la revisión final `a00759f` con Node24/PostgreSQL18 y pool de 3 conexiones: [corrida completa](https://github.com/Broco-Solutions/ceo-construcciones/actions/runs/39648500923). Incluye instalación, migración, typecheck, tests, build y runtime HTTP. Revisión humana pendiente.
 
 Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. La configuración de Vercel y apps/web no se modificaron; la integración GitHub/Vercel generó un preview automático del PR, sin despliegue productivo solicitado.
 
 Variables observadas por nombre en API: DATABASE_URL, HOSTNAME, NODE_ENV, PORT. Falta APP_ORIGIN, necesario para mutaciones de sesión en producción; se configurará al autorizar despliegue. No se leyeron valores secretos. La CLI Railway local está incompleta; se usó el conector para lectura.
+
+Disponibilidad actual de Railway: el usuario informó una caída el22/10. No se ejecutaron diagnósticos ni cambios productivos; el metadato SUCCESS histórico no acredita disponibilidad actual. Las pruebas/build de esta misión corrieron en local y GitHub Actions con PostgreSQL aislado y no dependen de Railway. Revalidar su disponibilidad antes del despliegue autorizado.
 
 Backups contractuales **sin verificar**: el conector no expone calendario/listado/retención. No se afirmó que estén operativos. Verificar copias al menos semanales, retención>=30 días y restauración aislada antes de producción/piloto.
 
