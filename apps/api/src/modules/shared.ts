@@ -98,7 +98,7 @@ export async function locationAccess(
   if (actor.role === "JEFE_OBRA") {
     if (!location.workId)
       throw new ApiError(403, "FORBIDDEN", "Ubicación no autorizada");
-    await requireWork(actor, location.workId);
+    await requireWork(actor, location.workId, client);
   }
   return location;
 }

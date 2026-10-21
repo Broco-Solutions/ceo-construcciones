@@ -6,7 +6,7 @@ import {
 } from "node:crypto";
 import { promisify } from "node:util";
 import { Role } from "@prisma/client";
-import { db } from "./db";
+import { db, type Tx } from "./db";
 import { ApiError } from "./errors";
 
 const scrypt = promisify(nodeScrypt);
@@ -71,14 +71,18 @@ export function requireRoles(actor: Actor, ...roles: Role[]): void {
       "No tiene permiso para esta operación.",
     );
 }
-export async function requireWork(actor: Actor, workId: string): Promise<void> {
-  const work = await db.work.findUnique({
+export async function requireWork(
+  actor: Actor,
+  workId: string,
+  client: Tx | typeof db = db,
+): Promise<void> {
+  const work = await client.work.findUnique({
     where: { id: workId },
     select: { id: true },
   });
   if (!work) throw new ApiError(404, "NOT_FOUND", "Obra no encontrada.");
   if (actor.role === Role.JEFE_OBRA) {
-    const assignment = await db.workAssignment.findUnique({
+    const assignment = await client.workAssignment.findUnique({
       where: { userId_workId: { userId: actor.id, workId } },
     });
     if (!assignment)

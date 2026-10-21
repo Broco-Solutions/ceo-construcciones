@@ -117,7 +117,7 @@ export async function createOrder(
 ) {
   const r = await commercialCheck(tx, b);
   const dest = await locationAccess(actor, b.destinationId, tx);
-  if (b.workId) await requireWork(actor, b.workId);
+  if (b.workId) await requireWork(actor, b.workId, tx);
   if (!b.workId && dest.workId)
     conflict("Una OC general debe destinarse a galpón o patio");
   if (dest.workId && dest.workId !== b.workId) conflict("Destino de otra obra");

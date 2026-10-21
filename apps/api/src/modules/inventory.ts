@@ -333,7 +333,7 @@ export async function handlerInventory(
           request.headers.get("idempotency-key") || "",
           b,
           async (tx) => {
-            await requireWork(actor, b.workId);
+            await requireWork(actor, b.workId, tx);
             await locationAccess(actor, b.sourceId, tx);
             if (b.requestLineId) {
               const l = found(
@@ -446,9 +446,9 @@ export async function handlerInventory(
             if (destination && !destination.active)
               conflict("Ubicación inactiva");
             if (actor.role === "JEFE_OBRA" && destination?.workId)
-              await requireWork(actor, destination.workId);
+              await requireWork(actor, destination.workId, tx);
             let workId = b.workId;
-            if (workId) await requireWork(actor, workId);
+            if (workId) await requireWork(actor, workId, tx);
             if (b.categoryId)
               found(
                 await tx.category.findUnique({ where: { id: b.categoryId } }),

@@ -29,7 +29,7 @@ jobs:
           --health-cmd "pg_isready -U ceo_test -d ceo_v1_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgresql://ceo_test@127.0.0.1:5432/ceo_v1_test
+      DATABASE_URL: postgresql://ceo_test@127.0.0.1:5432/ceo_v1_test?connection_limit=3&pool_timeout=2
       RUN_INTEGRATION: "1"
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
