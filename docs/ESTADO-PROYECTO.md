@@ -1,6 +1,6 @@
 # Estado del proyecto — CEO Construcciones
 
-**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, verificación técnica aprobada y [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
+**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, auditoría final corregida y verificación local aprobada; [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
 
 ## Referencias de continuidad
 
@@ -20,18 +20,28 @@ El usuario autorizó la misión integral del backend; se leyeron los seis docume
 
 Implementados: usuarios/sesiones/RBAC/asignaciones/auditoría; obras/ubicaciones; unidades/rubros/materiales/proveedores/presentaciones/precios históricos; APU/cómputos/presupuestos y versiones con snapshots; pedidos; cotizaciones/comparación/selección; OC numeradas, generales, PDF y referencia limitada de factura; recepciones parciales; stock/reservas/transferencias/consumos/devoluciones/ajustes/apertura única/mínimos; reportes de cantidades/XLSX; importaciones CSV/JSON con preview/hash/idempotencia y rechazo de duplicados.
 
-Prisma contiene 32 modelos y migración inicial `20261022000100_backend_v1`, con FK, CHECKs de saldos/cantidades y triggers de inmutabilidad de snapshots. Aplicada exclusivamente a PostgreSQL local aislado. No se ejecutó migración de datos reales CEO.
+Prisma contiene 32 modelos, migración inicial `20261022000100_backend_v1` e índice adicional `20261022000200_auth_attempt_expiration_index`, con FK, CHECKs de saldos/cantidades y triggers de inmutabilidad de snapshots. Aplicadas exclusivamente a PostgreSQL aislado de pruebas. No se ejecutó migración de datos reales CEO.
 
 OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit por tipo y healthcheck). Se valida formato con SwaggerParser y ejemplos con los schemas reales. AJV2020 valida también unas 80 combinaciones de respuestas reales de ruta/estado/rol contra OpenAPI, incluidas proyecciones exclusivas de Jefe y errores401/403/422.
+
+## Cierre de auditoría solicitado del PR #1
+
+Se trabajó en la misma rama y PR con tres subagentes de auditoría. Corregidos: APU exclusivamente de mano de obra (`components: []`, costo material cero y BOM vacía); bloqueo dirigido del login por cuenta (cuota por cliente opaco y admisión acotada por proceso, sin IP ni servicios nuevos); replay idempotente de consumo/devolución tras revocar la asignación de un Jefe (ahora403, sin duplicar stock).
+
+El login preserva cookies en éxito/error y Retry-After. La limpieza de contadores vencidos usa índice, lotes de1000 cada30s/proceso, gracia15min y SKIP LOCKED; incluye contadores legado y comparación UTC independiente del timezone PostgreSQL. Sus límites por cookie/proceso están documentados. Sin secretos/configuración productiva nuevos.
+
+Se repasaron roles/obras y ausencia de economía para Jefes, reservas/transferencias/recepciones/consumos, snapshots/versiones, numeración/estados OC, OpenAPI y sesiones para proxy Vercel. No quedan hallazgos técnicos bloqueantes conocidos para revisar este PR. La prueba del proxy real desplegado será parte de la integración del frontend; las validaciones operativas CEO y requisitos de producción siguen pendientes abajo.
+
+OpenAPI regenerado (85 rutas/114 operaciones), guía Claude actualizada y migración nueva no destructiva revisable. Railway permanece fuera de alcance por caída informada: no se consultó, desplegó, migró ni modificó durante este cierre. No hubo cambios en apps/web ni merge.
 
 ## Verificaciones ejecutadas
 
 - Node24.19.0, pnpm10.18.3, PostgreSQL16.15 local aislado (producción observada usa18; CI efímero18 aprobado).
 - Instalación limpia desde copia de fuentes sin node_modules/.next: `pnpm install --frozen-lockfile`, generación Prisma y typecheck correctos.
-- Migración aplicada en una segunda base vacía de pruebas; comparación esquema/BD sin drift.
-- Suite final completa:73/73 pruebas aprobadas en 14 archivos con RUN_INTEGRATION=1 y RUN_RUNTIME=1 (sin omisiones). Incluye 71 pruebas unitarias/integración/contratos y 2 HTTP de runtime.
+- Ambas migraciones aplicadas en una base vacía adicional `ceo_v1_audit_final_test`; comparación esquema/BD sin drift. Instalación frozen-lockfile, generación, typecheck y build repetidos en este cierre.
+- Suite final del cierre:95/95 pruebas aprobadas en 17 archivos con RUN_INTEGRATION=1 y RUN_RUNTIME=1 (sin omisiones). Incluye 92 pruebas unitarias/integración/contratos y 3 HTTP de runtime. Ejecución separada sin flags de integración/runtime:29 aprobadas y66 omitidas por diseño.
 - Build Next15.5.27/Prisma6.19.0 correcto, incluido wrapper que conserva `node .next/standalone/server.js` para Railway.
-- Runtime standalone:2/2 pruebas HTTP aprobadas (health con SELECT1, sesión401, login cookie HttpOnly/Secure, logout/revocación). Sin pnpm en el proceso de ejecución.
+- Runtime standalone:3/3 pruebas HTTP aprobadas (health con SELECT1, sesión401, login cookie HttpOnly/Secure, logout/revocación y cookies de cliente en401). Sin pnpm en el proceso de ejecución.
 - Regresión con pool limitado a 3 conexiones: autorización reutiliza el cliente transaccional; recepciones concurrentes y suite completa aprobadas sin ampliar sus timeouts.
 - Bootstrap ejecutado en otra base vacía aislada: creó una Gerencia con hash scrypt/auditoría y rechazó un segundo intento; contraseña de prueba no guardada ni mostrada.
 - Flujo integral real verificado desde APU hasta informe/Excel, más concurrencia de OC/versiones/reservas/recepciones/consumos, permisos y snapshots.
@@ -42,7 +52,7 @@ OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit p
 
 ## Git, revisión y despliegue
 
-Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota aprobada sobre la revisión final `a00759f` con Node24/PostgreSQL18 y pool de 3 conexiones: [corrida completa](https://github.com/Broco-Solutions/ceo-construcciones/actions/runs/39648500923). Incluye instalación, migración, typecheck, tests, build y runtime HTTP. Revisión humana pendiente.
+Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota aprobada sobre la revisión final `a00759f` con Node24/PostgreSQL18 y pool de 3 conexiones: [corrida completa](https://github.com/Broco-Solutions/ceo-construcciones/actions/runs/39648500923). Incluye instalación, migración, typecheck, tests, build y runtime HTTP. Esa corrida es histórica, anterior al cierre de auditoría. Los checks de la revisión actual se consultan en el mismo PR#1 y su descripción enlaza la corrida correspondiente. Revisión humana pendiente.
 
 Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. La configuración de Vercel y apps/web no se modificaron; la integración GitHub/Vercel generó un preview automático del PR, sin despliegue productivo solicitado.
 

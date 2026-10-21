@@ -369,6 +369,57 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         (await stock(materialId, workLocationId)).physical.toString(),
       ).toBe("3");
     });
+    it.each(["CONSUMPTION", "RETURN"] as const)(
+      "revalida asignación de obra al repetir %s idempotente",
+      async (type) => {
+        const materialId = await material();
+        await call({
+          type: "INITIAL",
+          materialId,
+          destinationId: workLocationId,
+          quantity: "10",
+        });
+        const key = randomUUID();
+        const payload = {
+          type,
+          materialId,
+          sourceId: workLocationId,
+          ...(type === "RETURN" ? { destinationId: warehouseId } : {}),
+          quantity: "2",
+        };
+        const first = await call(payload, key, chief);
+        expect((await call(payload, key, chief)).id).toBe(first.id);
+        await db.workAssignment.delete({
+          where: { userId_workId: { userId: chief.id, workId } },
+        });
+        try {
+          await expect(call(payload, key, chief)).rejects.toMatchObject({
+            status: 403,
+          });
+          expect(
+            (await stock(materialId, workLocationId)).physical.toString(),
+          ).toBe("8");
+        } finally {
+          await db.workAssignment.create({ data: { userId: chief.id, workId } });
+        }
+        await db.location.update({
+          where: { id: workLocationId },
+          data: { active: false },
+        });
+        await db.material.update({ where: { id: materialId }, data: { active: false } });
+        try {
+          // Restored access permits the original response even if operational
+          // conditions changed after the successful movement.
+          expect((await call(payload, key, chief)).id).toBe(first.id);
+        } finally {
+          await db.location.update({
+            where: { id: workLocationId },
+            data: { active: true },
+          });
+          await db.material.update({ where: { id: materialId }, data: { active: true } });
+        }
+      },
+    );
     it("devolución preserva trazabilidad de obra y mínimo alerta sobre disponible", async () => {
       const materialId = await material();
       await call({

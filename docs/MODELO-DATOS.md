@@ -1,6 +1,6 @@
 # Modelo de datos V1
 
-El esquema versionado está en `apps/api/prisma/schema.prisma`; la migración inicial es `20261022000100_backend_v1`. No se aplicó sobre producción.
+El esquema versionado está en `apps/api/prisma/schema.prisma`; la migración inicial es `20261022000100_backend_v1`. La migración adicional `20261022000200_auth_attempt_expiration_index` agrega el índice de vencimiento de AuthAttempt para su purga acotada. Ninguna se aplicó sobre producción.
 
 ## Agregados
 
@@ -15,6 +15,8 @@ El esquema versionado está en `apps/api/prisma/schema.prisma`; la migración in
 | Recepciones | Receipt, ReceiptLine |
 | Inventario | StockBalance, Reservation, StockMovement |
 | Trazabilidad | AuditLog, IdempotencyRecord |
+
+AuthAttempt identifica clientes de login mediante hash de token opaco; no impone un bloqueo por cuenta. Su índice resetAt permite purgar contadores vencidos por lotes. ApuItem admite cero ApuMaterial para análisis exclusivamente de mano de obra; no se genera demanda material en ese caso.
 
 Los IDs son internos e inmutables; el código visible de APU admite duplicados. La numeración de OC usa una secuencia PostgreSQL y una restricción única: puede tener huecos, nunca implica una secuencia contable sin saltos. Catálogos y obras tienen código externo único para importaciones repetibles. No hay topes artificiales de obras/materiales.
 

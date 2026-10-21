@@ -166,6 +166,87 @@ describe.skipIf(!enabled)("presupuestos contra PostgreSQL aislado", () => {
     expect(version.data.snapshot.totalCost).toBe("4200.00");
     expect(version.data.snapshot.lines[0].materials.find((row: {materialId:string})=>row.materialId===materialIds[0]).unitPrice).toBe("2");
   });
+  it("crea y edita APU de sólo mano de obra, sin precios ni filas materiales y con histórico inmutable", async () => {
+    const laborInput = {
+      name: "Colocación sin materiales",
+      categoryId,
+      unitId,
+      laborCost: "12.5",
+      laborCurrency: "ARS",
+      laborTaxBasis: "EXCLUDED",
+      components: [],
+    };
+    const itemResponse = await call("apu-items", "POST", laborInput);
+    expect(itemResponse!.status).toBe(201);
+    const laborItem = (await itemResponse!.json()).data;
+    expect(laborItem.components).toEqual([]);
+    const calculated = (await (await call(`apu-items/${laborItem.id}/calculate`, "POST", {
+      ...valuation,
+      prices: [],
+    }))!.json()).data;
+    expect(calculated.materials).toEqual([]);
+    expect(calculated.materialCost).toBe("0.00");
+    expect(calculated.totalCost).toBe("12.50");
+
+    const computation = (await (await call("computations", "POST", {
+      workId,
+      name: "Cómputo de mano de obra",
+      lines: [{ itemId: laborItem.id, quantity: "10" }],
+    }))!.json()).data;
+    const budget = (await (await call("budgets", "POST", {
+      workId,
+      name: "Presupuesto de mano de obra",
+    }))!.json()).data;
+    const first = (await (await call(`budgets/${budget.id}/versions`, "POST", {
+      ...valuation,
+      computationId: computation.id,
+      prices: [],
+    }))!.json()).data;
+    expect(first.snapshot.materialCost).toBe("0.00");
+    expect(first.snapshot.laborCost).toBe("125.00");
+    expect(first.snapshot.totalCost).toBe("125.00");
+    expect(first.snapshot.materials).toEqual([]);
+    expect(first.snapshot.materialsByCategory).toEqual([]);
+    expect(await db.budgetMaterial.count({ where: { versionId: first.id } })).toBe(0);
+
+    // Removing existing components uses the same full replacement as normal APU edits.
+    await call(`apu-items/${laborItem.id}`, "PATCH", {
+      ...laborInput,
+      components: [{ materialId: materialIds[0], coefficient: "2" }],
+    });
+    const edited = (await (await call(`apu-items/${laborItem.id}`, "PATCH", {
+      ...laborInput,
+      laborCost: "20",
+    }))!.json()).data;
+    expect(edited.components).toEqual([]);
+    expect(await db.apuMaterial.count({ where: { itemId: laborItem.id } })).toBe(0);
+    const second = (await (await call(`budgets/${budget.id}/versions`, "POST", {
+      ...valuation,
+      computationId: computation.id,
+      prices: [],
+      overrides: [{ lineId: computation.lines[0].id, laborUnitCost: "15" }],
+    }))!.json()).data;
+    expect(second.number).toBe(2);
+    expect(second.snapshot.totalCost).toBe("150.00");
+    expect(second.materials).toEqual([]);
+    expect((await db.apuItem.findUniqueOrThrow({ where: { id: laborItem.id } })).laborCost!.toString()).toBe("20");
+    expect((await db.budgetVersion.findUniqueOrThrow({ where: { id: first.id } })).snapshot).toEqual(first.snapshot);
+    const quantities = (await (await call(`budget-versions/${first.id}/materials`))!.json()).data;
+    expect(quantities.materials).toEqual([]);
+    expect(quantities.materialsByCategory).toEqual([]);
+
+    await expect(call(`budgets/${budget.id}/versions`, "POST", {
+      ...valuation,
+      computationId: computation.id,
+      prices: [{ materialId: materialIds[0], unitPrice: "1" }],
+    })).rejects.toMatchObject({ code: "INVALID_PRICE", status: 422 });
+    await expect(call(`budgets/${budget.id}/versions`, "POST", {
+      ...valuation,
+      computationId: computation.id,
+      prices: [],
+      overrides: [{ lineId: computation.lines[0].id, materials: [{ materialId: materialIds[0], coefficient: "1", unitPrice: "1" }] }],
+    })).rejects.toMatchObject({ code: "INVALID_OVERRIDE", status: 422 });
+  });
   it("cambios de catálogo y overrides en versión nueva no modifican histórico ni precio maestro", async () => {
     await db.materialPrice.update({
       where: { id: priceIds[0] },
@@ -304,12 +385,23 @@ describe.skipIf(!enabled)("presupuestos contra PostgreSQL aislado", () => {
     expect(JSON.stringify(quantities)).not.toMatch(
       /price|cost|snapshot|currency|taxBasis/i,
     );
-    await expect(
-      call(`budget-versions/${versionId}`, "GET", undefined, chief),
-    ).rejects.toMatchObject({ status: 403 });
-    await expect(
-      call("apu-items", "GET", undefined, chief),
-    ).rejects.toMatchObject({ status: 403 });
+    for (const path of [
+      "apu-items",
+      `apu-items/${itemId}`,
+      "computations",
+      `computations/${computationId}`,
+      "budgets",
+      `budgets/${budgetId}`,
+      `budget-versions/${versionId}`,
+    ]) {
+      await expect(call(path, "GET", undefined, chief)).rejects.toMatchObject({ status: 403 });
+    }
+    await expect(call(`apu-items/${itemId}/calculate`, "POST", {
+      ...valuation,
+      prices: [],
+    }, chief)).rejects.toMatchObject({ status: 403 });
+    await expect(call(`budget-versions/${versionId}/reference`, "POST", {}, chief))
+      .rejects.toMatchObject({ status: 403 });
   });
   it("selecciona referencia con auditoría y conserva snapshots", async () => {
     const response = await call(

@@ -260,7 +260,7 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         ).data,
       ).toEqual([]);
     });
-    it("excluye materiales y ubicaciones inactivos y pagina con total estable", async () => {
+    it("excluye inactivos y pagina las ubicaciones asignadas del fixture", async () => {
       expect(
         (
           await alerts(
@@ -275,15 +275,24 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
           )
         ).data,
       ).toEqual([]);
-      const first = await alerts(`materialId=${materialId}&pageSize=1`);
-      const second = await alerts(`materialId=${materialId}&pageSize=1&page=2`);
-      expect(first.pagination.total).toBeGreaterThan(1);
+      // Other suites may create global locations between requests. This
+      // fixture owns exactly two assigned locations and can assert their total.
+      await db.workAssignment.create({
+        data: { userId: chief.id, workId: workIds[1] },
+      });
+      const first = await alerts(`materialId=${materialId}&pageSize=1`, chief);
+      const second = await alerts(
+        `materialId=${materialId}&pageSize=1&page=2`,
+        chief,
+      );
+      expect(first.pagination.total).toBe(2);
       expect(first.pagination.total).toBe(second.pagination.total);
       expect(first.data).toHaveLength(1);
       expect(second.data).toHaveLength(1);
       expect(first.data[0].locationId).not.toBe(second.data[0].locationId);
       const beyond = await alerts(
         `materialId=${materialId}&pageSize=100&page=100000`,
+        chief,
       );
       expect(beyond.data).toEqual([]);
       expect(beyond.pagination.total).toBe(first.pagination.total);

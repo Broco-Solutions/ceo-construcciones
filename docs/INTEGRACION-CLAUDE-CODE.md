@@ -24,9 +24,15 @@ const config = {
 export default config;
 ```
 
-`API_BASE_URL` es variable server-side del frontend. Railway debe tener `APP_ORIGIN` igual al origen HTTPS exacto de la web. Se verificó que actualmente falta esa variable: configurarla sólo en el despliegue autorizado. No usar comodines ni apuntar previews con escrituras a producción. Local: frontend3000, API3001, APP_ORIGIN=http://localhost:3000. `pnpm dev:api` usa3001; DATABASE_URL sólo API. No exponer credenciales PostgreSQL en Vercel.
+`API_BASE_URL` es variable server-side del frontend. Railway debe tener `APP_ORIGIN` igual al origen HTTPS exacto de la web. En la lectura histórica previa a la caída faltaba esa variable: configurarla sólo en el despliegue autorizado. No usar comodines ni apuntar previews con escrituras a producción. Local: frontend3000, API3001, APP_ORIGIN=http://localhost:3000. `pnpm dev:api` usa3001; DATABASE_URL sólo API. No exponer credenciales PostgreSQL en Vercel.
 
 La web llama `fetch('/api/v1/...',{credentials:'same-origin',...})`. Login POST `{email,password}` emite `ceo_session` sin Domain, HttpOnly, SameSite=Lax y Secure en producción; expiración12h. Logout revoca sesión en DB y borra cookie. GET `/auth/me` entrega usuario seguro y rol;401 requiere login. No almacenar tokens en localStorage ni leer cookie desde JS. El proxy debe preservar Origin, Sec-Fetch-Site, Cookie, Set-Cookie y Content-Disposition; no cachear respuestas autenticadas. Mutaciones requieren Origin exacto; faltante/incorrecto403. No confiar en Host/X-Forwarded-Host enviados por cliente. No se habilita CORS cross-origin ni cookies de terceros.
+
+El login también emite `ceo_login_client` opaca (HttpOnly, SameSite=Lax, host-only, Secure en producción, 15 minutos). Preservar **dos campos Set-Cookie separados** en éxito, y la cookie de cliente en errores401/429 cuando venga presente. Un proxy implementado con Route Handler debe usar `response.headers.getSetCookie()` y hacer `append` por cada valor, sin unirlos con comas. En SSR reenviar explícitamente Cookie al backend y propagar cada Set-Cookie al navegador; evitar caché compartida. Un rewrite debe comprobarse con el mismo flujo HTTP antes de integrar las pantallas.
+
+La protección cuenta 10 intentos por cliente durante15 minutos, entre todas las cuentas y también los exitosos: fallos de un tercero no bloquean la cuenta de la víctima. No utiliza encabezados de IP. Hay admisión por proceso de hasta2 verificaciones simultáneas y20/s, con ráfaga20 y sin cola; se aplica antes de consultar identidad en PostgreSQL. `429` devuelve `Retry-After` en segundos: respetarlo y mantener la cookie. `AUTH_BUSY` puede responder sin Set-Cookie; `RATE_LIMITED` conserva la cookie y espera hasta el fin de ventana. Borrar cookies elude la cuota por cliente; el límite por proceso sigue activo y se multiplica con las réplicas. No sustituye una defensa ante saturación distribuida. Los identificadores se almacenan sólo como hash y los vencidos (incluido el limitador anterior) se purgan oportunistamente en lotes de hasta1000 cada30s/proceso, con15min adicionales de gracia y sin servicios adicionales.
+
+Las pruebas del backend cubren Origin público distinto del host API, cookies y errores HTTP reales del standalone. La comprobación del proxy desplegado de Vercel queda para el PR del frontend: probar login,401/429, SSR, `/auth/me`, logout y ausencia de caché con el dominio público real.
 
 ## Matriz inicial conservadora (V-02 pendiente)
 
@@ -54,7 +60,7 @@ El backend comprueba roles y recursos en cada ruta. Ocultar controles en UI ayud
 
 1. Gerencia crea unidades/rubros, obras (crean ubicación asociada), galpón/patio y asignaciones. Sin límites artificiales de obras/materiales.
 2. Catálogo separa material, unidad base inmutable y presentación con equivalencia explícita. Precios son historial append-only; no aceptar una equivalencia desconocida ni precio cero como referencia válida. Una presentación se crea nueva para cambiar equivalencia histórica.
-3. Cómputo crea APU con consumo manual y MO unitaria; carga cantidades; crea presupuesto y versiones con moneda, base impositiva, precisión, modo y frontera de redondeo explícitos. Sobrescrituras sólo en versión nueva. Cambiar precios/APU no reescribe snapshots.
+3. Cómputo crea APU con consumo manual y MO unitaria; un APU exclusivamente de mano de obra envía `components: []` y cálculo con `prices: []`, sin materiales ficticios. Su costo material es cero y su BOM queda vacía; carga cantidades; crea presupuesto y versiones con moneda, base impositiva, precisión, modo y frontera de redondeo explícitos. Sobrescrituras sólo en versión nueva. Cambiar precios/APU no reescribe snapshots.
 4. Gerencia selecciona referencia de seguimiento. El nombre REFERENCE no implica aprobación económica validada con CEO. Estados y responsables definitivos siguen V-02/V-03.
 5. Jefe crea pedido con rubro, fecha requerida y cantidades; `/requests/{id}/needs` compara previsto/solicitado/disponible. El pedido no mueve físico.
 6. Compras reserva existencias o registra cotizaciones; comparación no ordena monedas/bases incompatibles. Selección manual auditada. OC borrador permite correcciones; emitida fija líneas. Una compra general requiere galpón/patio y no lleva obra. Precio por presentación usa baseQuantity explícita; cantidades siempre en unidad base.
@@ -66,6 +72,8 @@ El backend comprueba roles y recursos en cada ruta. Ocultar controles en UI ayud
 ## Reintentos y errores
 
 Conservar una clave UUID por intención confirmada para OC, reservas, movimientos, recepción e importación commit. Reutilizar mismo cuerpo/clave tras timeout; cambiar cuerpo requiere nueva intención. Recepciones deduplican por OC+evento entre receptores autorizados; los demás por actor+alcance. Confirmaciones distintas de un mismo remito necesitan conservar la misma clave del evento: el texto libre de remito no se usa como identificador único porque puede compartirse entre entregas.
+
+Los reintentos de consumo/devolución de Jefe revalidan la asignación actual antes de recuperar una respuesta idempotente. Una asignación revocada devuelve403, sin repetir movimientos.
 
 409 indica stock insuficiente, transición inválida, clave con otro cuerpo o concurrencia agotada. Mostrar mensaje y refrescar datos; en error de transporte, reintentar con la MISMA clave.422 muestra errores por campo/fila;401 sesión ausente/vencida;403 permisos u Origin;429 esperar ventana de intentos. No presentar500 como éxito.
 

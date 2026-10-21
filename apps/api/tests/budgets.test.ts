@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BudgetSnapshotInput, calculateBudget } from "../src/modules/budgets";
+import { BudgetSnapshotInput, calculateBudget, itemSchema } from "../src/modules/budgets";
 
 function example(): BudgetSnapshotInput {
   return {
@@ -54,6 +54,48 @@ function example(): BudgetSnapshotInput {
 }
 
 describe("APU y presupuesto decimal con snapshots independientes", () => {
+  it("acepta APU exclusivamente de mano de obra y calcula sin materiales ficticios", () => {
+    expect(itemSchema.safeParse({
+      name: "Colocación",
+      categoryId: "categoria",
+      unitId: "m2",
+      laborCost: "12.5",
+      laborCurrency: "ARS",
+      laborTaxBasis: "EXCLUDED",
+      components: [],
+    }).success).toBe(true);
+    const input = example();
+    input.lines[0].materials = [];
+    const result = calculateBudget(input);
+    expect(result.materials).toEqual([]);
+    expect(result.materialsByCategory).toEqual([]);
+    expect(result.lines[0]).toMatchObject({
+      materials: [],
+      materialUnitCost: "0",
+      totalUnitCost: "12.5",
+      materialCost: "0.00",
+      laborCost: "1250.00",
+      totalCost: "1250.00",
+    });
+    expect(result.categories[0]).toMatchObject({
+      materialCost: "0.00",
+      laborCost: "1250.00",
+      totalCost: "1250.00",
+    });
+    expect(result.materialCost).toBe("0.00");
+    expect(result.laborCost).toBe("1250.00");
+    expect(result.totalCost).toBe("1250.00");
+  });
+  it("consolida un presupuesto mixto sin agregar materiales al ítem de mano de obra", () => {
+    const input = example();
+    input.lines.push({ ...structuredClone(input.lines[0]), sourceLineId: "labor", materials: [] });
+    const result = calculateBudget(input);
+    expect(result.materials.map((row) => row.quantity)).toEqual(["450", "660", "7"]);
+    expect(result.lines[1].materials).toEqual([]);
+    expect(result.materialCost).toBe("2950.00");
+    expect(result.laborCost).toBe("2500.00");
+    expect(result.totalCost).toBe("5450.00");
+  });
   it("100 m² requieren 450 kg cemento, 660 kg cal y 7 m³ arena", () => {
     const result = calculateBudget(example());
     expect(result.materials.map((row) => row.quantity)).toEqual([

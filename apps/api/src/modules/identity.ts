@@ -14,6 +14,12 @@ import {
   verifyPassword,
 } from "../core/auth";
 import { audit } from "../core/audit";
+import {
+  consumeLoginAttempt,
+  identifyLoginClient,
+  loginClientCookie,
+  withLoginCapacity,
+} from "../core/login-protection";
 import { body, boolean, enumValue, json, page, string } from "../core/input";
 
 const userSelect = {
@@ -45,74 +51,64 @@ async function login(request: Request): Promise<Response> {
   const input = await body(request);
   const address = email(input.email),
     password = passwordInput(input.password);
-  const key = sessionHash(`login:${address}`);
-  // Account-keyed limiter works across replicas and does not trust spoofable forwarded IPs.
-  await transaction(async (tx) => {
-    const now = new Date();
-    let bucket = await tx.authAttempt.findUnique({ where: { key } });
-    if (!bucket || bucket.resetAt <= now) {
-      bucket = await tx.authAttempt.upsert({
-        where: { key },
-        create: {
-          key,
-          failures: 1,
-          resetAt: new Date(Date.now() + 15 * 60 * 1000),
-        },
-        update: { failures: 1, resetAt: new Date(Date.now() + 15 * 60 * 1000) },
-      });
-    } else {
-      if (bucket.failures >= 10)
+  let client: string | undefined;
+  try {
+    const response = await withLoginCapacity(async () => {
+      client = await identifyLoginClient(request);
+      await consumeLoginAttempt(client);
+      const user = await db.user.findUnique({ where: { email: address } });
+      // Equal-cost password verification for unknown accounts avoids a cheap enumeration path.
+      const encoded =
+        user?.passwordHash ??
+        `scrypt$00000000000000000000000000000000$${"0".repeat(128)}`;
+      const valid = await verifyPassword(password, encoded);
+      if (!user || !user.active || !valid)
         throw new ApiError(
-          429,
-          "RATE_LIMITED",
-          "Demasiados intentos. Espere 15 minutos.",
+          401,
+          "INVALID_CREDENTIALS",
+          "Email o contraseña incorrectos.",
         );
-      await tx.authAttempt.update({
-        where: { key },
-        data: { failures: { increment: 1 } },
+      const token = randomBytes(32).toString("hex");
+      await transaction(async (tx) => {
+        const current = await tx.user.findUniqueOrThrow({
+          where: { id: user.id },
+        });
+        if (!current.active || current.passwordHash !== user.passwordHash)
+          throw new ApiError(
+            401,
+            "INVALID_CREDENTIALS",
+            "Email o contraseña incorrectos.",
+          );
+        await tx.session.create({
+          data: {
+            tokenHash: sessionHash(token),
+            userId: user.id,
+            expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
+          },
+        });
+        await audit(tx, user, "LOGIN", "User", user.id);
       });
-    }
-  });
-  const user = await db.user.findUnique({ where: { email: address } });
-  // Equal-cost password verification for unknown accounts avoids a cheap enumeration path.
-  const encoded =
-    user?.passwordHash ??
-    `scrypt$00000000000000000000000000000000$${"0".repeat(128)}`;
-  const valid = await verifyPassword(password, encoded);
-  if (!user || !user.active || !valid)
-    throw new ApiError(
-      401,
-      "INVALID_CREDENTIALS",
-      "Email o contraseña incorrectos.",
-    );
-  const token = randomBytes(32).toString("hex");
-  await transaction(async (tx) => {
-    const current = await tx.user.findUniqueOrThrow({ where: { id: user.id } });
-    if (!current.active || current.passwordHash !== user.passwordHash)
-      throw new ApiError(
-        401,
-        "INVALID_CREDENTIALS",
-        "Email o contraseña incorrectos.",
+      return Response.json(
+        { data: { id: user.id, name: user.name, role: user.role } },
+        {
+          headers: {
+            "Set-Cookie": sessionCookie(token),
+            "Cache-Control": "no-store",
+          },
+        },
       );
-    await tx.session.create({
-      data: {
-        tokenHash: sessionHash(token),
-        userId: user.id,
-        expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
-      },
     });
-    await tx.authAttempt.deleteMany({ where: { key } });
-    await audit(tx, user, "LOGIN", "User", user.id);
-  });
-  return Response.json(
-    { data: { id: user.id, name: user.name, role: user.role } },
-    {
-      headers: {
-        "Set-Cookie": sessionCookie(token),
-        "Cache-Control": "no-store",
-      },
-    },
-  );
+    // Preserve ceo_session as its own Set-Cookie field, including through Vercel.
+    response.headers.append("Set-Cookie", loginClientCookie(client!));
+    return response;
+  } catch (error) {
+    if (error instanceof ApiError && client) {
+      const headers = new Headers(error.headers);
+      headers.append("Set-Cookie", loginClientCookie(client));
+      error.headers = headers;
+    }
+    throw error;
+  }
 }
 
 async function updateUser(

@@ -221,7 +221,8 @@ export const itemSchema = z
     laborCurrency: currency,
     laborTaxBasis: taxBasis,
     active: z.boolean().optional(),
-    components: z.array(componentSchema).min(1).max(500),
+    // Empty components represent a labor-only APU, with no material demand.
+    components: z.array(componentSchema).max(500),
   })
   .strict()
   .superRefine((value, ctx) => {

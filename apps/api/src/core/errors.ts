@@ -6,6 +6,7 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public details?: unknown,
+    public headers?: HeadersInit,
   ) {
     super(message);
     this.name = "ApiError";
@@ -22,7 +23,7 @@ export function errorResponse(error: unknown): Response {
           ...(error.details === undefined ? {} : { details: error.details }),
         },
       },
-      { status: error.status },
+      { status: error.status, headers: error.headers },
     );
   if (error instanceof ZodError)
     return Response.json(

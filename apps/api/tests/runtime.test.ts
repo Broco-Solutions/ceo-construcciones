@@ -85,7 +85,22 @@ describe.skipIf(!enabled)("artefacto standalone en proceso real Node", () => {
       body: JSON.stringify({ email, password }),
     });
     expect(login.status).toBe(200);
-    const cookie = login.headers.get("set-cookie")!;
+    const setCookies = login.headers.getSetCookie();
+    expect(setCookies).toHaveLength(2);
+    expect(
+      setCookies.every(
+        (value) =>
+          value.includes("HttpOnly") &&
+          value.includes("Secure") &&
+          !value.includes("Domain="),
+      ),
+    ).toBe(true);
+    expect(
+      setCookies.some((value) => value.startsWith("ceo_login_client=")),
+    ).toBe(true);
+    const cookie = setCookies.find((value) =>
+      value.startsWith("ceo_session="),
+    )!;
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("Secure");
     const works = await fetch(`${origin}/api/v1/works`, {
@@ -105,5 +120,35 @@ describe.skipIf(!enabled)("artefacto standalone en proceso real Node", () => {
         })
       ).status,
     ).toBe(401);
+  });
+  it("un 401 HTTP conserva cookie de cliente y el login posterior devuelve ambas cookies", async () => {
+    const failed = await fetch(`${origin}/api/v1/auth/login`, {
+      method: "POST",
+      headers: { origin, "content-type": "application/json" },
+      body: JSON.stringify({ email, password: "invalid-password" }),
+    });
+    expect(failed.status).toBe(401);
+    const client = failed.headers.getSetCookie();
+    expect(client).toHaveLength(1);
+    expect(client[0]).toMatch(
+      /^ceo_login_client=.*; HttpOnly; SameSite=Lax; Path=\/; Max-Age=900; Secure$/,
+    );
+    const valid = await fetch(`${origin}/api/v1/auth/login`, {
+      method: "POST",
+      headers: {
+        origin,
+        "content-type": "application/json",
+        cookie: client[0].split(";")[0],
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    expect(valid.status).toBe(200);
+    expect(valid.headers.getSetCookie()).toHaveLength(2);
+    expect(
+      valid.headers
+        .getSetCookie()
+        .find((value) => value.startsWith("ceo_login_client="))
+        ?.split(";")[0],
+    ).toBe(client[0].split(";")[0]);
   });
 });

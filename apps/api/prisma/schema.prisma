@@ -116,6 +116,8 @@ model AuthAttempt {
   key      String   @id
   failures Int      @default(0)
   resetAt  DateTime
+
+  @@index([resetAt])
 }
 
 model Work {

@@ -193,6 +193,17 @@ describe("contrato OpenAPI completo y sincronizado", () => {
       ]),
     );
     expect(components.OrderInput.required).not.toContain("workId");
+    expect(components.ApuInput.required).toContain("components");
+    expect(components.ApuInput.properties.components.minItems ?? 0).toBe(0);
+    const login = disk.paths["/auth/login"].post;
+    expect(login.responses[200].headers["Set-Cookie"]).toBeDefined();
+    for (const status of [401, 429])
+      expect(login.responses[status].headers["Set-Cookie"]).toBeDefined();
+    expect(login.responses[429].headers["Retry-After"]).toBeDefined();
+    expect(login.parameters).toContainEqual(
+      expect.objectContaining({ name: "Origin", required: true }),
+    );
+    expect(disk.paths["/auth/me"].get.responses[401].headers).toBeUndefined();
     expect(components.VersionInput.required).toContain("roundingBoundary");
     expect(components.ReceiptInput.required).toContain("deliveryNote");
     expect(components.CommercialLineInput.properties.quantity.type).toBe(

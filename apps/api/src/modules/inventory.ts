@@ -423,6 +423,22 @@ export async function handlerInventory(
       else if (b.type === "TRANSFER")
         requireRoles(actor, "GERENCIA", "COMPRAS");
       else requireRoles(actor, "GERENCIA", "COMPRAS", "JEFE_OBRA");
+      // A saved idempotent response is still protected by today's assignments.
+      // Recheck authorization before looking it up, without rechecking mutable
+      // stock/status/active flags that could invalidate a successful retry.
+      if (actor.role === "JEFE_OBRA") {
+        if (b.workId) await requireWork(actor, b.workId);
+        for (const locationId of [b.sourceId, b.destinationId]) {
+          if (!locationId) continue;
+          const location = found(
+            await db.location.findUnique({ where: { id: locationId } }),
+            "Ubicación",
+          );
+          if (location.workId) await requireWork(actor, location.workId);
+          else if (locationId === b.sourceId)
+            throw new ApiError(403, "FORBIDDEN", "Ubicación no autorizada");
+        }
+      }
       return ok(
         await idempotent(
           actor,

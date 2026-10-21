@@ -623,16 +623,49 @@ operation(
     }),
     example: { email: "usuario@example.com", password: "contraseña-ejemplo" },
     description:
-      "Scrypt; máximo 10 intentos por cuenta cada 15 minutos. Devuelve Set-Cookie ceo_session HttpOnly SameSite=Lax; Secure en producción. Sesión de 12 horas.",
+      "Scrypt. Cupo PostgreSQL de 10 intentos cada 15 minutos por cliente opaco (ceo_login_client), compartido entre emails; nunca bloquea la cuenta. Valores de cookie desconocidos se reemplazan por tokens aleatorios del servidor, guardados sólo como hash. Ante 401 y 429 RATE_LIMITED también se conserva Set-Cookie del cliente; AUTH_BUSY puede responder antes de identificarlo. Admisión adicional por proceso: máximo 2 verificaciones simultáneas y token bucket de 20/s con ráfaga máxima 20, incluso si se rotan cookies. 429 incluye Retry-After en segundos. No usa IP ni encabezados reenviados. Cookie de sesión ceo_session de 12 horas, HttpOnly SameSite=Lax Secure en producción. El cupo de cliente puede eludirse borrando cookies; la admisión global del proceso permanece activa. No es defensa contra DDoS distribuido.",
   },
 );
+paths["/auth/login"].post.parameters = [
+  ...paths["/auth/login"].post.parameters,
+  {
+    name: "ceo_login_client",
+    in: "cookie",
+    required: false,
+    description:
+      "Cookie opaca emitida por el servidor; reenviar automáticamente, incluso después de 401/429.",
+    schema: { type: "string", pattern: "^[a-f0-9]{64}$" },
+  },
+];
 paths["/auth/login"].post.responses[200].headers = {
   "Set-Cookie": {
     schema: str,
     description:
-      "ceo_session=<token>; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200; Secure",
+      "Dos campos Set-Cookie separados: ceo_session (Max-Age=43200) y ceo_login_client (Max-Age=900). Ambos HttpOnly; SameSite=Lax; Path=/; Secure en producción; sin Domain. El proxy debe preservar ambos campos sin concatenarlos ni descartarlos.",
   },
 };
+for (const code of [401, 429]) {
+  // Error definitions are shared by other operations; specialize only login.
+  paths["/auth/login"].post.responses[code] = structuredClone(
+    paths["/auth/login"].post.responses[code],
+  );
+  paths["/auth/login"].post.responses[code].headers = {
+    "Set-Cookie": {
+      schema: str,
+      description:
+        "ceo_login_client opaca HttpOnly; conservar aun en respuestas de error. Opcional en AUTH_BUSY (admisión rechazada antes de identificar cliente). Sin credenciales ni email.",
+    },
+    ...(code === 429
+      ? {
+          "Retry-After": {
+            schema: { type: "integer", minimum: 1, maximum: 900 },
+            description:
+              "Segundos sugeridos: hasta fin del cupo cliente (RATE_LIMITED), o 1 segundo por capacidad/tasa del proceso (AUTH_BUSY).",
+          },
+        }
+      : {}),
+  };
+}
 operation("/auth/logout", "post", "Cerrar sesión", obj({ loggedOut: bool }));
 operation("/auth/me", "get", "Usuario actual", ref("User"));
 operation("/users", "get", "Listar usuarios", ref("User"), {
