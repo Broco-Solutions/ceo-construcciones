@@ -2,6 +2,15 @@
 
 **Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, auditoría final corregida y verificación local aprobada; [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
 
+## Frontend V1 (Claude Code) — 22/10/2026
+
+Rama `claude/ceo-v1-frontend` basada en `codex/ceo-v1-backend`; PR de frontend abierto contra esa rama, sin merge ni despliegue. Detalle, guía por rol, pasos de Vercel y diferencias de contrato en [FRONTEND-V1.md](FRONTEND-V1.md). No se modificaron `apps/api`, Prisma ni migraciones; Railway no se consultó ni modificó; Vercel no se configuró.
+
+- Implementado en `apps/web`: design system basado en la demo, shell responsive por rol, login/sesión/logout reales, proxy same-origin (Set-Cookie separados, Origin, no-store, Retry-After), cliente tipado desde OpenAPI y pantallas de obras, catálogo, proveedores/precios, APU, cómputos, presupuestos/versiones, pedidos, cotizaciones, OC, recepciones, stock/reservas/movimientos/mínimos, reportes y administración/importaciones.
+- Verificación local (Node 22.23, pnpm 10.18.3, PostgreSQL 18.6 aislado, API dev local): instalación limpia frozen-lockfile, typecheck, build Next 15.5.27 (42 rutas), 11/11 pruebas unitarias aisladas (formato decimal, proxy con upstream simulado, permisos) y **24/24 E2E Playwright contra la API real** (auth 9, flujos desktop 11, móvil Pixel 7 4). Evidencias en `apps/web/docs/evidencia/`.
+- Datos usados: sintéticos `*@demo.local` / "Demo"; sin credenciales reales de CEO.
+- Pendiente: validar el proxy en el dominio público de Vercel cuando Railway esté disponible y se autorice el despliegue; resolver las diferencias de contrato listadas (en particular, ubicaciones de destino para devoluciones del Jefe).
+
 ## Referencias de continuidad
 
 - [PRD Etapa 1 v1.0](PRD-ETAPA-1.md), sujeto a contrato/Anexo I y validaciones CEO pendientes.
