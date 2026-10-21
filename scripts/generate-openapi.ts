@@ -7,6 +7,7 @@ import {
   workSchema,
   supplierSchema,
   materialSchema,
+  materialPatchSchema,
   presentationSchema,
   priceSchema,
 } from "../apps/api/src/modules/catalog";
@@ -14,6 +15,7 @@ import { reserveSchema, moveSchema } from "../apps/api/src/modules/inventory";
 import {
   itemSchema,
   computationSchema,
+  computationPatchSchema,
   budgetSchema,
   valuationSchema,
   versionSchema,
@@ -65,7 +67,15 @@ const extend = (
 ) => {
   const properties = { ...schemas[base].properties, ...fields };
   for (const key of omit) delete properties[key];
-  return add(name, obj(properties));
+  return add(
+    name,
+    obj(
+      properties,
+      [
+        ...new Set([...(schemas[base].required ?? []), ...Object.keys(fields)]),
+      ].filter((key) => !omit.includes(key)),
+    ),
+  );
 };
 const zod = (name: string, schema: any) => {
   const converted = zodToJsonSchema(schema, {
@@ -119,6 +129,19 @@ add(
   }),
 );
 add(
+  "ZodFlattenDetails",
+  obj({
+    formErrors: arr(str),
+    fieldErrors: { type: "object", additionalProperties: arr(str) },
+  }),
+);
+add("ZodIssue", {
+  type: "object",
+  properties: { code: str, message: str, path: arr({ anyOf: [str, integer] }) },
+  required: ["code", "message", "path"],
+  additionalProperties: true,
+});
+add(
   "Error",
   obj({
     error: obj(
@@ -126,8 +149,15 @@ add(
         code: str,
         message: str,
         details: {
+          anyOf: [
+            ref("ZodFlattenDetails"),
+            arr(ref("ZodIssue")),
+            { type: "object", additionalProperties: true },
+            { type: "array" },
+            str,
+          ],
           description:
-            "Detalles de validación: issues Zod, errores por fila o mensajes del dominio.",
+            "APU/cómputos/presupuestos y reportes: Zod flatten {formErrors,fieldErrors}; catálogos/compras/inventario: array de issues Zod. Otros errores pueden contener objetos de dominio o filas. El cliente debe discriminar por forma, no suponer siempre array.",
         },
       },
       ["code", "message"],
@@ -145,6 +175,7 @@ for (const [name, schema] of Object.entries({
   MovementInput: moveSchema,
   ApuInput: itemSchema,
   ComputationInput: computationSchema,
+  ComputationPatch: computationPatchSchema,
   BudgetInput: budgetSchema,
   ValuationInput: valuationSchema,
   VersionInput: versionSchema,
@@ -158,10 +189,25 @@ for (const [name, schema] of Object.entries({
 for (const [name, schema] of Object.entries({
   WorkPatch: workSchema.partial(),
   SupplierPatch: supplierSchema.partial(),
-  MaterialPatch: materialSchema.partial(),
+  MaterialPatch: materialPatchSchema,
   NamedPatch: named.partial(),
 }))
   zod(name, schema);
+schemas.MaterialPatch.description =
+  "La unidad base es inmutable. unitId no se admite en PATCH (422); crear otro material para cambiarla.";
+schemas.PriceInput.description =
+  "Sin presentationId, baseQuantity debe ser decimal igual a1 (p.ej. 1 o 1.0); con presentación debe coincidir exactamente con su equivalencia. Incompatibilidad devuelve409; no se inventan conversiones.";
+schemas.PriceInput.allOf = [
+  {
+    if: {
+      not: {
+        required: ["presentationId"],
+        properties: { presentationId: { type: "string" } },
+      },
+    },
+    then: { properties: { baseQuantity: { pattern: "^1(?:\\.0{1,8})?$" } } },
+  },
+];
 const selectedPrice = schemas.ValuationInput.properties.prices.items;
 selectedPrice.oneOf = [
   { required: ["priceId"], not: { required: ["unitPrice"] } },
@@ -210,18 +256,66 @@ schemas.MovementInput.oneOf = [
     not: { required: ["reservationId"] },
   },
 ];
+// Base Material is also used by clients across read/write responses. Relations
+// are optional there and required in MaterialDetail returned by catalog GETs.
+schemas.Material.properties.unit = ref("Unit");
+schemas.Material.properties.category = nullable(ref("Category"));
+add(
+  "LocationSummary",
+  obj({ id, code: str, name: str, kind: ref("LocationKind") }),
+);
+add(
+  "ReturnDestination",
+  obj({
+    id,
+    code: str,
+    name: str,
+    kind: { type: "string", enum: ["WAREHOUSE", "YARD"] },
+    active: { const: true },
+  }),
+);
+add("VisibleLocation", {
+  anyOf: [ref("Location"), ref("ReturnDestination")],
+  description:
+    "Jefe: ubicación completa de obra propia o sólo metadatos de galpón/patio activo; no concede lectura de saldos globales.",
+});
+extend("AuditEntry", "AuditLog", { actorName: nullable(str) });
+extend("MovementDetail", "StockMovement", {
+  source: nullable(ref("LocationSummary")),
+  destination: nullable(ref("LocationSummary")),
+  actorName: str,
+});
+schemas.MovementDetail.description =
+  "Ubicaciones mínimas sin saldos. Para Jefe, source/destination de obras no asignadas se proyectan null, incluso si el movimiento llega a su obra autorizada. Los IDs escalares se conservan como referencia histórica; no conceden acceso.";
+// Keep strict GET DTOs; historical idempotency snapshots have a separate union.
+add("MovementWriteResult", {
+  anyOf: [ref("MovementDetail"), ref("StockMovement")],
+  description:
+    "Nuevas intenciones devuelven MovementDetail. Replay de claves guardadas con el contrato anterior puede devolver StockMovement sin metadatos; GET /movements los incluye sin repetir la operación.",
+});
+
+add("MinimumSource", {
+  type: "string",
+  enum: ["LOCATION", "MATERIAL", "NONE"],
+  description:
+    "LOCATION: override local, incluso 0. MATERIAL: heredado positivo. NONE: sin override y mínimo global 0.",
+});
 extend("MaterialDetail", "Material", {
   unit: ref("Unit"),
   category: nullable(ref("Category")),
 });
 extend("WorkList", "Work", { location: nullable(ref("Location")) });
-extend("WorkDetail", "WorkList", { assignments: arr(obj({ userId: id })) });
+extend("WorkDetail", "WorkList", {
+  assignments: arr(obj({ userId: id })),
+  referenceVersionId: nullable(id),
+});
 extend("Stock", "StockBalance", {
   material: extend("StockMaterial", "Material", { unit: ref("Unit") }),
   location: ref("Location"),
   available: dec,
   minimum: dec,
   belowMinimum: bool,
+  minimumSource: ref("MinimumSource"),
 });
 add(
   "StockAlert",
@@ -242,12 +336,36 @@ add(
     available: dec,
     minimum: dec,
     belowMinimum: { const: true },
+    minimumSource: ref("MinimumSource"),
   }),
 );
 extend("RequestDetail", "MaterialRequest", { lines: arr(ref("RequestLine")) });
 extend("QuotationDetail", "Quotation", { lines: arr(ref("QuotationLine")) });
+extend("OrderLineDetail", "PurchaseOrderLine", {
+  pendingQuantity: dec,
+  lineAmount: nullable(dec),
+});
 extend("OrderDetail", "PurchaseOrder", {
+  lines: arr(ref("OrderLineDetail")),
+  supplier: obj({ id, code: str, name: str }),
+  destination: ref("LocationSummary"),
+  work: nullable(obj({ id, code: str, name: str })),
+  createdByName: str,
+  invoiceLoadedByName: nullable(str),
+  totalAmount: nullable(dec),
+  amountWarning: {
+    anyOf: [{ const: "ROUNDING_POLICY_REQUIRED" }, { type: "null" }],
+  },
+});
+schemas.OrderDetail.description =
+  "Importes exactos quantity*unitPrice/baseQuantity cuando son representables hasta8decimales; sin agregar IVA ni redondear. Si alguna línea requiere política de redondeo: lineAmount y totalAmount null, amountWarning ROUNDING_POLICY_REQUIRED. No certifica política monetaria final CEO.";
+extend("LegacyOrderDetail", "PurchaseOrder", {
   lines: arr(ref("PurchaseOrderLine")),
+});
+add("OrderWriteResult", {
+  anyOf: [ref("OrderDetail"), ref("LegacyOrderDetail")],
+  description:
+    "Nueva OC devuelve OrderDetail. Una clave idempotente creada con el contrato anterior conserva LegacyOrderDetail; consultar GET /purchase-orders/{id} para descripciones/importes actuales, sin volver a crear.",
 });
 add(
   "ChiefOrderLine",
@@ -267,6 +385,8 @@ add(
     workId: nullable(id),
     requestId: nullable(id),
     destinationId: id,
+    destination: ref("LocationSummary"),
+    createdByName: str,
     status: ref("PurchaseOrderStatus"),
     createdAt: { type: "string", format: "date-time" },
     lines: arr(ref("ChiefOrderLine")),
@@ -280,9 +400,24 @@ add("VisibleOrder", {
   description:
     "JEFE_OBRA recibe exclusivamente ChiefOrder de obras asignadas destinadas físicamente a su obra. Sin precios, proveedor, moneda, factura ni costos.",
 });
-extend("ReceiptDetail", "Receipt", { lines: arr(ref("ReceiptLine")) }, [
+extend(
+  "ReceiptDetail",
+  "Receipt",
+  {
+    lines: arr(ref("ReceiptLine")),
+    actorName: str,
+    location: ref("LocationSummary"),
+  },
+  ["idempotencyKey"],
+);
+extend("LegacyReceiptDetail", "Receipt", { lines: arr(ref("ReceiptLine")) }, [
   "idempotencyKey",
 ]);
+add("ReceiptWriteResult", {
+  anyOf: [ref("ReceiptDetail"), ref("LegacyReceiptDetail")],
+  description:
+    "Nuevo evento devuelve ReceiptDetail. Replay previo conserva metadatos originales LegacyReceiptDetail; GET de recepciones incluye nombres/ubicación actuales.",
+});
 extend("ApuComponent", "ApuMaterial", {
   material: extend("ApuMaterialDetail", "Material", { unit: ref("Unit") }),
 });
@@ -385,9 +520,25 @@ add(
     versionId: id,
     workId: id,
     status: ref("BudgetStatus"),
-    materials: arr(obj({ materialId: id, unitId: id, quantity: dec })),
+    materials: arr(
+      obj({
+        materialId: id,
+        unitId: id,
+        quantity: dec,
+        material: obj({ id, code: str, name: str }),
+        unit: obj({ id, code: str, name: str }),
+      }),
+    ),
     materialsByCategory: arr(
-      obj({ categoryId: id, materialId: id, unitId: id, quantity: dec }),
+      obj({
+        categoryId: id,
+        materialId: id,
+        unitId: id,
+        quantity: dec,
+        material: obj({ id, code: str, name: str }),
+        unit: obj({ id, code: str, name: str }),
+        category: obj({ id, code: str, name: str }),
+      }),
     ),
   }),
 );
@@ -721,8 +872,9 @@ for (const [resource, model, input, patch, writeRoles] of catalog) {
         ? "MaterialDetail"
         : model;
   const filters: Record<string, string[]> = {
-    works: ["status"],
-    materials: ["search", "categoryId"],
+    works: ["status", "q", "search"],
+    suppliers: ["search", "q", "active"],
+    materials: ["search", "q", "categoryId", "active"],
     presentations: ["materialId"],
     prices: ["materialId", "supplierId"],
   };
@@ -730,7 +882,14 @@ for (const [resource, model, input, patch, writeRoles] of catalog) {
     roles: readRoles,
     list: true,
     queries: (filters[resource] ?? []).map((name) =>
-      q(name, name === "status" ? ref("WorkStatus") : str),
+      q(
+        name,
+        name === "status"
+          ? ref("WorkStatus")
+          : name === "active"
+            ? { type: "string", enum: ["true", "false"] }
+            : str,
+      ),
     ),
   });
   operation(
@@ -759,10 +918,17 @@ for (const [resource, model, input, patch, writeRoles] of catalog) {
       { roles: commercial, input: obj({ active: bool }) },
     );
 }
-operation("/locations", "get", "Listar ubicaciones", ref("Location"), {
+operation("/locations", "get", "Listar ubicaciones", ref("VisibleLocation"), {
   list: true,
+  description:
+    "Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras.",
 });
-operation("/locations/{id}", "get", "Consultar ubicación", ref("Location"));
+operation(
+  "/locations/{id}",
+  "get",
+  "Consultar ubicación",
+  ref("VisibleLocation"),
+);
 operation("/locations", "post", "Crear galpón o patio", ref("Location"), {
   roles: ["GERENCIA"],
   input: obj(
@@ -780,10 +946,23 @@ operation("/locations/{id}", "patch", "Editar ubicación", ref("Location"), {
   roles: ["GERENCIA"],
   input: obj({ code: str, name: str, active: bool }, []),
 });
-operation("/audit", "get", "Registro de auditoría", ref("AuditLog"), {
+operation("/audit", "get", "Registro de auditoría", ref("AuditEntry"), {
   roles: ["GERENCIA"],
   list: true,
-  queries: [q("entity"), q("entityId")],
+  queries: [
+    q("entity", {
+      type: "string",
+      description:
+        "Tipo de entidad textual: Work, Material, PurchaseOrder, Receipt, BudgetVersion, etc. No enum cerrado; refleja acciones de módulos.",
+    }),
+    q("entityId"),
+    q("actorId"),
+    q("action"),
+    q("from", { type: "string", format: "date-time" }),
+    q("to", { type: "string", format: "date-time" }),
+  ],
+  description:
+    "Filtros combinables y paginación global; from/to ISO8601 inclusivos, from<=to. Actor sólo nombre; antes/después de UPDATE Work completos. Orden createdAt,id descendente.",
 });
 
 for (const [resource, model, input, detail] of [
@@ -818,9 +997,11 @@ for (const [resource, model, input, detail] of [
       ref(resource === "computations" ? "ComputationWriteResult" : model),
       {
         roles: writers,
-        input: ref(input),
+        input: ref(resource === "computations" ? "ComputationPatch" : input),
         description:
-          "Reemplazo completo, incluidos componentes/renglones. No es un PATCH parcial.",
+          resource === "computations"
+            ? "Reemplazo completo. lines[].id opcional debe pertenecer a este cómputo y no repetirse; conserva identidad. Sin id conserva renglón si itemId es único antes/después. APU duplicados requieren id para conservarla; sin él se recrean. Snapshots anteriores no cambian."
+            : "Reemplazo completo, incluidos componentes/renglones. No es un PATCH parcial.",
       },
     );
 }
@@ -840,8 +1021,9 @@ operation(
     roles: writers,
     input: ref("VersionInput"),
     status: 201,
+    idempotent: true,
     description:
-      "Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.",
+      "Idempotency-Key obligatorio por actor/presupuesto: misma clave y cuerpo conserva201 y snapshot, incluso en concurrencia; cuerpo distinto409. Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.",
   },
 );
 operation(
@@ -871,27 +1053,47 @@ for (const [resource, detail, input, writeRoles, queries] of [
     "RequestDetail",
     "RequestInput",
     ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
-    ["workId", "categoryId"],
+    ["workId", "categoryId", "status"],
   ],
   [
     "quotations",
     "QuotationDetail",
     "QuotationInput",
     buyers,
-    ["requestId", "supplierId"],
+    ["requestId", "supplierId", "status"],
   ],
   [
     "purchase-orders",
     "VisibleOrder",
     "OrderInput",
     buyers,
-    ["workId", "supplierId"],
+    [
+      "workId",
+      "supplierId",
+      "status",
+      "requestId",
+      "quotationId",
+      "destinationId",
+    ],
   ],
 ] as const) {
   operation(`/${resource}`, "get", `Listar ${resource}`, ref(detail), {
     roles: resource === "quotations" ? commercial : roles,
     list: true,
-    queries: queries.map((name) => q(name)),
+    queries: queries.map((name) =>
+      q(
+        name,
+        name === "status"
+          ? ref(
+              resource === "requests"
+                ? "RequestStatus"
+                : resource === "purchase-orders"
+                  ? "PurchaseOrderStatus"
+                  : "QuotationStatus",
+            )
+          : str,
+      ),
+    ),
   });
   operation(`/${resource}/{id}`, "get", `Consultar ${resource}`, ref(detail), {
     roles: resource === "quotations" ? commercial : roles,
@@ -900,7 +1102,7 @@ for (const [resource, detail, input, writeRoles, queries] of [
     `/${resource}`,
     "post",
     `Crear ${resource}`,
-    ref(resource === "purchase-orders" ? "OrderDetail" : detail),
+    ref(resource === "purchase-orders" ? "OrderWriteResult" : detail),
     {
       roles: [...writeRoles],
       input: ref(input),
@@ -929,20 +1131,29 @@ operation(
   "get",
   "Necesidades y disponibilidad",
   ref("Needs"),
+  {
+    description:
+      "alreadyRequested suma pedidos no cancelados de la obra e INCLUYE el pedido consultado; no es cantidad de otros pedidos. Jefe sólo disponibilidad de sus ubicaciones.",
+  },
 );
 operation(
   "/requests/{id}/history",
   "get",
   "Historial del pedido",
-  ref("AuditLog"),
+  ref("AuditEntry"),
   { list: true },
 );
 operation(
   "/purchase-orders/{id}/history",
   "get",
   "Historial de la OC",
-  ref("AuditLog"),
-  { roles: commercial, list: true },
+  ref("AuditEntry"),
+  {
+    roles: commercial,
+    list: true,
+    description:
+      "Incluye acciones de OC y RECEIVE de Receipt de esa OC. entityType/entityId identifican recibo, after.orderId enlaza OC; actorName y createdAt. Orden cronológico createdAt,id. Jefe consulta recepciones sin historia económica vía /receipts.",
+  },
 );
 operation(
   "/quotations/{requestId}/comparison",
@@ -952,7 +1163,7 @@ operation(
   {
     roles: commercial,
     description:
-      "El parámetro es requestId (no quotationId). Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.",
+      "El parámetro es requestId (no quotationId). Orden cronológico createdAt,id ascendente; líneas materialId,id. No representa ranking económico ni aprobación automática. Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.",
   },
 );
 operation(
@@ -987,7 +1198,7 @@ operation(
   "/purchase-orders/{id}/status",
   "post",
   "Emitir/anular OC",
-  ref("PurchaseOrder"),
+  ref("OrderDetail"),
   {
     roles: buyers,
     input: obj({ status: { type: "string", enum: ["ISSUED", "CANCELLED"] } }),
@@ -997,7 +1208,7 @@ operation(
   "/purchase-orders/{id}/invoice-reference",
   "put",
   "Registrar referencia de factura",
-  ref("PurchaseOrder"),
+  ref("OrderDetail"),
   {
     roles: buyers,
     input: obj({
@@ -1011,7 +1222,7 @@ operation(
   "/purchase-orders/{id}/receipts",
   "post",
   "Confirmar recepción parcial o total",
-  ref("ReceiptDetail"),
+  ref("ReceiptWriteResult"),
   {
     roles: ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
     input: ref("ReceiptInput"),
@@ -1095,17 +1306,23 @@ operation(
   "/movements",
   "get",
   "Historial de movimientos",
-  ref("StockMovement"),
+  ref("MovementDetail"),
   { list: true, queries: [q("materialId"), q("workId"), q("locationId")] },
 );
-operation("/movements", "post", "Confirmar movimiento", ref("StockMovement"), {
-  roles: ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
-  input: ref("MovementInput"),
-  status: 201,
-  idempotent: true,
-  description:
-    "INITIAL/ADJUSTMENT: GERENCIA; TRANSFER: GERENCIA/COMPRAS; CONSUMPTION/RETURN: también JEFE_OBRA en sus obras. INITIAL sólo apertura material/ubicación sin movimientos previos; ajustes requieren reason y direction. Transferencia puede satisfacer reserva parcial. CONSUMPTION exige sourceId de obra; RETURN de obra a galpón/patio; workId si informado debe coincidir.",
-});
+operation(
+  "/movements",
+  "post",
+  "Confirmar movimiento",
+  ref("MovementWriteResult"),
+  {
+    roles: ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
+    input: ref("MovementInput"),
+    status: 201,
+    idempotent: true,
+    description:
+      "INITIAL/ADJUSTMENT: GERENCIA; TRANSFER: GERENCIA/COMPRAS; CONSUMPTION/RETURN: también JEFE_OBRA en sus obras. INITIAL sólo apertura material/ubicación sin movimientos previos; ajustes requieren reason y direction. Transferencia puede satisfacer reserva parcial. CONSUMPTION exige sourceId de obra; RETURN de obra a galpón/patio; workId si informado debe coincidir.",
+  },
+);
 
 const reportQueries = [
   q("workId", id, true),
@@ -1179,7 +1396,7 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
       roles: ["GERENCIA"],
       input,
       description:
-        "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
     },
   );
   operation(

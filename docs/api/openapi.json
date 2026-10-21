@@ -1562,6 +1562,22 @@
             "schema": {
               "$ref": "#/components/schemas/WorkStatus"
             }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -3665,6 +3681,34 @@
               "maximum": 100,
               "default": 50
             }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
           }
         ],
         "responses": {
@@ -4376,11 +4420,31 @@
             }
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "categoryId",
             "in": "query",
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
             }
           }
         ],
@@ -6327,7 +6391,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras.",
         "parameters": [
           {
             "name": "page",
@@ -6363,7 +6427,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Location"
+                        "$ref": "#/components/schemas/VisibleLocation"
                       }
                     },
                     "pagination": {
@@ -6730,7 +6794,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/Location"
+                      "$ref": "#/components/schemas/VisibleLocation"
                     }
                   },
                   "required": [
@@ -7062,7 +7126,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Filtros combinables y paginación global; from/to ISO8601 inclusivos, from<=to. Actor sólo nombre; antes/después de UPDATE Work completos. Orden createdAt,id descendente.",
         "parameters": [
           {
             "name": "page",
@@ -7091,7 +7155,8 @@
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "description": "Tipo de entidad textual: Work, Material, PurchaseOrder, Receipt, BudgetVersion, etc. No enum cerrado; refleja acciones de módulos."
             }
           },
           {
@@ -7100,6 +7165,40 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "actorId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -7114,7 +7213,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/AuditLog"
+                        "$ref": "#/components/schemas/AuditEntry"
                       }
                     },
                     "pagination": {
@@ -8511,7 +8610,7 @@
           "GERENCIA",
           "COMPUTO"
         ],
-        "description": "Reemplazo completo, incluidos componentes/renglones. No es un PATCH parcial.",
+        "description": "Reemplazo completo. lines[].id opcional debe pertenecer a este cómputo y no repetirse; conserva identidad. Sin id conserva renglón si itemId es único antes/después. APU duplicados requieren id para conservarla; sin él se recrean. Snapshots anteriores no cambian.",
         "parameters": [
           {
             "name": "id",
@@ -8675,7 +8774,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ComputationInput"
+                "$ref": "#/components/schemas/ComputationPatch"
               },
               "example": {
                 "workId": "ejemplo",
@@ -9421,7 +9520,7 @@
           "GERENCIA",
           "COMPUTO"
         ],
-        "description": "Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.",
+        "description": "Idempotency-Key obligatorio por actor/presupuesto: misma clave y cuerpo conserva201 y snapshot, incluso en concurrencia; cuerpo distinto409. Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.",
         "parameters": [
           {
             "name": "id",
@@ -9432,6 +9531,17 @@
               "minLength": 1,
               "maxLength": 100
             }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "description": "Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409."
           },
           {
             "name": "Origin",
@@ -10151,6 +10261,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/RequestStatus"
+            }
           }
         ],
         "responses": {
@@ -10694,6 +10812,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/QuotationStatus"
             }
           }
         ],
@@ -11240,6 +11366,38 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PurchaseOrderStatus"
+            }
+          },
+          {
+            "name": "requestId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "quotationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "destinationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11429,7 +11587,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/OrderDetail"
+                      "$ref": "#/components/schemas/OrderWriteResult"
                     }
                   },
                   "required": [
@@ -12155,7 +12313,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "alreadyRequested suma pedidos no cancelados de la obra e INCLUYE el pedido consultado; no es cantidad de otros pedidos. Jefe sólo disponibilidad de sus ubicaciones.",
         "parameters": [
           {
             "name": "id",
@@ -12365,7 +12523,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/AuditLog"
+                        "$ref": "#/components/schemas/AuditEntry"
                       }
                     },
                     "pagination": {
@@ -12511,7 +12669,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Incluye acciones de OC y RECEIVE de Receipt de esa OC. entityType/entityId identifican recibo, after.orderId enlaza OC; actorName y createdAt. Orden cronológico createdAt,id. Jefe consulta recepciones sin historia económica vía /receipts.",
         "parameters": [
           {
             "name": "id",
@@ -12557,7 +12715,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/AuditLog"
+                        "$ref": "#/components/schemas/AuditEntry"
                       }
                     },
                     "pagination": {
@@ -12703,7 +12861,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "El parámetro es requestId (no quotationId). Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.",
+        "description": "El parámetro es requestId (no quotationId). Orden cronológico createdAt,id ascendente; líneas materialId,id. No representa ranking económico ni aprobación automática. Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.",
         "parameters": [
           {
             "name": "requestId",
@@ -13069,7 +13227,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/PurchaseOrder"
+                      "$ref": "#/components/schemas/OrderDetail"
                     }
                   },
                   "required": [
@@ -13267,7 +13425,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/PurchaseOrder"
+                      "$ref": "#/components/schemas/OrderDetail"
                     }
                   },
                   "required": [
@@ -13475,7 +13633,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/ReceiptDetail"
+                      "$ref": "#/components/schemas/ReceiptWriteResult"
                     }
                   },
                   "required": [
@@ -15371,7 +15529,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/StockMovement"
+                        "$ref": "#/components/schemas/MovementDetail"
                       }
                     },
                     "pagination": {
@@ -15548,7 +15706,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/StockMovement"
+                      "$ref": "#/components/schemas/MovementWriteResult"
                     }
                   },
                   "required": [
@@ -17321,7 +17479,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -17977,7 +18135,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -18633,7 +18791,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -19291,7 +19449,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -19955,7 +20113,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -20623,7 +20781,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.",
+        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
         "parameters": [
           {
             "name": "Origin",
@@ -21731,6 +21889,19 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -22957,6 +23128,61 @@
         ],
         "additionalProperties": false
       },
+      "ZodFlattenDetails": {
+        "type": "object",
+        "properties": {
+          "formErrors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fieldErrors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "formErrors",
+          "fieldErrors"
+        ],
+        "additionalProperties": false
+      },
+      "ZodIssue": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "path"
+        ],
+        "additionalProperties": true
+      },
       "Error": {
         "type": "object",
         "properties": {
@@ -22970,7 +23196,28 @@
                 "type": "string"
               },
               "details": {
-                "description": "Detalles de validación: issues Zod, errores por fila o mensajes del dominio."
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ZodFlattenDetails"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ZodIssue"
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "description": "APU/cómputos/presupuestos y reportes: Zod flatten {formErrors,fieldErrors}; catálogos/compras/inventario: array de issues Zod. Otros errores pueden contener objetos de dominio o filas. El cliente debe discriminar por forma, no suponer siempre array."
               }
             },
             "required": [
@@ -23280,7 +23527,31 @@
           "currency",
           "taxBasis"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Sin presentationId, baseQuantity debe ser decimal igual a1 (p.ej. 1 o 1.0); con presentación debe coincidir exactamente con su equivalencia. Incompatibilidad devuelve409; no se inventan conversiones.",
+        "allOf": [
+          {
+            "if": {
+              "not": {
+                "required": [
+                  "presentationId"
+                ],
+                "properties": {
+                  "presentationId": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "baseQuantity": {
+                  "pattern": "^1(?:\\.0{1,8})?$"
+                }
+              }
+            }
+          }
+        ]
       },
       "ReservationInput": {
         "type": "object",
@@ -23611,6 +23882,56 @@
             "items": {
               "type": "object",
               "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                }
+              },
+              "required": [
+                "itemId",
+                "quantity"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 1000
+          }
+        },
+        "required": [
+          "workId",
+          "name",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "ComputationPatch": {
+        "type": "object",
+        "properties": {
+          "workId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
                 "itemId": {
                   "type": "string",
                   "minLength": 1,
@@ -24338,11 +24659,6 @@
             "minLength": 1,
             "maxLength": 500
           },
-          "unitId": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
-          },
           "categoryId": {
             "anyOf": [
               {
@@ -24363,7 +24679,8 @@
             "type": "boolean"
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "La unidad base es inmutable. unitId no se admite en PATCH (422); crear otro material para cambiarla."
       },
       "NamedPatch": {
         "type": "object",
@@ -24380,6 +24697,309 @@
           }
         },
         "additionalProperties": false
+      },
+      "LocationSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/LocationKind"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "ReturnDestination": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "WAREHOUSE",
+              "YARD"
+            ]
+          },
+          "active": {
+            "const": true
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "kind",
+          "active"
+        ],
+        "additionalProperties": false
+      },
+      "VisibleLocation": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Location"
+          },
+          {
+            "$ref": "#/components/schemas/ReturnDestination"
+          }
+        ],
+        "description": "Jefe: ubicación completa de obra propia o sólo metadatos de galpón/patio activo; no concede lectura de saldos globales."
+      },
+      "AuditEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "actorId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "action": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "before": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "actorId",
+          "action",
+          "entityType",
+          "entityId",
+          "before",
+          "after",
+          "createdAt",
+          "actorName"
+        ],
+        "additionalProperties": false
+      },
+      "MovementDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/MovementType"
+          },
+          "materialId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "sourceId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "destinationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reservationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receiptLineId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "categoryId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "destination": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LocationSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "actorName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "materialId",
+          "quantity",
+          "sourceId",
+          "destinationId",
+          "workId",
+          "reservationId",
+          "receiptLineId",
+          "createdById",
+          "reason",
+          "idempotencyKey",
+          "createdAt",
+          "categoryId",
+          "source",
+          "destination",
+          "actorName"
+        ],
+        "additionalProperties": false,
+        "description": "Ubicaciones mínimas sin saldos. Para Jefe, source/destination de obras no asignadas se proyectan null, incluso si el movimiento llega a su obra autorizada. Los IDs escalares se conservan como referencia histórica; no conceden acceso."
+      },
+      "MovementWriteResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/MovementDetail"
+          },
+          {
+            "$ref": "#/components/schemas/StockMovement"
+          }
+        ],
+        "description": "Nuevas intenciones devuelven MovementDetail. Replay de claves guardadas con el contrato anterior puede devolver StockMovement sin metadatos; GET /movements los incluye sin repetir la operación."
+      },
+      "MinimumSource": {
+        "type": "string",
+        "enum": [
+          "LOCATION",
+          "MATERIAL",
+          "NONE"
+        ],
+        "description": "LOCATION: override local, incluso 0. MATERIAL: heredado positivo. NONE: sin override y mínimo global 0."
       },
       "MaterialDetail": {
         "type": "object",
@@ -24566,6 +25186,18 @@
               ],
               "additionalProperties": false
             }
+          },
+          "referenceVersionId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -24577,7 +25209,8 @@
           "createdAt",
           "updatedAt",
           "location",
-          "assignments"
+          "assignments",
+          "referenceVersionId"
         ],
         "additionalProperties": false
       },
@@ -24624,6 +25257,16 @@
           },
           "unit": {
             "$ref": "#/components/schemas/Unit"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -24684,6 +25327,9 @@
           },
           "belowMinimum": {
             "type": "boolean"
+          },
+          "minimumSource": {
+            "$ref": "#/components/schemas/MinimumSource"
           }
         },
         "required": [
@@ -24697,7 +25343,8 @@
           "material",
           "location",
           "available",
-          "belowMinimum"
+          "belowMinimum",
+          "minimumSource"
         ],
         "additionalProperties": false
       },
@@ -24824,6 +25471,9 @@
           },
           "belowMinimum": {
             "const": true
+          },
+          "minimumSource": {
+            "$ref": "#/components/schemas/MinimumSource"
           }
         },
         "required": [
@@ -24836,7 +25486,8 @@
           "reserved",
           "available",
           "minimum",
-          "belowMinimum"
+          "belowMinimum",
+          "minimumSource"
         ],
         "additionalProperties": false
       },
@@ -25028,7 +25679,313 @@
         ],
         "additionalProperties": false
       },
+      "OrderLineDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "materialId": {
+            "type": "string"
+          },
+          "presentationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "receivedQuantity": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "unitPrice": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "baseQuantity": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "pendingQuantity": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "lineAmount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Decimal serializado como texto, nunca float."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "materialId",
+          "presentationId",
+          "quantity",
+          "receivedQuantity",
+          "unitPrice",
+          "baseQuantity",
+          "pendingQuantity",
+          "lineAmount"
+        ],
+        "additionalProperties": false
+      },
       "OrderDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "supplierId": {
+            "type": "string"
+          },
+          "workId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "requestId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "quotationId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "destinationId": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PurchaseOrderStatus"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "taxBasis": {
+            "$ref": "#/components/schemas/TaxBasis"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "invoiceNumber": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "invoiceLoadedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "invoiceLoadedById": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineDetail"
+            }
+          },
+          "supplier": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "destination": {
+            "$ref": "#/components/schemas/LocationSummary"
+          },
+          "work": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdByName": {
+            "type": "string"
+          },
+          "invoiceLoadedByName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalAmount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Decimal serializado como texto, nunca float."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "amountWarning": {
+            "anyOf": [
+              {
+                "const": "ROUNDING_POLICY_REQUIRED"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "supplierId",
+          "workId",
+          "requestId",
+          "quotationId",
+          "destinationId",
+          "status",
+          "currency",
+          "taxBasis",
+          "notes",
+          "invoiceNumber",
+          "invoiceLoadedAt",
+          "invoiceLoadedById",
+          "createdById",
+          "createdAt",
+          "updatedAt",
+          "lines",
+          "supplier",
+          "destination",
+          "work",
+          "createdByName",
+          "invoiceLoadedByName",
+          "totalAmount",
+          "amountWarning"
+        ],
+        "additionalProperties": false,
+        "description": "Importes exactos quantity*unitPrice/baseQuantity cuando son representables hasta8decimales; sin agregar IVA ni redondear. Si alguna línea requiere política de redondeo: lineAmount y totalAmount null, amountWarning ROUNDING_POLICY_REQUIRED. No certifica política monetaria final CEO."
+      },
+      "LegacyOrderDetail": {
         "type": "object",
         "properties": {
           "id": {
@@ -25163,6 +26120,17 @@
         ],
         "additionalProperties": false
       },
+      "OrderWriteResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/OrderDetail"
+          },
+          {
+            "$ref": "#/components/schemas/LegacyOrderDetail"
+          }
+        ],
+        "description": "Nueva OC devuelve OrderDetail. Una clave idempotente creada con el contrato anterior conserva LegacyOrderDetail; consultar GET /purchase-orders/{id} para descripciones/importes actuales, sin volver a crear."
+      },
       "ChiefOrderLine": {
         "type": "object",
         "properties": {
@@ -25241,6 +26209,12 @@
             "minLength": 1,
             "maxLength": 100
           },
+          "destination": {
+            "$ref": "#/components/schemas/LocationSummary"
+          },
+          "createdByName": {
+            "type": "string"
+          },
           "status": {
             "$ref": "#/components/schemas/PurchaseOrderStatus"
           },
@@ -25261,6 +26235,8 @@
           "workId",
           "requestId",
           "destinationId",
+          "destination",
+          "createdByName",
           "status",
           "createdAt",
           "lines"
@@ -25320,6 +26296,61 @@
             "items": {
               "$ref": "#/components/schemas/ReceiptLine"
             }
+          },
+          "actorName": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationSummary"
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "locationId",
+          "receivedById",
+          "deliveryNote",
+          "createdAt",
+          "lines",
+          "actorName",
+          "location"
+        ],
+        "additionalProperties": false
+      },
+      "LegacyReceiptDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "locationId": {
+            "type": "string"
+          },
+          "receivedById": {
+            "type": "string"
+          },
+          "deliveryNote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReceiptLine"
+            }
           }
         },
         "required": [
@@ -25332,6 +26363,17 @@
           "lines"
         ],
         "additionalProperties": false
+      },
+      "ReceiptWriteResult": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ReceiptDetail"
+          },
+          {
+            "$ref": "#/components/schemas/LegacyReceiptDetail"
+          }
+        ],
+        "description": "Nuevo evento devuelve ReceiptDetail. Replay previo conserva metadatos originales LegacyReceiptDetail; GET de recepciones incluye nombres/ubicación actuales."
       },
       "ApuMaterialDetail": {
         "type": "object",
@@ -25376,6 +26418,16 @@
           },
           "unit": {
             "$ref": "#/components/schemas/Unit"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Category"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -26399,12 +27451,58 @@
                   "type": "string",
                   "pattern": "^-?\\d+(\\.\\d+)?$",
                   "description": "Decimal serializado como texto, nunca float."
+                },
+                "material": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "unit": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [
                 "materialId",
                 "unitId",
-                "quantity"
+                "quantity",
+                "material",
+                "unit"
               ],
               "additionalProperties": false
             }
@@ -26433,13 +27531,82 @@
                   "type": "string",
                   "pattern": "^-?\\d+(\\.\\d+)?$",
                   "description": "Decimal serializado como texto, nunca float."
+                },
+                "material": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "unit": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name"
+                  ],
+                  "additionalProperties": false
+                },
+                "category": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [
                 "categoryId",
                 "materialId",
                 "unitId",
-                "quantity"
+                "quantity",
+                "material",
+                "unit",
+                "category"
               ],
               "additionalProperties": false
             }

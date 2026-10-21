@@ -26,6 +26,7 @@ function operation(path:string,method:string){
 }
 async function call(path:string,method='GET',body?:unknown,cookie=admin,key?:string,expectedStatus?:number){
  const {op,label}=operation(path,method);
+ if(!key&&method==='POST'&&/^budgets\/[^/]+\/versions$/.test(path))key=randomUUID();
  const response=await dispatch(new Request(`${origin}/api/v1/${path}`,{method,headers:{origin,cookie:`ceo_session=${cookie}`,'content-type':'application/json',...(key?{'idempotency-key':key}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})}),path.split('?')[0].split('/'));
  const payload=await response.json();
  const schema=op.responses[response.status]?.content?.['application/json']?.schema;

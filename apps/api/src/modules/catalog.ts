@@ -39,6 +39,9 @@ export const materialSchema = named.extend({
   minimum: nonnegative.optional(),
   active: z.boolean().optional(),
 });
+export const materialPatchSchema = materialSchema
+  .omit({ unitId: true })
+  .partial();
 export const presentationSchema = z
   .object({
     materialId: id,
@@ -85,44 +88,83 @@ export async function handlerCatalog(
   if (s.length > 2) return null;
   const q = new URL(request.url).searchParams;
   const p = paging(request);
+  const search = (q.get("q") || q.get("search"))?.trim();
+  const active = q.has("active")
+    ? z
+        .enum(["true", "false"])
+        .transform((value) => value === "true")
+        .parse(q.get("active"))
+    : undefined;
   if (resource === "audit") {
     requireRoles(actor, "GERENCIA");
     if (method !== "GET" || key) return null;
+    const timestamp = (name: string) =>
+      q.has(name)
+        ? new Date(z.string().datetime({ offset: true }).parse(q.get(name)))
+        : undefined;
+    const from = timestamp("from"),
+      to = timestamp("to");
+    if (from && to && from > to)
+      throw new ApiError(
+        422,
+        "VALIDATION_ERROR",
+        "El inicio del intervalo debe ser anterior al fin.",
+      );
     const where: Prisma.AuditLogWhereInput = {
       entityType: q.get("entity") || undefined,
       entityId: q.get("entityId") || undefined,
+      actorId: q.get("actorId") || undefined,
+      action: q.get("action") || undefined,
+      ...(from || to ? { createdAt: { gte: from, lte: to } } : {}),
     };
     const [data, total] = await db.$transaction([
       db.auditLog.findMany({
         where,
         skip: p.skip,
         take: p.take,
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        include: { actor: { select: { name: true } } },
       }),
       db.auditLog.count({ where }),
     ]);
-    return listed(data, total, p);
+    return listed(
+      data.map(({ actor, ...log }) => ({
+        ...log,
+        actorName: actor?.name ?? null,
+      })),
+      total,
+      p,
+    );
   }
   if (resource === "works") {
     if (method === "GET") {
       if (key) {
         await requireWork(actor, key);
-        return ok(
-          found(
-            await db.work.findUnique({
-              where: { id: key },
-              include: {
-                location: true,
-                assignments: { select: { userId: true } },
-              },
-            }),
-          ),
+        const work = found(
+          await db.work.findUnique({
+            where: { id: key },
+            include: {
+              location: true,
+              assignments: { select: { userId: true } },
+            },
+          }),
         );
+        const reference = await db.budgetVersion.findFirst({
+          where: { budget: { workId: key }, status: "REFERENCE" },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+          select: { id: true },
+        });
+        return ok({ ...work, referenceVersionId: reference?.id ?? null });
       }
       const where: Prisma.WorkWhereInput =
         actor.role === "JEFE_OBRA"
           ? { assignments: { some: { userId: actor.id } } }
           : {};
+      if (search)
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { code: { contains: search, mode: "insensitive" } },
+        ];
       if (q.get("status"))
         where.status = z
           .enum(["ACTIVE", "PAUSED", "COMPLETED"])
@@ -162,8 +204,19 @@ export async function handlerCatalog(
       const b = await parse(request, workSchema.partial());
       return ok(
         await transaction(async (tx) => {
+          const before = found(
+            await tx.work.findUnique({ where: { id: key } }),
+          );
           const w = await tx.work.update({ where: { id: key }, data: b });
-          await audit(tx, actor, "UPDATE", "Work", key, b);
+          await audit(
+            tx,
+            actor,
+            "UPDATE",
+            "Work",
+            key,
+            JSON.parse(JSON.stringify(w)),
+            JSON.parse(JSON.stringify(before)),
+          );
           return w;
         }),
       );
@@ -174,15 +227,33 @@ export async function handlerCatalog(
       if (key) {
         const loc = found(await db.location.findUnique({ where: { id: key } }));
         if (actor.role === "JEFE_OBRA") {
-          if (!loc.workId)
+          if (!loc.workId) {
+            if (loc.active && ["WAREHOUSE", "YARD"].includes(loc.kind))
+              return ok({
+                id: loc.id,
+                code: loc.code,
+                name: loc.name,
+                kind: loc.kind,
+                active: loc.active,
+              });
             throw new ApiError(403, "FORBIDDEN", "Ubicación no autorizada");
+          }
           await requireWork(actor, loc.workId);
         }
         return ok(loc);
       }
       const where: Prisma.LocationWhereInput =
         actor.role === "JEFE_OBRA"
-          ? { work: { assignments: { some: { userId: actor.id } } } }
+          ? {
+              OR: [
+                { work: { assignments: { some: { userId: actor.id } } } },
+                {
+                  workId: null,
+                  kind: { in: ["WAREHOUSE", "YARD"] },
+                  active: true,
+                },
+              ],
+            }
           : {};
       const [data, total] = await db.$transaction([
         db.location.findMany({
@@ -193,7 +264,21 @@ export async function handlerCatalog(
         }),
         db.location.count({ where }),
       ]);
-      return listed(data, total, p);
+      return listed(
+        data.map((loc) =>
+          actor.role === "JEFE_OBRA" && !loc.workId
+            ? {
+                id: loc.id,
+                code: loc.code,
+                name: loc.name,
+                kind: loc.kind,
+                active: loc.active,
+              }
+            : loc,
+        ),
+        total,
+        p,
+      );
     }
     requireRoles(actor, "GERENCIA");
     const schema = named.extend({
@@ -297,10 +382,16 @@ export async function handlerCatalog(
           ),
         );
       const where: Prisma.MaterialWhereInput = {
-        name: q.get("search")
-          ? { contains: q.get("search")!, mode: "insensitive" }
-          : undefined,
+        ...(search
+          ? {
+              OR: [
+                { name: { contains: search, mode: "insensitive" } },
+                { code: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {}),
         categoryId: q.get("categoryId") || undefined,
+        active,
       };
       const [data, total] = await db.$transaction([
         db.material.findMany({
@@ -318,19 +409,10 @@ export async function handlerCatalog(
     if ((method === "POST" && !key) || (method === "PATCH" && key)) {
       const b = await parse(
         request,
-        key ? materialSchema.partial() : materialSchema,
+        key ? materialPatchSchema : materialSchema,
       );
       return ok(
         await transaction(async (tx) => {
-          if (key && b.unitId) {
-            const old = found(
-              await tx.material.findUnique({ where: { id: key } }),
-            );
-            if (old.unitId !== b.unitId)
-              conflict(
-                "La unidad base es inmutable; cree otro material para no alterar cantidades históricas",
-              );
-          }
           const row = key
             ? await tx.material.update({ where: { id: key }, data: b })
             : await tx.material.create({
@@ -355,13 +437,26 @@ export async function handlerCatalog(
     if (method === "GET") {
       if (key)
         return ok(found(await db.supplier.findUnique({ where: { id: key } })));
+      const where: Prisma.SupplierWhereInput = {
+        active,
+        ...(search
+          ? {
+              OR: [
+                { code: { contains: search, mode: "insensitive" } },
+                { name: { contains: search, mode: "insensitive" } },
+                { taxId: { contains: search, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+      };
       const [data, total] = await db.$transaction([
         db.supplier.findMany({
+          where,
           skip: p.skip,
           take: p.take,
           orderBy: { code: "asc" },
         }),
-        db.supplier.count(),
+        db.supplier.count({ where }),
       ]);
       return listed(data, total, p);
     }

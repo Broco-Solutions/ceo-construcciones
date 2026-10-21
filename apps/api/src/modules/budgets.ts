@@ -4,6 +4,7 @@ import { db, transaction } from "../core/db";
 import { Actor, requireRoles, requireWork } from "../core/auth";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
+import { idempotent } from "./inventory";
 
 // Keep calculations decimal and exact until the caller's explicitly selected
 // rounding boundary. Never inherit decimal.js's default 20 significant digits.
@@ -246,6 +247,31 @@ export const computationSchema = z
       .max(1000),
   })
   .strict();
+// PATCH replaces the line collection, but explicitly identified rows retain identity.
+export const computationPatchSchema = computationSchema
+  .extend({
+    lines: z
+      .array(
+        z
+          .object({
+            id: identifier.optional(),
+            itemId: identifier,
+            quantity: positive,
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(1000),
+  })
+  .superRefine((input, ctx) => {
+    const ids = input.lines.flatMap((line) => (line.id ? [line.id] : []));
+    if (new Set(ids).size !== ids.length)
+      ctx.addIssue({
+        code: "custom",
+        path: ["lines"],
+        message: "Renglón repetido",
+      });
+  });
 export const budgetSchema = z
   .object({ workId: identifier, name: z.string().trim().min(1).max(300) })
   .strict();
@@ -514,14 +540,29 @@ export async function handlerBudgets(
   ) {
     const version = await db.budgetVersion.findUnique({
       where: { id },
-      include: { budget: true, materials: true },
+      include: {
+        budget: true,
+        materials: {
+          include: {
+            material: { select: { id: true, code: true, name: true } },
+            unit: { select: { id: true, code: true, name: true } },
+            category: { select: { id: true, code: true, name: true } },
+          },
+        },
+      },
     });
     if (!version) throw new ApiError(404, "NOT_FOUND", "Versión inexistente");
     await requireWork(actor, version.budget.workId);
     // This projection deliberately never serializes the economic snapshot.
     const materials = new Map<
       string,
-      { materialId: string; unitId: string; quantity: Prisma.Decimal }
+      {
+        materialId: string;
+        unitId: string;
+        quantity: Prisma.Decimal;
+        material: { id: string; code: string; name: string };
+        unit: { id: string; code: string; name: string };
+      }
     >();
     for (const row of version.materials) {
       const key = `${row.materialId}:${row.unitId}`;
@@ -533,6 +574,8 @@ export async function handlerBudgets(
           materialId: row.materialId,
           unitId: row.unitId,
           quantity: new Decimal(row.quantity.toString()),
+          material: row.material,
+          unit: row.unit,
         });
     }
     return response({
@@ -546,6 +589,9 @@ export async function handlerBudgets(
         })),
         materialsByCategory: version.materials.map((row) => ({
           categoryId: row.categoryId,
+          category: row.category,
+          material: row.material,
+          unit: row.unit,
           materialId: row.materialId,
           unitId: row.unitId,
           quantity: row.quantity.toString(),
@@ -670,9 +716,12 @@ export async function handlerBudgets(
     }
     if (id && !action && method === "PATCH") {
       requireWriter(actor);
-      const input = parse(computationSchema, await json(request));
+      const input = parse(computationPatchSchema, await json(request));
       const result = await transaction(async (tx) => {
-        const current = await tx.computation.findUnique({ where: { id } });
+        const current = await tx.computation.findUnique({
+          where: { id },
+          include: { lines: true },
+        });
         if (!current)
           throw new ApiError(404, "NOT_FOUND", "Cómputo inexistente");
         if (current.workId !== input.workId)
@@ -681,10 +730,48 @@ export async function handlerBudgets(
             "IMMUTABLE_WORK",
             "No se puede cambiar la obra de un cómputo",
           );
-        await tx.computationLine.deleteMany({ where: { computationId: id } });
+        const currentById = new Map(
+          current.lines.map((line) => [line.id, line]),
+        );
+        if (input.lines.some((line) => line.id && !currentById.has(line.id)))
+          throw new ApiError(422, "INVALID_LINE", "Renglón ajeno al cómputo");
+        const claimedIds = new Set(
+          input.lines.flatMap((line) => (line.id ? [line.id] : [])),
+        );
+        const resolved = input.lines.map((line) => {
+          if (line.id) return line;
+          // Older clients can omit ids when an APU has an unambiguous identity.
+          // Repeated APU rows need explicit ids; matching them by position invents identity.
+          const candidates = current.lines.filter(
+            (row) => row.itemId === line.itemId,
+          );
+          const uniqueInput =
+            input.lines.filter((row) => row.itemId === line.itemId).length ===
+            1;
+          const existing =
+            uniqueInput &&
+            candidates.length === 1 &&
+            !claimedIds.has(candidates[0].id)
+              ? candidates[0]
+              : undefined;
+          return { ...line, id: existing?.id };
+        });
+        const retained = resolved.flatMap((line) => (line.id ? [line.id] : []));
+        await tx.computationLine.deleteMany({
+          where: { computationId: id, id: { notIn: retained } },
+        });
+        for (const line of resolved) {
+          const data = { itemId: line.itemId, quantity: line.quantity };
+          if (line.id)
+            await tx.computationLine.update({ where: { id: line.id }, data });
+          else
+            await tx.computationLine.create({
+              data: { ...data, computationId: id },
+            });
+        }
         const computation = await tx.computation.update({
           where: { id },
-          data: { name: input.name, lines: { create: input.lines } },
+          data: { name: input.name },
           include: { lines: true },
         });
         await audit(tx, actor, "UPDATE", "Computation", id, input);
@@ -729,80 +816,93 @@ export async function handlerBudgets(
     if (id && action === "versions" && method === "POST") {
       requireWriter(actor);
       const input = parse(versionSchema, await json(request));
-      const result = await transaction(async (tx) => {
-        const budget = await tx.budget.findUnique({ where: { id } });
-        if (!budget)
-          throw new ApiError(404, "NOT_FOUND", "Presupuesto inexistente");
-        const computation = await tx.computation.findUnique({
-          where: { id: input.computationId },
-          include: {
-            lines: {
-              include: { item: { include: itemInclude } },
-              orderBy: { id: "asc" },
+      const result = await idempotent(
+        actor,
+        `budget-version:${id}`,
+        request.headers.get("idempotency-key") ?? "",
+        input,
+        async (tx) => {
+          const budget = await tx.budget.findUnique({ where: { id } });
+          if (!budget)
+            throw new ApiError(404, "NOT_FOUND", "Presupuesto inexistente");
+          const computation = await tx.computation.findUnique({
+            where: { id: input.computationId },
+            include: {
+              lines: {
+                include: { item: { include: itemInclude } },
+                orderBy: { id: "asc" },
+              },
             },
-          },
-        });
-        if (!computation || computation.workId !== budget.workId)
-          throw new ApiError(
-            422,
-            "INVALID_COMPUTATION",
-            "El cómputo debe pertenecer a la obra del presupuesto",
+          });
+          if (!computation || computation.workId !== budget.workId)
+            throw new ApiError(
+              422,
+              "INVALID_COMPUTATION",
+              "El cómputo debe pertenecer a la obra del presupuesto",
+            );
+          const lines = await snapshotLines(
+            tx,
+            computation.lines,
+            input,
+            input.overrides,
           );
-        const lines = await snapshotLines(
-          tx,
-          computation.lines,
-          input,
-          input.overrides,
-        );
-        const snapshot = calculateBudget({ ...input, lines });
-        if (
-          snapshot.materialsByCategory.some((material) =>
-            new Decimal(material.quantity).gte("100000000000000000000"),
+          const snapshot = calculateBudget({ ...input, lines });
+          if (
+            snapshot.materialsByCategory.some((material) =>
+              new Decimal(material.quantity).gte("100000000000000000000"),
+            )
           )
-        )
-          throw new ApiError(
-            422,
-            "QUANTITY_OUT_OF_RANGE",
-            "La cantidad consolidada supera la precisión de almacenamiento",
-          );
-        const latest = await tx.budgetVersion.aggregate({
-          where: { budgetId: id },
-          _max: { number: true },
-        });
-        const version = await tx.budgetVersion.create({
-          data: {
-            budgetId: id,
-            number: (latest._max.number ?? 0) + 1,
-            currency: input.currency,
-            taxBasis: input.taxBasis,
-            precision: input.precision,
-            roundingMode: input.roundingMode,
-            createdById: actor.id,
-            snapshot: {
-              ...snapshot,
-              computationId: computation.id,
-              computationName: computation.name,
-              overrides: input.overrides ?? [],
-            } as unknown as Prisma.InputJsonValue,
-            materials: {
-              create: snapshot.materialsByCategory.map((material) => ({
-                materialId: material.materialId,
-                unitId: material.unitId,
-                categoryId: material.categoryId,
-                quantity: material.quantity,
-              })),
+            throw new ApiError(
+              422,
+              "QUANTITY_OUT_OF_RANGE",
+              "La cantidad consolidada supera la precisión de almacenamiento",
+            );
+          const latest = await tx.budgetVersion.aggregate({
+            where: { budgetId: id },
+            _max: { number: true },
+          });
+          const version = await tx.budgetVersion.create({
+            data: {
+              budgetId: id,
+              number: (latest._max.number ?? 0) + 1,
+              currency: input.currency,
+              taxBasis: input.taxBasis,
+              precision: input.precision,
+              roundingMode: input.roundingMode,
+              createdById: actor.id,
+              snapshot: {
+                ...snapshot,
+                computationId: computation.id,
+                computationName: computation.name,
+                overrides: input.overrides ?? [],
+              } as unknown as Prisma.InputJsonValue,
+              materials: {
+                create: snapshot.materialsByCategory.map((material) => ({
+                  materialId: material.materialId,
+                  unitId: material.unitId,
+                  categoryId: material.categoryId,
+                  quantity: material.quantity,
+                })),
+              },
             },
-          },
-          include: { materials: true },
-        });
-        await audit(tx, actor, "CREATE_VERSION", "BudgetVersion", version.id, {
-          budgetId: id,
-          number: version.number,
-          computationId: computation.id,
-          overrides: input.overrides ?? [],
-        });
-        return version;
-      });
+            include: { materials: true },
+          });
+          await audit(
+            tx,
+            actor,
+            "CREATE_VERSION",
+            "BudgetVersion",
+            version.id,
+            {
+              budgetId: id,
+              number: version.number,
+              computationId: computation.id,
+              overrides: input.overrides ?? [],
+            },
+          );
+          return version;
+        },
+      );
       return response({ data: result }, 201);
     }
   }

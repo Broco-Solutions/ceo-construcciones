@@ -21,6 +21,52 @@ import {
   validMaterial,
 } from "./shared";
 
+const movementRelations = {
+  source: {
+    select: { id: true, code: true, name: true, kind: true, workId: true },
+  },
+  destination: {
+    select: { id: true, code: true, name: true, kind: true, workId: true },
+  },
+  createdBy: { select: { name: true } },
+} as const;
+
+type MovementRow = Prisma.StockMovementGetPayload<{
+  include: typeof movementRelations;
+}>;
+
+function movementDto(row: MovementRow, authorizedWorks?: ReadonlySet<string>) {
+  const { createdBy, source, destination, ...movement } = row;
+  const locationDto = (location: MovementRow["source"]) => {
+    if (!location) return null;
+    // A transfer into an assigned work can originate in another work. The
+    // event belongs to the destination, but that does not grant its chief
+    // access to the source work's descriptive metadata.
+    if (
+      authorizedWorks &&
+      (location.workId || location.kind === "WORK") &&
+      (!location.workId || !authorizedWorks.has(location.workId))
+    )
+      return null;
+    const { workId: _workId, ...summary } = location;
+    return summary;
+  };
+  return {
+    ...movement,
+    source: locationDto(source),
+    destination: locationDto(destination),
+    actorName: createdBy.name,
+  };
+}
+
+function minimumSource(
+  locationMinimum: Prisma.Decimal | null,
+  materialMinimum: Prisma.Decimal,
+): "LOCATION" | "MATERIAL" | "NONE" {
+  if (locationMinimum !== null) return "LOCATION";
+  return materialMinimum.gt(0) ? "MATERIAL" : "NONE";
+}
+
 export async function idempotent<T>(
   actor: Actor,
   scope: string,
@@ -201,10 +247,12 @@ export async function handlerInventory(
       physical: Prisma.Decimal;
       reserved: Prisma.Decimal;
       minimum: Prisma.Decimal;
+      locationMinimum: Prisma.Decimal | null;
+      materialMinimum: Prisma.Decimal;
     };
     return transaction(async (tx) => {
       const rows = await tx.$queryRaw<AlertRow[]>(
-        Prisma.sql`SELECT b.id AS "balanceId",m.id AS "materialId",m.code AS "materialCode",m.name AS "materialName",m."unitId",u.code AS "unitCode",l.id AS "locationId",l.code AS "locationCode",l.name AS "locationName",l."workId",COALESCE(b.physical,0) AS physical,COALESCE(b.reserved,0) AS reserved,COALESCE(b.minimum,m.minimum) AS minimum ${from} ORDER BY m.code,l.code LIMIT ${p.take} OFFSET ${p.skip}`,
+        Prisma.sql`SELECT b.id AS "balanceId",m.id AS "materialId",m.code AS "materialCode",m.name AS "materialName",m."unitId",u.code AS "unitCode",l.id AS "locationId",l.code AS "locationCode",l.name AS "locationName",l."workId",COALESCE(b.physical,0) AS physical,COALESCE(b.reserved,0) AS reserved,COALESCE(b.minimum,m.minimum) AS minimum,b.minimum AS "locationMinimum",m.minimum AS "materialMinimum" ${from} ORDER BY m.code,l.code LIMIT ${p.take} OFFSET ${p.skip}`,
       );
       const totals = await tx.$queryRaw<{ total: bigint }[]>(
         Prisma.sql`SELECT COUNT(*) AS total ${from}`,
@@ -231,6 +279,10 @@ export async function handlerInventory(
           reserved: D(row.reserved).toFixed(),
           available: D(row.physical).minus(row.reserved).toFixed(),
           minimum: D(row.minimum).toFixed(),
+          minimumSource: minimumSource(
+            row.locationMinimum,
+            row.materialMinimum,
+          ),
           belowMinimum: true,
         })),
         Number(totals[0].total),
@@ -265,6 +317,7 @@ export async function handlerInventory(
           ...b,
           available: available.toString(),
           minimum: minimum.toString(),
+          minimumSource: minimumSource(b.minimum, b.material.minimum),
           belowMinimum: available.lt(minimum),
         };
       }),
@@ -405,16 +458,32 @@ export async function handlerInventory(
           { sourceId: q.get("locationId")! },
           { destinationId: q.get("locationId")! },
         ];
-      const [data, total] = await db.$transaction([
-        db.stockMovement.findMany({
-          where,
-          skip: p.skip,
-          take: p.take,
-          orderBy: { createdAt: "desc" },
-        }),
-        db.stockMovement.count({ where }),
-      ]);
-      return listed(data, total, p);
+      const [data, total, assignments] = await db.$transaction((tx) =>
+        Promise.all([
+          tx.stockMovement.findMany({
+            where,
+            include: movementRelations,
+            skip: p.skip,
+            take: p.take,
+            orderBy: { createdAt: "desc" },
+          }),
+          tx.stockMovement.count({ where }),
+          actor.role === "JEFE_OBRA"
+            ? tx.workAssignment.findMany({
+                where: { userId: actor.id },
+                select: { workId: true },
+              })
+            : Promise.resolve(undefined),
+        ]),
+      );
+      const authorizedWorks = assignments
+        ? new Set(assignments.map((assignment) => assignment.workId))
+        : undefined;
+      return listed(
+        data.map((row) => movementDto(row, authorizedWorks)),
+        total,
+        p,
+      );
     }
     if (method === "POST" && s.length === 1) {
       const b = await parse(request, moveSchema);
@@ -549,6 +618,7 @@ export async function handlerInventory(
             if (destination)
               await addPhysical(tx, b.materialId, destination.id, qty);
             const movement = await tx.stockMovement.create({
+              include: movementRelations,
               data: {
                 type: b.type,
                 materialId: b.materialId,
@@ -568,7 +638,18 @@ export async function handlerInventory(
               },
             });
             await audit(tx, actor, b.type, "StockMovement", movement.id, b);
-            return movement;
+            const authorizedWorks =
+              actor.role === "JEFE_OBRA"
+                ? new Set(
+                    (
+                      await tx.workAssignment.findMany({
+                        where: { userId: actor.id },
+                        select: { workId: true },
+                      })
+                    ).map((assignment) => assignment.workId),
+                  )
+                : undefined;
+            return movementDto(movement, authorizedWorks);
           },
         ),
         201,

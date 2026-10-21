@@ -8,6 +8,7 @@ import {
   workSchema,
   supplierSchema,
   materialSchema,
+  materialPatchSchema,
   presentationSchema,
   priceSchema,
 } from "../src/modules/catalog";
@@ -15,6 +16,7 @@ import { reserveSchema, moveSchema } from "../src/modules/inventory";
 import {
   itemSchema,
   computationSchema,
+  computationPatchSchema,
   budgetSchema,
   valuationSchema,
   versionSchema,
@@ -233,6 +235,68 @@ describe("contrato OpenAPI completo y sincronizado", () => {
       ).schema.default,
     ).toBe(25);
   });
+  it("documenta filtros globales, idempotencia y DTO descriptivos sin falsear el legado", () => {
+    for (const [route, queryNames] of Object.entries({
+      "/works": ["q", "search", "status"],
+      "/suppliers": ["search", "active"],
+      "/materials": ["active", "categoryId"],
+      "/requests": ["status"],
+      "/purchase-orders": [
+        "status",
+        "requestId",
+        "quotationId",
+        "destinationId",
+      ],
+      "/audit": ["actorId", "action", "from", "to"],
+    }))
+      for (const name of queryNames)
+        expect(disk.paths[route].get.parameters).toContainEqual(
+          expect.objectContaining({ name, in: "query" }),
+        );
+    expect(disk.paths["/budgets/{id}/versions"].post.parameters).toContainEqual(
+      expect.objectContaining({ name: "Idempotency-Key", required: true }),
+    );
+    expect(
+      disk.paths["/computations/{id}"].patch.requestBody.content[
+        "application/json"
+      ].schema.$ref,
+    ).toBe("#/components/schemas/ComputationPatch");
+    expect(disk.components.schemas.MaterialPatch.properties).not.toHaveProperty(
+      "unitId",
+    );
+    expect(materialPatchSchema.safeParse({ unitId: "immutable" }).success).toBe(
+      false,
+    );
+    expect(disk.components.schemas.Material.properties).toHaveProperty("unit");
+    expect(disk.components.schemas.Material.properties).toHaveProperty(
+      "category",
+    );
+    expect(disk.components.schemas.WorkDetail.properties).toHaveProperty(
+      "referenceVersionId",
+    );
+    expect(disk.components.schemas.OrderLineDetail.required).toContain(
+      "pendingQuantity",
+    );
+    expect(disk.components.schemas.OrderDetail.required).toContain(
+      "totalAmount",
+    );
+    expect(disk.components.schemas.MovementDetail.required).toContain(
+      "actorName",
+    );
+    expect(disk.components.schemas.ZodFlattenDetails.required).toEqual([
+      "formErrors",
+      "fieldErrors",
+    ]);
+    for (const [route, name] of [
+      ["/purchase-orders", "OrderWriteResult"],
+      ["/movements", "MovementWriteResult"],
+      ["/purchase-orders/{id}/receipts", "ReceiptWriteResult"],
+    ])
+      expect(
+        disk.paths[route].post.responses[201].content["application/json"].schema
+          .properties.data.$ref,
+      ).toBe(`#/components/schemas/${name}`);
+  });
   it("proyecciones de jefe excluyen economía y todas respuestas excluyen hashes", () => {
     for (const name of [
       "ChiefOrder",
@@ -276,6 +340,20 @@ describe("contrato OpenAPI completo y sincronizado", () => {
     ])
       expect(disk.paths[resource].get["x-roles"]).not.toContain("JEFE_OBRA");
   });
+  it("conserva mano de obra explícita sin default ni null", () => {
+    const input =
+      disk.paths["/apu-items"].post.requestBody.content["application/json"]
+        .example;
+    expect(
+      itemSchema.safeParse({ ...input, laborCost: undefined }).success,
+    ).toBe(false);
+    expect(itemSchema.safeParse({ ...input, laborCost: null }).success).toBe(
+      false,
+    );
+    expect(itemSchema.safeParse({ ...input, laborCost: "0" }).success).toBe(
+      true,
+    );
+  });
   it("precisión decimal conserva 16 enteros y 8 decimales de stock", () => {
     expect(
       new Prisma.Decimal("9999999999999999.12345678")
@@ -290,6 +368,8 @@ describe("contrato OpenAPI completo y sincronizado", () => {
       { safeParse: (v: unknown) => { success: boolean } },
     ][] = [
       ["/works", "post", workSchema],
+      ["/materials/{id}", "patch", materialPatchSchema],
+      ["/computations/{id}", "patch", computationPatchSchema],
       ["/suppliers", "post", supplierSchema],
       ["/materials", "post", materialSchema],
       ["/presentations", "post", presentationSchema],

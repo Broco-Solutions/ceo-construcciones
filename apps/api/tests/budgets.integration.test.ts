@@ -37,6 +37,9 @@ async function call(
   return handlerBudgets(
     new Request(`http://localhost/api/v1/${path}`, {
       method,
+      ...(method === "POST" && /^budgets\/[^/]+\/versions$/.test(path)
+        ? { headers: { "Idempotency-Key": randomUUID() } }
+        : {}),
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     }),
     user,
