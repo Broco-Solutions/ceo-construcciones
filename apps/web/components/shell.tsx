@@ -61,11 +61,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <a href="#contenido" className="skip">
         Saltar al contenido
       </a>
-      <aside className="side" aria-label="Navegación principal">
+      <aside className="side">
         <div className="logo" style={{ color: '#fff', fontWeight: 800, fontSize: 18, letterSpacing: '-.01em' }}>
           CEO <span style={{ fontWeight: 600, opacity: 0.7 }}>Construcciones</span>
         </div>
-        <nav style={{ overflowY: 'auto', flex: 1 }}>
+        <nav style={{ overflowY: 'auto', flex: 1 }} aria-label="Navegación principal">
           <NavLinks />
         </nav>
         <div className="foot">

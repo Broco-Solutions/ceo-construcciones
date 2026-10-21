@@ -32,7 +32,8 @@ test('credenciales inválidas muestran error y conservan la cookie de cliente', 
   await page.getByLabel('Contraseña').fill('contraseña-incorrecta-123');
   const [resp] = await Promise.all([page.waitForResponse('**/api/v1/auth/login'), page.getByRole('button', { name: 'Ingresar' }).click()]);
   expect(resp.status()).toBe(401);
-  await expect(page.getByRole('alert')).toContainText('Correo o contraseña incorrectos');
+  // Next dev agrega su propio role=alert (route announcer); filtramos por texto.
+  await expect(page.getByRole('alert').filter({ hasText: 'Correo o contraseña incorrectos' })).toBeVisible();
   expect((await context.cookies()).some((c) => c.name === 'ceo_login_client')).toBe(true);
 });
 
