@@ -2,19 +2,31 @@
   "name": "@ceo/web",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start"
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "api:types": "openapi-typescript ../../docs/api/openapi.json -o lib/openapi.d.ts",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "lucide-react": "0.468.0",
     "next": "15.5.27",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },
   "devDependencies": {
-    "typescript": "~5.9.3",
+    "@playwright/test": "1.49.1",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/react": "16.1.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "4.3.4",
+    "jsdom": "25.0.1",
+    "openapi-typescript": "7.4.4",
+    "typescript": "~5.9.3",
+    "vitest": "3.2.4"
   }
 }
