@@ -159,12 +159,12 @@ describe.skipIf(!enabled)("presupuestos contra PostgreSQL aislado", () => {
     versionId = version.data.id;
     firstSnapshot = version.data.snapshot;
     expect(
-      version.data.snapshot.materials.map(
-        (row: { quantity: string }) => row.quantity,
-      ),
-    ).toEqual(["450", "660", "7"]);
+      Object.fromEntries(version.data.snapshot.materials.map(
+        (row: { materialId: string; quantity: string }) => [row.materialId,row.quantity],
+      )),
+    ).toEqual(Object.fromEntries(materialIds.map((id,index)=>[id,["450","660","7"][index]])));
     expect(version.data.snapshot.totalCost).toBe("4200.00");
-    expect(version.data.snapshot.lines[0].materials[0].unitPrice).toBe("2");
+    expect(version.data.snapshot.lines[0].materials.find((row: {materialId:string})=>row.materialId===materialIds[0]).unitPrice).toBe("2");
   });
   it("cambios de catálogo y overrides en versión nueva no modifican histórico ni precio maestro", async () => {
     await db.materialPrice.update({
@@ -200,8 +200,8 @@ describe.skipIf(!enabled)("presupuestos contra PostgreSQL aislado", () => {
     const second = await response!.json();
     expect(second.data.number).toBe(2);
     expect(second.data.snapshot.lines[0].quantity).toBe("50");
-    expect(second.data.snapshot.lines[0].materials[0].quantity).toBe("250");
-    expect(second.data.snapshot.lines[0].materials[0].unitPrice).toBe("4");
+    expect(second.data.snapshot.lines[0].materials.find((row: {materialId:string})=>row.materialId===materialIds[0]).quantity).toBe("250");
+    expect(second.data.snapshot.lines[0].materials.find((row: {materialId:string})=>row.materialId===materialIds[0]).unitPrice).toBe("4");
     expect(
       (
         await db.materialPrice.findUniqueOrThrow({ where: { id: priceIds[0] } })

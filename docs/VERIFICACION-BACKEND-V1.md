@@ -6,7 +6,7 @@ Rama `codex/ceo-v1-backend`. Esto verifica la entrega técnica para revisión; n
 
 | Requisito de misión / PRD | Implementación | Evidencia ejecutable |
 | --- | --- | --- |
-| Autenticación válida/inválida, cookies, logout, usuario inactivo | core/auth, identity, bootstrap-admin | security.test, security.integration, runtime |
+| Autenticación válida/inválida, cookies, logout, usuario inactivo | core/auth, identity, bootstrap-admin | security.test, security.integration, runtime; bootstrap ejecutado sobre base vacía |
 | Roles, aislamiento de obra, ausencia de precios del Jefe | core/auth, proyecciones explícitas OC/BOM/reportes, restricción catálogos económicos | security.integration, integration, budgets.integration, stock-alerts.integration |
 | Obras/responsables/asignaciones y ubicación automática | catalog, identity | integration, contracts.integration |
 | Material/unidad/presentación/proveedor/precios separados e historial | catalog, Prisma | integration, budgets.integration, contracts.integration |
@@ -41,7 +41,7 @@ Next15.5.27 y Prisma6.19.0 se mantienen. El lockfile fija dependencias; override
 
 Referencias de los avisos: [PostCSS](https://github.com/advisories/GHSA-fxqj-rqcc-2cmp), [uuid](https://github.com/advisories/GHSA-w5hq-g745-h8pq), [DeepmergeTS](https://github.com/advisories/GHSA-ggr8-5vv4-36mx), [Effect](https://github.com/advisories/GHSA-38f7-945m-qr2g). El resultado de audit describe sólo los avisos conocidos al ejecutar, no una garantía sobre vulnerabilidades futuras.
 
-CI usa Node24 y PostgreSQL18 efímero sin secretos productivos. La verificación local usa Node24.19.0 y PostgreSQL16.15 aislado. No hay ESLint configurado: se ejecuta typecheck y las comprobaciones del build de Next; no se declara un lint independiente inexistente.
+La regresión `pool.integration.test.ts` ejecuta tres transacciones simultáneas en un proceso con sólo tres conexiones; las autorizaciones reutilizan su cliente transaccional y no agotan el pool. CI usa Node24 y PostgreSQL18 efímero con ese mismo límite, sin secretos productivos. La verificación local usa Node24.19.0 y PostgreSQL16.15 aislado. No hay ESLint configurado: se ejecuta typecheck y las comprobaciones del build de Next; no se declara un lint independiente inexistente.
 
 ## Dependencias externas delimitadas
 

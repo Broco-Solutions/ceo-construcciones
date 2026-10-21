@@ -20,18 +20,20 @@ El usuario autorizó la misión integral del backend; se leyeron los seis docume
 
 Implementados: usuarios/sesiones/RBAC/asignaciones/auditoría; obras/ubicaciones; unidades/rubros/materiales/proveedores/presentaciones/precios históricos; APU/cómputos/presupuestos y versiones con snapshots; pedidos; cotizaciones/comparación/selección; OC numeradas, generales, PDF y referencia limitada de factura; recepciones parciales; stock/reservas/transferencias/consumos/devoluciones/ajustes/apertura única/mínimos; reportes de cantidades/XLSX; importaciones CSV/JSON con preview/hash/idempotencia y rechazo de duplicados.
 
-Prisma contiene32 modelos y migración inicial `20261022000100_backend_v1`, con FK, CHECKs de saldos/cantidades y triggers de inmutabilidad de snapshots. Aplicada exclusivamente a PostgreSQL local aislado. No se ejecutó migración de datos reales CEO.
+Prisma contiene 32 modelos y migración inicial `20261022000100_backend_v1`, con FK, CHECKs de saldos/cantidades y triggers de inmutabilidad de snapshots. Aplicada exclusivamente a PostgreSQL local aislado. No se ejecutó migración de datos reales CEO.
 
-OpenAPI contiene85 rutas y114 operaciones (incluye plantillas/preview/commit por tipo y healthcheck). Se valida formato con SwaggerParser y ejemplos con los schemas reales. AJV2020 valida también unas80 combinaciones de respuestas reales de ruta/estado/rol contra OpenAPI, incluidas proyecciones exclusivas de Jefe y errores401/403/422.
+OpenAPI contiene 85 rutas y 114 operaciones (incluye plantillas/preview/commit por tipo y healthcheck). Se valida formato con SwaggerParser y ejemplos con los schemas reales. AJV2020 valida también unas 80 combinaciones de respuestas reales de ruta/estado/rol contra OpenAPI, incluidas proyecciones exclusivas de Jefe y errores401/403/422.
 
 ## Verificaciones ejecutadas
 
 - Node24.19.0, pnpm10.18.3, PostgreSQL16.15 local aislado (producción observada usa18; CI efímero usa18).
 - Instalación limpia desde copia de fuentes sin node_modules/.next: `pnpm install --frozen-lockfile`, generación Prisma y typecheck correctos.
 - Migración aplicada en una segunda base vacía de pruebas; comparación esquema/BD sin drift.
-- Suite final completa:72/72 pruebas aprobadas en13 archivos con RUN_INTEGRATION=1 y RUN_RUNTIME=1 (sin omisiones). Incluye70 pruebas unitarias/integración/contratos y2 HTTP de runtime.
+- Suite final completa:73/73 pruebas aprobadas en 14 archivos con RUN_INTEGRATION=1 y RUN_RUNTIME=1 (sin omisiones). Incluye 71 pruebas unitarias/integración/contratos y 2 HTTP de runtime.
 - Build Next15.5.27/Prisma6.19.0 correcto, incluido wrapper que conserva `node .next/standalone/server.js` para Railway.
 - Runtime standalone:2/2 pruebas HTTP aprobadas (health con SELECT1, sesión401, login cookie HttpOnly/Secure, logout/revocación). Sin pnpm en el proceso de ejecución.
+- Regresión con pool limitado a 3 conexiones: autorización reutiliza el cliente transaccional; recepciones concurrentes y suite completa aprobadas sin ampliar sus timeouts.
+- Bootstrap ejecutado en otra base vacía aislada: creó una Gerencia con hash scrypt/auditoría y rechazó un segundo intento; contraseña de prueba no guardada ni mostrada.
 - Flujo integral real verificado desde APU hasta informe/Excel, más concurrencia de OC/versiones/reservas/recepciones/consumos, permisos y snapshots.
 - PDF/Excel abiertos por parsers en pruebas; importaciones inválidas/duplicadas rechazadas y dry-run sin escritura.
 - Dump/restauración local de datos sintéticos comprobados:49 usuarios,57 versiones,32 saldos y305 auditorías coinciden; cero saldos con físico<reservado o reservado<0. No equivale a restauración de un backup de Railway.
@@ -40,9 +42,9 @@ OpenAPI contiene85 rutas y114 operaciones (incluye plantillas/preview/commit por
 
 ## Git, revisión y despliegue
 
-Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota en verificación; se corrigieron las comillas del healthcheck del contenedor de pruebas detectadas por la primera corrida. Revisión humana pendiente.
+Rama: `codex/ceo-v1-backend`. Commits iniciales: `112d103` (dominio/seguridad), `9aae80e` (módulos de negocio/integración). [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto hacia main, sin merge. CI remota en verificación; la configuración de pruebas limita el pool a 3 conexiones para verificar concurrencia en un entorno con recursos acotados. Revisión humana pendiente.
 
-Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. Vercel y apps/web no se modificaron.
+Railway fue consultado sólo en lectura: servicio API desde main, root `/apps/api`, último despliegue existente exitoso `418c693f-7328-44ed-99d3-1fbb512c7222` del16/10; healthcheck `/api/health`, sin cambios staged. PostgreSQL18 con volumen existente. La V1 de esta rama **no está desplegada**. La configuración de Vercel y apps/web no se modificaron; la integración GitHub/Vercel generó un preview automático del PR, sin despliegue productivo solicitado.
 
 Variables observadas por nombre en API: DATABASE_URL, HOSTNAME, NODE_ENV, PORT. Falta APP_ORIGIN, necesario para mutaciones de sesión en producción; se configurará al autorizar despliegue. No se leyeron valores secretos. La CLI Railway local está incompleta; se usó el conector para lectura.
 
