@@ -3,23 +3,38 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && node scripts/prepare-standalone.mjs",
     "start": "node .next/standalone/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy"
+    "db:deploy": "prisma migrate deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "RUN_INTEGRATION=1 vitest run --exclude tests/runtime.test.ts",
+    "db:admin": "tsx scripts/bootstrap-admin.ts",
+    "api:generate": "tsx ../../scripts/generate-openapi.ts",
+    "test:runtime": "RUN_RUNTIME=1 vitest run tests/runtime.test.ts"
   },
   "dependencies": {
     "next": "15.5.27",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "@prisma/client": "6.19.0"
+    "@prisma/client": "6.19.0",
+    "zod": "^3.25.76",
+    "exceljs": "^4.4.0",
+    "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "prisma": "6.19.0",
     "typescript": "~5.9.3",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.20.6",
+    "vitest": "^3.2.4",
+    "zod-to-json-schema": "^3.25.0",
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
   }
 }
