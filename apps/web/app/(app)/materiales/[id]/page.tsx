@@ -24,7 +24,8 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
   const [pricing, setPricing] = useState(false);
   const [priceKey, setPriceKey] = useState(0);
   const m = r.data?.data;
-  const unit = m ? units.map.get(m.unitId) : undefined;
+  // MaterialDetail incluye unit/category; el catálogo es sólo respaldo.
+  const unit = m ? (m.unit ?? units.map.get(m.unitId)) : undefined;
   const unitCode = unit?.code ?? '';
 
   return (
@@ -55,7 +56,7 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
               items={[
                 ['Código', <span className="mono" key="c">{m.code}</span>],
                 ['Unidad base', unit ? `${unit.code} — ${unit.name}` : '…'],
-                ['Rubro', m.categoryId ? (cats.map.get(m.categoryId)?.name ?? '…') : 'Sin rubro'],
+                ['Rubro', m.categoryId ? (m.category?.name ?? cats.map.get(m.categoryId)?.name ?? '…') : 'Sin rubro'],
                 ['Stock mínimo', formatQty(m.minimum, unitCode)],
                 ['Estado', m.active ? <Pill tone="ok" key="s">Activo</Pill> : <Pill key="s">Inactivo</Pill>],
                 ['Actualizado', formatDateTime(m.updatedAt)],
@@ -88,7 +89,8 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
           onClose={() => setEditing(false)}
           onSaved={(x) => {
             setEditing(false);
-            r.setData({ data: x });
+            r.setData({ data: { ...m, ...x, unit: x.unit ?? m.unit, category: x.categoryId === m.categoryId ? (x.category ?? m.category) : x.category } });
+            r.reload();
           }}
         />
       )}

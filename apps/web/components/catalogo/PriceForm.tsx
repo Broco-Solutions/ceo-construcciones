@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { api, fieldErrors } from '@/lib/api';
+import { api, ApiError, fieldErrors } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
 import { dateInputToIso, formatQty, isPositiveDecimal, parseDecimalInput } from '@/lib/format';
 import { Button, DecimalField, ErrorBox, Modal, SelectField, TextField, useToast } from '@/components/ui';
@@ -8,6 +8,15 @@ import { MaterialPicker, type PickedMaterial } from './MaterialPicker';
 import { TAX_BASIS_LABEL, useSuppliers, useUnits, type MaterialPrice, type Presentation, type TaxBasis } from './common';
 
 const CURRENCIES = ['ARS', 'USD'];
+const SHOWN = new Set(['materialId', 'supplierId', 'presentationId', 'price', 'currency', 'taxBasis', 'effectiveAt', 'source']);
+
+/**
+ * baseQuantity enviada: sin presentación es "1" fijo (precio por 1 unidad base); con presentación es
+ * exactamente la equivalencia de esa presentación (el servidor responde 409 si no coincide).
+ */
+export function priceBaseQuantity(presentation: { baseQuantity: string } | null): string {
+  return presentation ? presentation.baseQuantity : '1';
+}
 
 /** Registro de precio (append-only: nunca se edita uno existente). */
 export function PriceForm({
@@ -33,12 +42,17 @@ export function PriceForm({
   const pres = useAll<Presentation>(materialId ? '/presentations' : null, { materialId: materialId ?? undefined });
   const activePres = pres.rows.filter((p) => p.active);
   const selPres = activePres.find((p) => p.id === f.presentationId) ?? null;
-  const [unitId, setUnitId] = useState<string | null>(null);
+  const [fixedUnit, setFixedUnit] = useState<{ id: string; code: string } | null>(null);
   useEffect(() => {
     if (!fixedMaterial) return;
-    api.get<{ data: { unitId: string } }>(`/materials/${fixedMaterial}`).then((r) => setUnitId(r.data.unitId)).catch(() => {});
+    // MaterialDetail trae la relación unit.
+    api
+      .get<{ data: { unitId: string; unit?: { id: string; code: string } } }>(`/materials/${fixedMaterial}`)
+      .then((r) => setFixedUnit(r.data.unit ?? { id: r.data.unitId, code: units.map.get(r.data.unitId)?.code ?? '' }))
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fixedMaterial]);
-  const unitCode = units.map.get(material?.unitId ?? unitId ?? '')?.code ?? '';
+  const unitCode = material?.unit?.code ?? fixedUnit?.code ?? units.map.get(material?.unitId ?? fixedUnit?.id ?? '')?.code ?? '';
 
   const m = useMutation(async (_k, body: Record<string, unknown>) => api.post<{ data: MaterialPrice }>('/prices', body));
   const errs = { ...fieldErrors(m.error), ...local };
@@ -50,7 +64,7 @@ export function PriceForm({
     if (!materialId) le.materialId = 'Elegí el material';
     const price = parseDecimalInput(f.price);
     if (!price || !isPositiveDecimal(price)) le.price = 'Ingresá un precio mayor a cero';
-    const bq = selPres ? selPres.baseQuantity : '1';
+    const bq = priceBaseQuantity(selPres);
     if (!bq || !isPositiveDecimal(bq)) le.baseQuantity = 'Ingresá la cantidad en unidad base (mayor a cero)';
     if (!f.currency) le.currency = 'Elegí la moneda';
     if (!f.taxBasis) le.taxBasis = 'Indicá la base impositiva';
@@ -126,13 +140,13 @@ export function PriceForm({
           <div className="field">
             <label>Cantidad en unidad base</label>
             <div className="input muted">{formatQty(selPres.baseQuantity, unitCode)}</div>
-            <span className="hint">Tomada de la presentación: el precio corresponde a 1 {selPres.name}.</span>
+            <span className="hint">Equivalencia exacta de la presentación: el precio corresponde a 1 {selPres.name}. Si la presentación cambió, el servidor rechaza el registro (conflicto) y hay que recargar.</span>
           </div>
         ) : (
           <div className="field">
             <label>Cantidad en unidad base</label>
             <div className="input muted">{formatQty('1', unitCode)}</div>
-            <span className="hint">Sin presentación, el precio se registra por 1 unidad base{unitCode ? ` (${unitCode})` : ''}. Para precios por bolsa, caja, etc., elegí o creá una presentación en el material.</span>
+            <span className="hint">Fijo en 1: sin presentación, el precio se registra siempre por 1 unidad base{unitCode ? ` (${unitCode})` : ''}. Para precios por bolsa, caja, etc., elegí o creá una presentación en el material.</span>
           </div>
         )}
         <div className="formgrid">
@@ -149,7 +163,12 @@ export function PriceForm({
         />
         <TextField label="Vigente desde" type="date" value={f.effectiveAt} onChange={set('effectiveAt')} error={errs.effectiveAt} hint="Si lo dejás vacío, rige desde el momento del registro." />
         <TextField label="Fuente" value={f.source} onChange={set('source')} error={errs.source} maxLength={500} placeholder="Ej.: lista de precios, cotización telefónica" />
-        <ErrorBox error={m.error && Object.keys(fieldErrors(m.error)).length === 0 ? m.error : null} />
+        {m.error instanceof ApiError && m.error.status === 409 && (
+          <div className="alert warn small" role="alert" data-testid="price-conflict">
+            La cantidad en unidad base no coincide con la equivalencia vigente de la presentación. Cerrá y volvé a abrir el formulario para tomar la presentación actualizada.
+          </div>
+        )}
+        <ErrorBox error={m.error && !Object.keys(fieldErrors(m.error)).some((k) => SHOWN.has(k)) ? m.error : null} />
       </form>
     </Modal>
   );

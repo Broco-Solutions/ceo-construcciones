@@ -8,7 +8,7 @@ import { useSession } from '@/lib/session';
 import { useApi } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDateTime, formatQty } from '@/lib/format';
-import { BOUNDARY_LABEL, BudgetFlow, CalcLines, CalcSummary, ROUNDING_LABEL, STATUS_LABEL, STATUS_TONE, TAX_LABEL, useCatalogs, useWorks } from '@/components/presupuesto/common';
+import { BOUNDARY_LABEL, BudgetFlow, CalcLines, CalcSummary, ROUNDING_LABEL, STATUS_LABEL, STATUS_TONE, TAX_LABEL, ReferencePill, useWorkReference, useWorks } from '@/components/presupuesto/common';
 import { ReferenceButton } from '@/components/presupuesto/ReferenceButton';
 
 export default function VersionPage() {
@@ -28,6 +28,7 @@ function VersionDetail() {
   const [tab, setTab] = useState<TabKey>('costos');
   const works = useWorks();
   const v = q.data?.data;
+  const ref = useWorkReference(v?.budget.workId);
   if (q.loading && !v) return <Page title="Versión"><Loading /></Page>;
   if (q.error || !v) return <Page title="Versión"><ErrorBox error={q.error} onRetry={q.reload} /></Page>;
   const s = v.snapshot;
@@ -40,7 +41,7 @@ function VersionDetail() {
           <Link href="/presupuestos">Presupuestos</Link> / <Link href={`/presupuestos/${v.budgetId}`}>{v.budget.name}</Link>
         </>
       }
-      actions={<ReferenceButton version={v} onDone={q.reload} />}
+      actions={<ReferenceButton version={v} onDone={() => (q.reload(), ref.reload())} />}
     >
       <Card>
         <BudgetFlow step={tab === 'materiales' ? 3 : 2} />
@@ -49,7 +50,12 @@ function VersionDetail() {
         <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
           <Pill tone={STATUS_TONE[v.status]}>{STATUS_LABEL[v.status]}</Pill>
           <span className="small muted">Versión inmutable · creada {formatDateTime(v.createdAt)}</span>
-          {v.status === 'REFERENCE' && <span className="small muted">Referencia de la obra (no implica aprobación económica).</span>}
+          {ref.referenceVersionId === v.id && (
+            <>
+              <ReferencePill />
+              <span className="small muted">No implica aprobación económica.</span>
+            </>
+          )}
         </div>
         <CalcSummary calc={s} />
       </Card>
@@ -90,18 +96,18 @@ function VersionDetail() {
 
 function Materials({ versionId }: { versionId: string }) {
   const q = useApi<{ data: Schemas['VersionMaterials'] }>(`/budget-versions/${versionId}/materials`);
-  const cat = useCatalogs();
   const [byCat, setByCat] = useState(false);
-  if (q.loading || cat.loading) return <Loading />;
-  if (q.error || cat.error) return <ErrorBox error={q.error ?? cat.error} onRetry={() => (q.reload(), cat.reload())} />;
+  if (q.loading) return <Loading />;
+  if (q.error) return <ErrorBox error={q.error} onRetry={q.reload} />;
   const d = q.data!.data;
-  const name = (id: string) => {
-    const m = cat.matById.get(id);
-    return m ? `${m.code} · ${m.name}` : id;
-  };
-  const unit = (id: string) => cat.unitById.get(id)?.code;
-  const groups = new Map<string, typeof d.materialsByCategory>();
-  d.materialsByCategory.forEach((r) => groups.set(r.categoryId, [...(groups.get(r.categoryId) ?? []), r]));
+  // Etiquetas incluidas por la API (catálogo actual); cantidades congeladas de la versión.
+  const name = (m: { material: { code: string; name: string } }) => `${m.material.code} · ${m.material.name}`;
+  const groups = new Map<string, { name: string; rows: typeof d.materialsByCategory }>();
+  d.materialsByCategory.forEach((r) => {
+    const g = groups.get(r.categoryId) ?? { name: r.category.name, rows: [] };
+    g.rows.push(r);
+    groups.set(r.categoryId, g);
+  });
   return (
     <Card
       title="Materiales necesarios consolidados"
@@ -126,24 +132,24 @@ function Materials({ versionId }: { versionId: string }) {
             <tbody>
               {d.materials.map((m) => (
                 <tr key={m.materialId}>
-                  <td>{name(m.materialId)}</td>
-                  <td className="r qty">{formatQty(m.quantity, unit(m.unitId))}</td>
+                  <td>{name(m)}</td>
+                  <td className="r qty">{formatQty(m.quantity, m.unit.code)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       ) : (
-        [...groups.entries()].map(([cid, rows]) => (
+        [...groups.entries()].map(([cid, g]) => (
           <div key={cid} className="rubro open">
             <div className="row" style={{ padding: '10px 18px' }}>
-              <b>{cat.catById.get(cid)?.name ?? cid}</b>
+              <b>{g.name}</b>
             </div>
             <div className="items">
-              {rows.map((m) => (
+              {g.rows.map((m) => (
                 <div key={m.materialId} className="row" style={{ padding: '4px 0', borderTop: '1px solid var(--line2)' }}>
-                  <span style={{ flex: 1 }}>{name(m.materialId)}</span>
-                  <b className="qty">{formatQty(m.quantity, unit(m.unitId))}</b>
+                  <span style={{ flex: 1 }}>{name(m)}</span>
+                  <b className="qty">{formatQty(m.quantity, m.unit.code)}</b>
                 </div>
               ))}
             </div>

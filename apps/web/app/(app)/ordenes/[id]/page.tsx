@@ -9,18 +9,30 @@ import { api, ApiError, type Schemas } from '@/lib/api';
 import { useApi, useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { formatDateTime, formatMoney, formatQty } from '@/lib/format';
-import { HistoryTimeline, LookupGate, ORDER_STATUS, StatusPill, TAX_BASIS, useLookups, useUserName, type OrderDetail, type VisibleOrder } from '@/components/compras/common';
+import { AmountWarning, HistoryTimeline, LOCATION_KIND, LookupGate, ORDER_STATUS, StatusPill, TAX_BASIS, useLookups, type OrderDetail, type VisibleOrder } from '@/components/compras/common';
 import { CommercialLines, lineFrom, toCommercial, type LineDraft } from '@/components/compras/CommercialLines';
 import { ReceiptForm, ReceiptHistory, canReceive } from '@/components/compras/Receipts';
 
 const isFull = (o: VisibleOrder): o is OrderDetail => 'supplierId' in o;
+/** Renglón visible: ChiefOrder no trae precios ni importes. */
+type Line = OrderDetail['lines'][number] | (Schemas['ChiefOrderLine'] & { unitPrice?: undefined; baseQuantity?: undefined; lineAmount?: undefined });
+
+/** Importe del servidor; null = sin política de redondeo (nunca se calcula en JS). */
+function LineAmount({ value, currency }: { value: string | null | undefined; currency: string }) {
+  if (value === null || value === undefined)
+    return (
+      <span className="small" style={{ color: 'var(--warn)' }} data-testid="oc-line-amount-missing" title="Importe no calculado: falta definir política de redondeo (validación CEO pendiente)">
+        No calculado
+      </span>
+    );
+  return <span data-testid="oc-line-amount">{formatMoney(value, currency)}</span>;
+}
 
 function Detalle() {
   const { id } = useParams<{ id: string }>();
   const { can } = useSession();
   const toast = useToast();
   const lk = useLookups({ suppliers: true });
-  const userName = useUserName();
   const o = useApi<{ data: VisibleOrder }>(`/purchase-orders/${id}`);
   const [tick, setTick] = useState(0);
   const [status, setStatus] = useState<'ISSUED' | 'CANCELLED' | null>(null);
@@ -99,15 +111,15 @@ function Detalle() {
         <Card title="Datos de la orden" actions={<StatusPill map={ORDER_STATUS} value={ord.status} />}>
           <DefList
             items={[
-              ['Obra', lk.workName(ord.workId)],
-              ['Destino', lk.locationName(ord.destinationId)],
+              ['Obra', full?.work ? `${full.work.code} · ${full.work.name}` : lk.workName(ord.workId)],
+              ['Destino', ord.destination ? `${ord.destination.name} (${LOCATION_KIND[ord.destination.kind]})` : lk.locationName(ord.destinationId)],
               ...(full
                 ? ([
-                    ['Proveedor', lk.supplierName(full.supplierId)],
-                    ['Moneda / base impositiva', `${full.currency} · ${TAX_BASIS[full.taxBasis]}`],
-                    ['Creada por', userName(full.createdById)],
+                    ['Proveedor', full.supplier ? `${full.supplier.code} · ${full.supplier.name}` : lk.supplierName(full.supplierId)],
+                    ['Moneda / base impositiva', <span key="m" data-testid="oc-currency-taxbasis">{full.currency} · {TAX_BASIS[full.taxBasis]}</span>],
                   ] as [string, React.ReactNode][])
                 : []),
+              ['Creada por', ord.createdByName ?? '—'],
               ['Pedido', ord.requestId ? <Link key="p" href={`/pedidos/${ord.requestId}`}>Ver pedido</Link> : '—'],
               ['Creada', formatDateTime(ord.createdAt)],
               ...(full ? ([['Observaciones', full.notes || '—']] as [string, React.ReactNode][]) : []),
@@ -117,38 +129,54 @@ function Detalle() {
 
         <Card title="Renglones" bodyClass="">
           <DataTable
-            rows={ord.lines as (OrderDetail['lines'][number] & { pendingQuantity?: string })[]}
+            rows={ord.lines as Line[]}
             rowKey={(l) => l.id}
             columns={[
               { key: 'm', header: 'Material', render: (l) => lk.materialLabel(l.materialId) },
               { key: 'q', header: 'Cantidad', align: 'r', render: (l) => formatQty(l.quantity, lk.unitOf(l.materialId)) },
               { key: 'r', header: 'Recibido', align: 'r', render: (l) => formatQty(l.receivedQuantity, lk.unitOf(l.materialId)) },
+              { key: 'pe', header: 'Pendiente', align: 'r', render: (l) => <span data-testid="oc-line-pending">{formatQty(l.pendingQuantity, lk.unitOf(l.materialId))}</span> },
               ...(full
                 ? [
-                    { key: 'p', header: 'Precio', align: 'r' as const, render: (l: OrderDetail['lines'][number]) => formatMoney(l.unitPrice, full.currency) },
-                    { key: 'b', header: 'Por', align: 'r' as const, render: (l: OrderDetail['lines'][number]) => formatQty(l.baseQuantity, lk.unitOf(l.materialId)) },
+                    { key: 'p', header: 'Precio', align: 'r' as const, render: (l: Line) => formatMoney(l.unitPrice, full.currency) },
+                    { key: 'b', header: 'Por', align: 'r' as const, render: (l: Line) => formatQty(l.baseQuantity, lk.unitOf(l.materialId)) },
+                    { key: 'i', header: 'Importe', align: 'r' as const, render: (l: Line) => <LineAmount value={l.lineAmount} currency={full.currency} /> },
                   ]
-                : [{ key: 'pe', header: 'Pendiente', align: 'r' as const, render: (l: { pendingQuantity?: string; materialId: string }) => formatQty(l.pendingQuantity, lk.unitOf(l.materialId)) }]),
+                : []),
             ]}
             mobile={(l) => (
               <div className="stack" style={{ gap: 4 }}>
                 <b>{lk.materialLabel(l.materialId)}</b>
                 <span className="small">
-                  Cantidad {formatQty(l.quantity, lk.unitOf(l.materialId))} · recibido {formatQty(l.receivedQuantity, lk.unitOf(l.materialId))}
-                  {l.pendingQuantity !== undefined && ` · pendiente ${formatQty(l.pendingQuantity, lk.unitOf(l.materialId))}`}
+                  Cantidad {formatQty(l.quantity, lk.unitOf(l.materialId))} · recibido {formatQty(l.receivedQuantity, lk.unitOf(l.materialId))} · pendiente{' '}
+                  {formatQty(l.pendingQuantity, lk.unitOf(l.materialId))}
                 </span>
-                {full && <span className="small muted">{formatMoney(l.unitPrice, full.currency)} por {formatQty(l.baseQuantity, lk.unitOf(l.materialId))}</span>}
+                {full && (
+                  <span className="small muted">
+                    {formatMoney(l.unitPrice, full.currency)} por {formatQty(l.baseQuantity, lk.unitOf(l.materialId))} · importe <LineAmount value={l.lineAmount} currency={full.currency} />
+                  </span>
+                )}
               </div>
             )}
           />
-          {full && <div className="bd small muted">Los importes y el total se informan en el PDF generado por el sistema.</div>}
+          {full && (
+            <div className="bd stack" style={{ gap: 8 }}>
+              <AmountWarning order={full} />
+              <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <span className="small muted">
+                  Suma de importes en la base cargada ({full.currency} · {TAX_BASIS[full.taxBasis]}). No agrega ni descuenta IVA.
+                </span>
+                <b data-testid="oc-total-amount">Total: {full.totalAmount !== null ? formatMoney(full.totalAmount, full.currency) : 'no calculado'}</b>
+              </div>
+            </div>
+          )}
         </Card>
 
         {receiving && canReceive(ord) && <ReceiptForm order={ord} lk={lk} onDone={() => { setReceiving(false); refresh(); }} />}
         <ReceiptHistory key={`r${tick}`} order={ord} lk={lk} />
 
-        {manage && <InvoiceRef order={full!} userName={userName} onSaved={refresh} />}
-        {can('readEconomic') && full && <HistoryTimeline key={`h${tick}`} path={`/purchase-orders/${id}/history`} statusMap={ORDER_STATUS} title="Historial de la OC" />}
+        {manage && <InvoiceRef order={full!} onSaved={refresh} />}
+        {can('readEconomic') && full && <HistoryTimeline key={`h${tick}`} path={`/purchase-orders/${id}/history`} statusMap={ORDER_STATUS} title="Historial de la OC" locationName={lk.locationName} />}
 
         {editing && full && <EditDraft order={full} lk={lk} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); refresh(); }} />}
         <Confirm
@@ -173,7 +201,7 @@ function Detalle() {
   );
 }
 
-function InvoiceRef({ order, userName, onSaved }: { order: OrderDetail; userName: (id: string | null) => string; onSaved: () => void }) {
+function InvoiceRef({ order, onSaved }: { order: OrderDetail; onSaved: () => void }) {
   const toast = useToast();
   const [value, setValue] = useState(order.invoiceNumber ?? '');
   const [confirm, setConfirm] = useState(false);
@@ -191,7 +219,7 @@ function InvoiceRef({ order, userName, onSaved }: { order: OrderDetail; userName
       <div className="stack">
         {order.invoiceNumber ? (
           <div className="small">
-            Factura <Mono>{order.invoiceNumber}</Mono> · cargada el {formatDateTime(order.invoiceLoadedAt)} por {userName(order.invoiceLoadedById)}
+            Factura <Mono>{order.invoiceNumber}</Mono> · cargada el {formatDateTime(order.invoiceLoadedAt)} por {order.invoiceLoadedByName ?? 'Usuario'}
           </div>
         ) : (
           <div className="small muted">Sin factura referenciada.</div>

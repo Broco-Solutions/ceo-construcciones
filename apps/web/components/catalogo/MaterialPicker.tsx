@@ -6,7 +6,7 @@ import { api, type Page, type Schemas } from '@/lib/api';
 import { useApi } from '@/lib/hooks';
 import { useUnits } from './common';
 
-export type PickedMaterial = Schemas['Material'] & { unit: Schemas['Unit'] | null };
+export type PickedMaterial = Omit<Schemas['Material'], 'unit'> & { unit: Schemas['Unit'] | null };
 
 export function MaterialPicker({
   value,
@@ -36,7 +36,7 @@ export function MaterialPicker({
     return () => clearTimeout(t);
   }, [q]);
 
-  const list = useApi<Page<Schemas['Material']>>(open ? '/materials' : null, { search: debounced || undefined, categoryId: categoryId || undefined, pageSize: 20 });
+  const list = useApi<Page<Schemas['Material']>>(open ? '/materials' : null, { search: debounced || undefined, categoryId: categoryId || undefined, active: includeInactive ? undefined : true, pageSize: 20 });
   const [selected, setSelected] = useState<Schemas['Material'] | null>(null);
   useEffect(() => {
     if (!value) return setSelected(null);
@@ -52,14 +52,15 @@ export function MaterialPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const unitCode = (m: Schemas['Material']) => units.map.get(m.unitId)?.code ?? '…';
-  const rows = (list.data?.data ?? []).filter((m) => includeInactive || m.active);
+  const unitOf = (m: Schemas['Material']) => m.unit ?? units.map.get(m.unitId) ?? null;
+  const unitCode = (m: Schemas['Material']) => unitOf(m)?.code ?? '…';
+  const rows = list.data?.data ?? [];
 
   const pick = (m: Schemas['Material']) => {
     setSelected(m);
     setOpen(false);
     setQ('');
-    onChange({ ...m, unit: units.map.get(m.unitId) ?? null });
+    onChange({ ...m, unit: unitOf(m) });
   };
 
   return (

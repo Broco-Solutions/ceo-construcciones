@@ -6,6 +6,19 @@ import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, DecimalField, ErrorBox, Modal, SelectField, TextField, useToast } from '@/components/ui';
 import { useCategories, useUnits, type Material } from './common';
 
+const SHOWN = new Set(['code', 'name', 'unitId', 'categoryId', 'minimum']);
+
+/**
+ * Cuerpo enviado al servidor. En edición NUNCA incluye unitId: MaterialPatch lo rechaza con 422
+ * (la unidad base es inmutable, incluso si coincide).
+ */
+export function materialBody(editing: boolean, f: { code: string; name: string; unitId: string; categoryId: string; active: boolean }, minimum: string | undefined) {
+  const body: Record<string, unknown> = { code: f.code.trim(), name: f.name.trim(), categoryId: f.categoryId || null, active: f.active };
+  if (minimum !== undefined) body.minimum = minimum;
+  if (!editing) body.unitId = f.unitId;
+  return body;
+}
+
 /** Alta/edición de material. La unidad base sólo se elige al crear: el backend la trata como inmutable. */
 export function MaterialForm({ open, onClose, material, onSaved }: { open: boolean; onClose: () => void; material?: Material | null; onSaved: (m: Material) => void }) {
   const editing = !!material;
@@ -41,9 +54,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
     } else if (editing) minimum = '0';
     setLocal(le);
     if (Object.keys(le).length) return;
-    const body: Record<string, unknown> = { code: f.code.trim(), name: f.name.trim(), categoryId: f.categoryId || null, active: f.active };
-    if (minimum !== undefined) body.minimum = minimum;
-    if (!editing) body.unitId = f.unitId;
+    const body = materialBody(editing, f, minimum);
     const r = await m.run(body);
     if (r) {
       toast(editing ? 'Material actualizado' : 'Material creado');
@@ -52,7 +63,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
   };
 
   const unitLabel = (id: string) => {
-    const u = units.map.get(id);
+    const u = (material?.unit && material.unit.id === id ? material.unit : null) ?? units.map.get(id);
     return u ? `${u.code} — ${u.name}` : '…';
   };
 
@@ -105,7 +116,8 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
         <label className="row" style={{ gap: 8 }}>
           <input type="checkbox" checked={f.active} onChange={(e) => setF({ ...f, active: e.target.checked })} /> Activo
         </label>
-        <ErrorBox error={m.error && Object.keys(fieldErrors(m.error)).length === 0 ? m.error : null} />
+        {/* Errores 422 que no corresponden a un campo visible (p. ej. unitId en edición) se muestran completos. */}
+        <ErrorBox error={m.error && !Object.keys(fieldErrors(m.error)).some((k) => SHOWN.has(k) && !(editing && k === 'unitId')) ? m.error : null} />
       </form>
     </Modal>
   );

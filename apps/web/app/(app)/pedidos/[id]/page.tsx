@@ -56,6 +56,11 @@ export default function PedidoDetalle() {
               <Scale size={16} /> Cotizaciones
             </Link>
           )}
+          {can('readOrders') && (
+            <Link className="btn sec" href={`/ordenes?requestId=${req.id}`} data-testid="request-orders-link">
+              Ver OC del pedido
+            </Link>
+          )}
           {buyable && (
             <Link className="btn sec" href={`/ordenes/nueva?requestId=${req.id}`}>
               <FileText size={16} /> Crear OC
@@ -115,10 +120,10 @@ export default function PedidoDetalle() {
               );
             }}
           />
-          <div className="bd small muted">“Pedido en la obra” suma todos los pedidos no cancelados de la obra para el material, incluido este.</div>
+          <div className="bd small muted">“Pedido en la obra” es lo pedido en todos los pedidos no cancelados de la obra para el material, incluido este pedido (no es lo pedido además de este).</div>
         </Card>
 
-        <HistoryTimeline key={histKey} path={`/requests/${id}/history`} statusMap={REQUEST_STATUS} />
+        <HistoryTimeline key={histKey} path={`/requests/${id}/history`} statusMap={REQUEST_STATUS} title="Historial del pedido" />
 
         <Confirm
           open={!!target}

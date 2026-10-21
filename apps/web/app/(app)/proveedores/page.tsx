@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Tag } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, Pill } from '@/components/ui';
+import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill } from '@/components/ui';
+import { usePaged } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
-import { ExportButton, useSuppliers, type Supplier } from '@/components/catalogo/common';
+import { ExportButton, useDebounced, type Supplier } from '@/components/catalogo/common';
 import { SupplierForm } from '@/components/catalogo/SupplierForm';
 
 export default function ProveedoresPage() {
@@ -20,16 +21,13 @@ export default function ProveedoresPage() {
 
 function Inner({ canEdit }: { canEdit: boolean }) {
   const router = useRouter();
-  const list = useSuppliers(true);
   const [q, setQ] = useState('');
   const [active, setActive] = useState<'yes' | 'no' | 'all'>('yes');
   const [creating, setCreating] = useState(false);
-  const n = q.trim().toLowerCase();
-  // El contrato de GET /suppliers no admite búsqueda: se filtra el listado completo en el cliente.
-  const rows = list.rows
-    .filter((s) => active === 'all' || s.active === (active === 'yes'))
-    .filter((s) => !n || [s.code, s.name, s.taxId, s.email].some((v) => v?.toLowerCase().includes(n)))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const n = useDebounced(q.trim());
+  // Búsqueda y estado los filtra el servidor antes de paginar.
+  const list = usePaged<Supplier>('/suppliers', { search: n || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const rows = list.rows;
   return (
     <Page
       title="Proveedores"
@@ -50,8 +48,8 @@ function Inner({ canEdit }: { canEdit: boolean }) {
     >
       <Card bodyClass="">
         <div className="filters" style={{ padding: 12 }}>
-          <input className="input" type="search" placeholder="Buscar por nombre, código, CUIT o email…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar proveedores" />
-          <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} aria-label="Estado">
+          <input className="input" type="search" id="q-proveedor" placeholder="Buscar proveedores…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar proveedores" />
+          <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} id="f-proveedor-estado" aria-label="Estado">
             <option value="yes">Activos</option>
             <option value="no">Inactivos</option>
             <option value="all">Todos</option>
@@ -61,7 +59,7 @@ function Inner({ canEdit }: { canEdit: boolean }) {
           <div style={{ padding: 12 }}>
             <ErrorBox error={list.error} onRetry={list.reload} />
           </div>
-        ) : list.loading ? (
+        ) : list.loading && !list.data ? (
           <Loading />
         ) : (
           <DataTable<Supplier>
@@ -90,6 +88,7 @@ function Inner({ canEdit }: { canEdit: boolean }) {
             )}
           />
         )}
+        <PagerBar pagination={list.pagination} page={list.page} setPage={list.setPage} />
       </Card>
       {creating && <SupplierForm onClose={() => setCreating(false)} onSaved={(s) => router.push(`/proveedores/${s.id}`)} />}
     </Page>

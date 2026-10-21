@@ -18,10 +18,21 @@ function Ordenes() {
   const lk = useLookups({ suppliers: true });
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');
   const [supplierId, setSupplierId] = useState('');
-  const [status, setStatus] = useState<OrderStatus | ''>('');
-  const list = usePaged<VisibleOrder>('/purchase-orders', { workId: workId || undefined, supplierId: (eco && supplierId) || undefined });
-  // La API no filtra por estado: el filtro aplica sobre la página cargada.
-  const rows = status ? list.rows.filter((o) => o.status === status) : list.rows;
+  const [status, setStatus] = useState<OrderStatus | ''>((sp.get('status') as OrderStatus | null) ?? '');
+  const [destinationId, setDestinationId] = useState(sp.get('destinationId') ?? '');
+  // Vínculos desde pedido/cotización (p. ej. advertencia de OC existentes).
+  const requestId = sp.get('requestId') ?? '';
+  const quotationId = sp.get('quotationId') ?? '';
+  // Todos los filtros se aplican en el servidor antes de paginar; pagination.total es el total filtrado.
+  const list = usePaged<VisibleOrder>('/purchase-orders', {
+    workId: workId || undefined,
+    supplierId: (eco && supplierId) || undefined,
+    status: status || undefined,
+    destinationId: destinationId || undefined,
+    requestId: requestId || undefined,
+    quotationId: quotationId || undefined,
+  });
+  const rows = list.rows;
 
   const cols: Column<VisibleOrder>[] = [
     { key: 'n', header: 'N.º', render: (o) => <Mono>OC-{o.number}</Mono> },
@@ -49,8 +60,17 @@ function Ordenes() {
           <div className="filters">
             <SelectField label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
             {eco && <SelectField label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Todos" options={lk.suppliers.rows.map((s) => ({ value: s.id, label: s.name }))} />}
-            <SelectField label="Estado" value={status} onChange={(e) => setStatus(e.target.value as OrderStatus | '')} placeholder="Todos" options={Object.entries(ORDER_STATUS).map(([k, [l]]) => ({ value: k, label: l }))} hint={status ? 'Filtra la página actual' : undefined} />
+            <SelectField label="Destino" value={destinationId} onChange={(e) => setDestinationId(e.target.value)} placeholder="Todos" options={lk.locations.rows.map((l) => ({ value: l.id, label: lk.locationName(l.id) }))} data-testid="oc-filter-destination" />
+            <SelectField label="Estado" value={status} onChange={(e) => setStatus(e.target.value as OrderStatus | '')} placeholder="Todos" options={Object.entries(ORDER_STATUS).map(([k, [l]]) => ({ value: k, label: l }))} data-testid="oc-filter-status" />
           </div>
+          {(requestId || quotationId) && (
+            <div className="bd small" data-testid="oc-filter-link">
+              Mostrando órdenes {requestId ? <>del <Link href={`/pedidos/${requestId}`}>pedido</Link></> : null}
+              {requestId && quotationId ? ' y ' : ''}
+              {quotationId ? 'de la cotización seleccionada' : ''} · <Link href="/ordenes">Ver todas</Link>
+            </div>
+          )}
+          {list.pagination && <div className="bd small muted" data-testid="list-total">{list.pagination.total} órdenes</div>}
           {list.error ? (
             <div className="bd"><ErrorBox error={list.error} onRetry={list.reload} /></div>
           ) : list.loading && !list.data ? (

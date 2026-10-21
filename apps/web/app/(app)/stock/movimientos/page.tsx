@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import type { Schemas } from '@/lib/api';
@@ -8,9 +9,9 @@ import { formatDateTime, formatQty } from '@/lib/format';
 import { useSession } from '@/lib/session';
 import { Page } from '@/components/shell';
 import { Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill, SelectField } from '@/components/ui';
-import { InvNav, LocationSelect, MOVEMENT_LABEL, MaterialSelect, locLabel, useInvLookups } from '@/components/inventario/common';
+import { InvNav, LocationSelect, MOVEMENT_LABEL, MaterialSelect, movementLocLabel, useInvLookups } from '@/components/inventario/common';
 
-type Movement = Schemas['StockMovement'];
+type Movement = Schemas['MovementDetail'];
 const TONE: Record<Movement['type'], 'ok' | 'warn' | 'bad' | 'blue' | 'plain'> = {
   INITIAL: 'plain',
   RECEIPT: 'ok',
@@ -20,15 +21,15 @@ const TONE: Record<Movement['type'], 'ok' | 'warn' | 'bad' | 'blue' | 'plain'> =
   ADJUSTMENT: 'bad',
 };
 
-export default function MovimientosPage() {
+function MovimientosInner() {
+  const sp = useSearchParams();
   const { can } = useSession();
   const lk = useInvLookups();
   const [materialId, setMaterialId] = useState('');
-  const [workId, setWorkId] = useState('');
+  const [workId, setWorkId] = useState(sp.get('workId') ?? '');
   const [locationId, setLocationId] = useState('');
   const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Movement>('/movements', { materialId, workId, locationId });
 
-  const loc = (id: string | null) => (id ? locLabel(lk.locById.get(id)) : '—');
   const mat = (id: string) => lk.matById.get(id);
 
   return (
@@ -71,8 +72,9 @@ export default function MovimientosPage() {
                   { key: 't', header: 'Tipo', render: (r) => <Pill tone={TONE[r.type]}>{MOVEMENT_LABEL[r.type]}</Pill> },
                   { key: 'm', header: 'Material', render: (r) => mat(r.materialId)?.name ?? <span className="mono small">{r.materialId}</span> },
                   { key: 'q', header: 'Cantidad', align: 'r', render: (r) => formatQty(r.quantity, mat(r.materialId)?.unit?.code) },
-                  { key: 'o', header: 'Origen', render: (r) => loc(r.sourceId) },
-                  { key: 'd', header: 'Destino', render: (r) => loc(r.destinationId) },
+                  { key: 'o', header: 'Origen', render: (r) => movementLocLabel(r.source, r.sourceId) },
+                  { key: 'd', header: 'Destino', render: (r) => movementLocLabel(r.destination, r.destinationId) },
+                  { key: 'ac', header: 'Registró', hideMobile: true, render: (r) => <span className="small">{r.actorName || '—'}</span> },
                   { key: 'w', header: 'Obra', hideMobile: true, render: (r) => (r.workId ? lk.workById.get(r.workId)?.name ?? '—' : '—') },
                   { key: 'x', header: 'Detalle', hideMobile: true, render: (r) => <span className="small muted">{[r.reason, r.reservationId && 'Satisface reserva', r.receiptLineId && 'Desde recepción'].filter(Boolean).join(' · ') || '—'}</span> },
                 ]}
@@ -88,8 +90,9 @@ export default function MovimientosPage() {
                       {mat(r.materialId)?.name ?? 'Material'} · {formatQty(r.quantity, mat(r.materialId)?.unit?.code)}
                     </b>
                     <span className="small muted">
-                      {loc(r.sourceId)} → {loc(r.destinationId)}
+                      {movementLocLabel(r.source, r.sourceId)} → {movementLocLabel(r.destination, r.destinationId)}
                     </span>
+                    {r.actorName && <span className="small muted">Registró: {r.actorName}</span>}
                     {r.reason && <span className="small">Motivo: {r.reason}</span>}
                   </div>
                 )}
@@ -100,5 +103,13 @@ export default function MovimientosPage() {
         </div>
       </Card>
     </Page>
+  );
+}
+
+export default function MovimientosPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <MovimientosInner />
+    </Suspense>
   );
 }

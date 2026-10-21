@@ -17,10 +17,10 @@ function Pedidos() {
   const lk = useLookups();
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');
   const [categoryId, setCategoryId] = useState(sp.get('categoryId') ?? '');
-  const [status, setStatus] = useState<RequestStatus | ''>('');
-  const list = usePaged<RequestDetail>('/requests', { workId: workId || undefined, categoryId: categoryId || undefined });
-  // La API no filtra por estado: el filtro de estado aplica sobre la página cargada.
-  const rows = status ? list.rows.filter((r) => r.status === status) : list.rows;
+  const [status, setStatus] = useState<RequestStatus | ''>((sp.get('status') as RequestStatus | null) ?? '');
+  // Filtros aplicados en el servidor antes de paginar.
+  const list = usePaged<RequestDetail>('/requests', { workId: workId || undefined, categoryId: categoryId || undefined, status: status || undefined });
+  const rows = list.rows;
 
   const setW = (v: string) => {
     setWorkId(v);
@@ -50,9 +50,10 @@ function Pedidos() {
               onChange={(e) => setStatus(e.target.value as RequestStatus | '')}
               placeholder="Todos"
               options={Object.entries(REQUEST_STATUS).map(([k, [l]]) => ({ value: k, label: l }))}
-              hint={status ? 'Filtra la página actual' : undefined}
+              data-testid="request-filter-status"
             />
           </div>
+          {list.pagination && <div className="bd small muted" data-testid="list-total">{list.pagination.total} pedidos</div>}
           {list.error ? (
             <div className="bd"><ErrorBox error={list.error} onRetry={list.reload} /></div>
           ) : list.loading && !list.data ? (

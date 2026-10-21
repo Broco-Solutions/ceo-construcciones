@@ -149,8 +149,12 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
 export { fieldErrors };
 
 /* ---------- etiquetas ---------- */
-export function Pill({ tone = 'plain', children }: { tone?: 'ok' | 'warn' | 'bad' | 'blue' | 'plain'; children: React.ReactNode }) {
-  return <span className={`pill ${tone}`}>{children}</span>;
+export function Pill({ tone = 'plain', children, ...rest }: { tone?: 'ok' | 'warn' | 'bad' | 'blue' | 'plain'; children: React.ReactNode } & React.HTMLAttributes<HTMLSpanElement>) {
+  return (
+    <span className={`pill ${tone}`} {...rest}>
+      {children}
+    </span>
+  );
 }
 
 export function Mono({ children }: { children: React.ReactNode }) {

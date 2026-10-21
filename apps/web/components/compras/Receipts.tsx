@@ -4,11 +4,12 @@ import { useState } from 'react';
 import { PackageCheck } from 'lucide-react';
 import { api, type Schemas } from '@/lib/api';
 import { useApi, useMutation } from '@/lib/hooks';
-import { compareDecimal, formatDateTime, formatQty } from '@/lib/format';
+import { formatDateTime, formatQty } from '@/lib/format';
 import { Button, Card, Confirm, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
-import { LOCATION_KIND, QtyInput, positiveQty, useUserName, type Receipt, type useLookups, type VisibleOrder } from './common';
+import { LOCATION_KIND, QtyInput, positiveQty, type Receipt, type useLookups, type VisibleOrder } from './common';
 
-type Line = { id: string; materialId: string; quantity: string; receivedQuantity: string; pendingQuantity?: string };
+/** OrderDetail y ChiefOrder informan pendingQuantity por renglón (calculado por el servidor). */
+type Line = { id: string; materialId: string; quantity: string; receivedQuantity: string; pendingQuantity: string };
 
 export const canReceive = (o: VisibleOrder) => o.status === 'ISSUED' || o.status === 'PARTIALLY_RECEIVED';
 
@@ -23,6 +24,7 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
   const [confirm, setConfirm] = useState(false);
   const [touched, setTouched] = useState(false);
 
+  const pendingLines = lines.filter((l) => positiveQty(l.pendingQuantity) !== null);
   const entered = Object.entries(qty).filter(([, v]) => v.trim() !== '');
   const invalid = entered.filter(([, v]) => !positiveQty(v)).map(([k]) => k);
   const body: Schemas['ReceiptInput'] = {
@@ -31,7 +33,7 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
     lines: entered.filter(([, v]) => positiveQty(v)).map(([orderLineId, v]) => ({ orderLineId, quantity: positiveQty(v)! })),
   };
   // Clave de idempotencia estable por intención: se reutiliza si el envío falla por red/timeout.
-  const save = useMutation((key: string, b: Schemas['ReceiptInput']) => api.post<{ data: Receipt }>(`/purchase-orders/${order.id}/receipts`, b, { idempotencyKey: key }));
+  const save = useMutation((key: string, b: Schemas['ReceiptInput']) => api.post<{ data: Schemas['ReceiptWriteResult'] }>(`/purchase-orders/${order.id}/receipts`, b, { idempotencyKey: key }));
   const ready = !!locationId && !!body.deliveryNote && body.lines.length > 0 && invalid.length === 0;
   // Cambiar los datos tras un error de red es una nueva intención: se descarta la clave.
   const edit = <T,>(fn: (v: T) => void) => (v: T) => {
@@ -39,6 +41,8 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
     fn(v);
   };
 
+  // Un replay idempotente de una clave vieja puede devolver LegacyReceiptDetail (sin actorName/location).
+  // No se usa el cuerpo de la respuesta: onDone() recarga la OC y GET /receipts, sin repetir el POST.
   const submit = async () => {
     const r = await save.run(body);
     if (r) {
@@ -57,17 +61,28 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
           <TextField label="N.º de remito" value={deliveryNote} maxLength={500} onChange={(e) => edit(setDeliveryNote)(e.target.value)} error={touched && !body.deliveryNote ? 'Ingresá el remito' : undefined} style={{ minHeight: 48, fontSize: 16 }} />
           <SelectField label="Ubicación que recibe" value={locationId} onChange={(e) => edit(setLocationId)(e.target.value)} placeholder="Elegí ubicación" options={locs.map((l) => ({ value: l.id, label: `${l.name} (${LOCATION_KIND[l.kind]})` }))} style={{ minHeight: 48 }} />
         </div>
+        {pendingLines.length > 0 && (
+          <div className="row">
+            <Button
+              variant="sec"
+              data-testid="receive-all-pending"
+              onClick={() => edit(setQty)(Object.fromEntries(pendingLines.map((l) => [l.id, l.pendingQuantity.replace('.', ',')])))}
+            >
+              Recibir todo lo pendiente
+            </Button>
+          </div>
+        )}
         <div>
           {lines.map((l) => {
             const u = lk.unitOf(l.materialId);
-            const done = l.pendingQuantity !== undefined ? positiveQty(l.pendingQuantity) === null : compareDecimal(l.receivedQuantity, l.quantity) >= 0;
+            const done = positiveQty(l.pendingQuantity) === null;
             return (
               <div key={l.id} className="cmp-line">
                 <div className="nm">
                   <b>{lk.material(l.materialId)?.name ?? 'Material'}</b>
                   <span>
                     Pedido {formatQty(l.quantity, u)} · recibido {formatQty(l.receivedQuantity, u)}
-                    {l.pendingQuantity !== undefined && <> · <b>pendiente {formatQty(l.pendingQuantity, u)}</b></>}
+                    {' · '}<b>pendiente {formatQty(l.pendingQuantity, u)}</b>
                   </span>
                   {invalid.includes(l.id) && <span style={{ color: 'var(--bad)', display: 'block', fontSize: 12, fontWeight: 600 }}>Cantidad inválida</span>}
                 </div>
@@ -75,11 +90,9 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
                   <span className="pill ok">Completo</span>
                 ) : (
                   <div className="row" style={{ gap: 6 }}>
-                    {l.pendingQuantity !== undefined && (
-                      <button type="button" className="btn ghost sm" onClick={() => edit(setQty)({ ...qty, [l.id]: l.pendingQuantity!.replace('.', ',') })}>
-                        Todo
-                      </button>
-                    )}
+                    <button type="button" className="btn ghost sm" onClick={() => edit(setQty)({ ...qty, [l.id]: l.pendingQuantity.replace('.', ',') })}>
+                      Todo
+                    </button>
                     <QtyInput label={`Cantidad recibida de ${lk.material(l.materialId)?.name ?? 'material'} (${u})`} value={qty[l.id] ?? ''} invalid={invalid.includes(l.id)} onChange={(v) => edit(setQty)({ ...qty, [l.id]: v })} />
                   </div>
                 )}
@@ -123,7 +136,6 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
 
 export function ReceiptHistory({ order, lk }: { order: VisibleOrder; lk: ReturnType<typeof useLookups> }) {
   const r = useApi<{ data: Receipt[] }>(`/purchase-orders/${order.id}/receipts`, { pageSize: 100 });
-  const name = useUserName();
   const lines = order.lines as Line[];
   return (
     <Card title="Entregas recibidas">
@@ -134,16 +146,16 @@ export function ReceiptHistory({ order, lk }: { order: VisibleOrder; lk: ReturnT
       ) : !r.data?.data.length ? (
         <div className="muted small">Todavía no hay recepciones.</div>
       ) : (
-        <ol className="cmp-tl">
+        <ol className="cmp-tl" data-testid="receipt-history">
           {r.data.data.map((rc) => (
-            <li key={rc.id}>
+            <li key={rc.id} data-testid="receipt-item">
               <i aria-hidden style={{ background: 'var(--ok)' }} />
               <div>
                 <b>
-                  Remito {rc.deliveryNote ?? '—'} · {lk.locationName(rc.locationId)}
+                  Remito {rc.deliveryNote ?? '—'} · {rc.location ? `${rc.location.name} (${LOCATION_KIND[rc.location.kind]})` : lk.locationName(rc.locationId)}
                 </b>
                 <span>
-                  {formatDateTime(rc.createdAt)} · {name(rc.receivedById)}
+                  {formatDateTime(rc.createdAt)} · {rc.actorName ?? 'Usuario'}
                 </span>
                 {rc.lines.map((l) => {
                   const ol = lines.find((x) => x.id === l.orderLineId);

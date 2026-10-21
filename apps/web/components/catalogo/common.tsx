@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
 import { api, ApiError, type Schemas } from '@/lib/api';
 import { useAll } from '@/lib/hooks';
@@ -69,3 +69,13 @@ export function ExportButton({ path, label, fallbackName }: { path: string; labe
 
 /** Convierte "" a null para campos opcionales. */
 export const orNull = (s: string) => (s.trim() ? s.trim() : null);
+
+/** Valor con retardo (búsquedas enviadas al servidor sin una request por tecla). */
+export function useDebounced<T>(value: T, ms = 300): T {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}

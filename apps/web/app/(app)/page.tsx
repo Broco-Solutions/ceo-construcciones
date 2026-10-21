@@ -13,7 +13,7 @@ import { ORDER_STATUS, REQUEST_STATUS, WorkStatusPill } from '@/components/obras
 type Work = Schemas['WorkList'];
 type Req = Schemas['RequestDetail'];
 type Alert = Schemas['StockAlert'];
-type Order = { id: string; number: number; workId: string | null; status: Schemas['PurchaseOrderStatus']; createdAt: string };
+type Order = { id: string; number: number; workId: string | null; status: Schemas['PurchaseOrderStatus']; createdAt: string; work?: { id: string; code: string; name: string } | null };
 
 function Section<T>({ title, more, res, children }: { title: string; more?: string; res: { loading: boolean; error: unknown; reload: () => void; data?: T }; children: (d: T) => React.ReactNode }) {
   return (
@@ -31,7 +31,8 @@ export default function Home() {
   const alerts = useApi<P<Alert>>('/stock/alerts', { page: 1, pageSize: 8 });
   // OC recientes: roles económicos (Jefe tiene sus recepciones en accesos rápidos).
   const orders = useApi<P<Order>>(can('readEconomic') ? '/purchase-orders' : null, { page: 1, pageSize: 8 });
-  // Nombres de todas las obras visibles (incluye pausadas/finalizadas) para pedidos y OC.
+  // RequestDetail no trae nombre de obra: se resuelve con las obras visibles (incluye pausadas/finalizadas).
+  // Las OC usan la relación `work` del DTO.
   const allWorks = useAll<Work>('/works');
   const workName = useMemo(() => new Map(allWorks.rows.map((w) => [w.id, w.name])), [allWorks.rows]);
   const wn = (id: string | null) => (id ? workName.get(id) ?? '—' : '—');
@@ -124,11 +125,11 @@ export default function Home() {
                   rowKey={(o) => o.id}
                   columns={[
                     { key: 'n', header: 'OC', render: (o) => <Link href={`/ordenes/${o.id}`}><Mono>#{o.number}</Mono></Link> },
-                    { key: 'o', header: 'Obra', render: (o) => wn(o.workId) },
+                    { key: 'o', header: 'Obra', render: (o) => (o.work?.name ?? wn(o.workId)) },
                     { key: 'f', header: 'Fecha', hideMobile: true, render: (o) => formatDate(o.createdAt) },
                     { key: 's', header: 'Estado', render: (o) => <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill> },
                   ]}
-                  mobile={(o) => <Link href={`/ordenes/${o.id}`} className="row" style={{ color: 'inherit' }}><Mono>#{o.number}</Mono><span style={{ flex: 1 }}>{wn(o.workId)}</span><Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill></Link>}
+                  mobile={(o) => <Link href={`/ordenes/${o.id}`} className="row" style={{ color: 'inherit' }}><Mono>#{o.number}</Mono><span style={{ flex: 1 }}>{(o.work?.name ?? wn(o.workId))}</span><Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill></Link>}
                   empty={<Empty title="Sin órdenes de compra" />}
                 />
               )}

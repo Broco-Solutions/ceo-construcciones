@@ -24,11 +24,12 @@ export default function MaterialesPage() {
     const t = setTimeout(() => setSearch(q.trim()), 300);
     return () => clearTimeout(t);
   }, [q]);
-  const list = usePaged<Material>('/materials', { search: search || undefined, categoryId: categoryId || undefined });
-  // El contrato no ofrece filtro por estado: se filtra la página recibida.
-  const rows = list.rows.filter((m) => active === 'all' || m.active === (active === 'yes'));
-  const unit = (m: Material) => units.map.get(m.unitId)?.code ?? '';
-  const cat = (m: Material) => (m.categoryId ? (cats.map.get(m.categoryId)?.name ?? '…') : '—');
+  // search/categoryId/active se aplican en el servidor antes de paginar.
+  const list = usePaged<Material>('/materials', { search: search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const rows = list.rows;
+  // Relaciones incluidas en el DTO; el catálogo sólo como respaldo.
+  const unit = (m: Material) => m.unit?.code ?? units.map.get(m.unitId)?.code ?? '';
+  const cat = (m: Material) => (m.categoryId ? (m.category?.name ?? cats.map.get(m.categoryId)?.name ?? '…') : '—');
 
   return (
     <Page
@@ -47,8 +48,8 @@ export default function MaterialesPage() {
     >
       <Card bodyClass="">
         <div className="filters" style={{ padding: 12 }}>
-          <input className="input" type="search" placeholder="Buscar por código o nombre…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar materiales" />
-          <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} aria-label="Rubro">
+          <input className="input" type="search" placeholder="Buscar por código o nombre…" value={q} onChange={(e) => setQ(e.target.value)} id="q-material" aria-label="Buscar materiales" />
+          <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} id="f-material-rubro" aria-label="Rubro">
             <option value="">Todos los rubros</option>
             {cats.rows.map((c) => (
               <option key={c.id} value={c.id}>
@@ -56,7 +57,7 @@ export default function MaterialesPage() {
               </option>
             ))}
           </select>
-          <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} aria-label="Estado">
+          <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} id="f-material-estado" aria-label="Estado">
             <option value="yes">Activos</option>
             <option value="no">Inactivos</option>
             <option value="all">Todos</option>

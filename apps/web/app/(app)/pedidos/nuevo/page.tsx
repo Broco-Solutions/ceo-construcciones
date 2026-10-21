@@ -10,7 +10,7 @@ import { useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { dateInputToIso, formatDate, formatQty } from '@/lib/format';
 import { LookupGate, QtyInput, positiveQty, useLookups } from '@/components/compras/common';
-import { usePlanned } from '@/components/compras/usePlanned';
+import { usePlanned, type PlannedRow } from '@/components/compras/usePlanned';
 
 const STEPS = ['Obra', 'Rubro', 'Materiales', 'Fecha', 'Confirmar'] as const;
 
@@ -18,7 +18,6 @@ function NuevoPedido() {
   const sp = useSearchParams();
   const router = useRouter();
   const toast = useToast();
-  const { can } = useSession();
   const lk = useLookups();
   const [step, setStep] = useState(sp.get('workId') ? 1 : 0);
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');
@@ -28,15 +27,22 @@ function NuevoPedido() {
   const [requiredAt, setRequiredAt] = useState('');
   const [notes, setNotes] = useState('');
   const [confirm, setConfirm] = useState(false);
-  const planned = usePlanned(workId || null, can('readEconomic'));
+  const planned = usePlanned(workId || null);
 
   const activeWorks = lk.works.rows.filter((w) => w.status === 'ACTIVE');
   const catMaterials = useMemo(() => {
     const plannedIds = planned.plannedIds(categoryId);
     const s = search.trim().toLowerCase();
-    return lk.materials.rows
+    // Catálogo activo del rubro + materiales previstos del rubro (etiquetas incluidas en la versión, aunque falten en el catálogo).
+    const fromCatalog = lk.materials.rows
       .filter((m) => m.active && (m.categoryId === categoryId || plannedIds.has(m.id)))
-      .filter((m) => !s || m.name.toLowerCase().includes(s) || m.code.toLowerCase().includes(s));
+      .map((m) => ({ id: m.id, code: m.code, name: m.name, unit: lk.units.map.get(m.unitId)?.code ?? '' }));
+    const known = new Set(fromCatalog.map((m) => m.id));
+    const onlyPlanned = planned
+      .plannedRows(categoryId)
+      .filter((p) => !known.has(p.materialId))
+      .map((p) => ({ id: p.materialId, code: p.material.code, name: p.material.name, unit: p.unit.code }));
+    return [...fromCatalog, ...onlyPlanned].filter((m) => !s || m.name.toLowerCase().includes(s) || m.code.toLowerCase().includes(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lk.materials.rows, categoryId, search, planned.data]);
 
@@ -127,15 +133,16 @@ function NuevoPedido() {
         {step === 2 && (
           <Card title={`Materiales · ${lk.categoryName(categoryId)}`}>
             <div className="stack">
-              {can('readEconomic') ? (
-                planned.loading ? (
-                  <Loading label="Buscando presupuesto de referencia…" />
-                ) : planned.missing ? (
-                  <div className="note small">La obra no tiene presupuesto de referencia: no hay cantidades previstas para comparar.</div>
-                ) : null
-              ) : (
-                <div className="note small">Cargá las cantidades en la unidad indicada. Lo previsto por presupuesto y lo ya pedido se ve en el detalle del pedido.</div>
-              )}
+              {planned.loading ? (
+                <Loading label="Buscando presupuesto de referencia…" />
+              ) : planned.error ? (
+                <div className="note small" data-testid="planned-error">No se pudieron cargar los materiales previstos. Podés cargar el pedido igual; lo previsto se ve en el detalle.</div>
+              ) : planned.missing ? (
+                <div className="note small" data-testid="planned-missing">La obra no tiene presupuesto de referencia: no hay cantidades previstas para comparar.</div>
+              ) : planned.data ? (
+                <PlannedSummary rows={planned.plannedRows(categoryId)} categoryName={lk.categoryName(categoryId)} />
+              ) : null}
+              <div className="small muted">Cargá las cantidades en la unidad indicada. Lo ya pedido en la obra se ve en el detalle del pedido.</div>
               <div className="row" style={{ gap: 6 }}>
                 <Search size={16} aria-hidden className="muted" />
                 <input className="input" style={{ flex: 1, minHeight: 44 }} placeholder="Buscar material…" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Buscar material" />
@@ -145,8 +152,8 @@ function NuevoPedido() {
               ) : (
                 <div>
                   {catMaterials.map((m) => {
-                    const unit = lk.units.map.get(m.unitId)?.code ?? '';
-                    const p = planned.plannedFor(m.id, categoryId);
+                    const unit = m.unit;
+                    const p = planned.plannedFor(m.id, categoryId)?.quantity;
                     const bad = invalid.includes(m.id);
                     return (
                       <div key={m.id} className="cmp-line">
@@ -186,10 +193,10 @@ function NuevoPedido() {
                 {lines.map((l) => (
                   <div key={l.materialId} className="cmp-line">
                     <div className="nm">
-                      <b>{lk.material(l.materialId)?.name}</b>
-                      <span>{lk.material(l.materialId)?.code}</span>
+                      <b>{lk.material(l.materialId)?.name ?? planned.plannedFor(l.materialId, categoryId)?.material.name ?? 'Material'}</b>
+                      <span>{lk.material(l.materialId)?.code ?? planned.plannedFor(l.materialId, categoryId)?.material.code}</span>
                     </div>
-                    <b>{formatQty(l.quantity, lk.unitOf(l.materialId))}</b>
+                    <b>{formatQty(l.quantity, lk.unitOf(l.materialId) || planned.plannedFor(l.materialId, categoryId)?.unit.code)}</b>
                   </div>
                 ))}
               </div>
@@ -226,6 +233,23 @@ function NuevoPedido() {
         </Confirm>
       </LookupGate>
     </Page>
+  );
+}
+
+/** Materiales previstos del rubro por el presupuesto de referencia (sin economía), visibles antes de crear el pedido. */
+function PlannedSummary({ rows, categoryName }: { rows: PlannedRow[]; categoryName: string }) {
+  if (!rows.length) return <div className="note small" data-testid="planned-empty">El presupuesto de referencia no prevé materiales para {categoryName}.</div>;
+  return (
+    <div className="note small" data-testid="planned-summary">
+      <b>Previsto en el presupuesto de referencia · {categoryName}</b>
+      <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
+        {rows.map((r) => (
+          <li key={`${r.categoryId}-${r.materialId}`}>
+            {r.material.code} · {r.material.name}: <b>{formatQty(r.quantity, r.unit.code)}</b>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

@@ -6,6 +6,7 @@ import { useMutation } from '@/lib/hooks';
 import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, Card, DecimalField, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
 import { TAX_OPTIONS, useCatalogs } from './common';
+import { parseLaborCost } from './validation';
 
 type Row = { key: number; materialId: string; coefficient: string };
 let seq = 0;
@@ -43,8 +44,8 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
     if (!name.trim()) er.name = 'Ingresá el nombre del ítem.';
     if (!categoryId) er.categoryId = 'Elegí el rubro.';
     if (!unitId) er.unitId = 'Elegí la unidad de trabajo.';
-    const labor = laborCost.trim() ? parseDecimalInput(laborCost) : '0';
-    if (labor === null) er.laborCost = 'Importe inválido (usá coma decimal).';
+    const labor = parseLaborCost(laborCost);
+    if (labor.error) er.laborCost = labor.error;
     if (!/^[A-Z]{3}$/.test(laborCurrency)) er.laborCurrency = 'Código de 3 letras (p. ej. ARS).';
     if (!laborTaxBasis) er.laborTaxBasis = 'Elegí la base impositiva de la mano de obra.';
     const components: Schemas['ApuInput']['components'] = [];
@@ -64,7 +65,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
       name: name.trim(),
       categoryId,
       unitId,
-      laborCost: labor!,
+      laborCost: labor.value!,
       laborCurrency,
       laborTaxBasis: laborTaxBasis as Schemas['ApuInput']['laborTaxBasis'],
       active,
@@ -157,7 +158,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
 
       <Card title={`Mano de obra por ${unitCode ?? 'unidad'}`}>
         <div className="formgrid">
-          <DecimalField label="Importe unitario (opcional)" value={laborCost} placeholder="0,00" onChange={(e) => setLaborCost(e.target.value)} error={fe.laborCost} hint="Vacío se guarda como 0." />
+          <DecimalField label="Importe de mano de obra" value={laborCost} placeholder="0,00" onChange={(e) => setLaborCost(e.target.value)} error={fe.laborCost} hint="Obligatorio. Si el ítem no tiene mano de obra, ingresá 0." required />
           <TextField label="Moneda" value={laborCurrency} maxLength={3} placeholder="ARS" onChange={(e) => setLaborCurrency(e.target.value.toUpperCase())} error={fe.laborCurrency} />
           <SelectField
             label="Base impositiva"

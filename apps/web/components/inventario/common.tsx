@@ -7,6 +7,7 @@ import type { Schemas } from '@/lib/api';
 import { useAll } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { Field } from '@/components/ui';
+import { formatQty } from '@/lib/format';
 
 export type Loc = Schemas['Location'];
 export type Work = Schemas['Work'];
@@ -163,5 +164,29 @@ export function InvNav() {
         </Link>
       ))}
     </nav>
+  );
+}
+
+/** Ubicación de un movimiento según el DTO (source/destination). null con id = obra ajena no visible. */
+export function movementLocLabel(l: Schemas['LocationSummary'] | null | undefined, id: string | null | undefined) {
+  if (l) return `${KIND_LABEL[l.kind]} · ${l.name} (${l.code})`;
+  return id ? 'Ubicación no visible' : '—';
+}
+
+export const MIN_SOURCE_LABEL: Record<Schemas['MinimumSource'], { label: string; title: string }> = {
+  LOCATION: { label: 'propio de la ubicación', title: 'Mínimo configurado en esta ubicación (un 0 desactiva el heredado).' },
+  MATERIAL: { label: 'heredado del material', title: 'Mínimo general del material, heredado por esta ubicación.' },
+  NONE: { label: 'sin mínimo', title: 'Ni la ubicación ni el material tienen mínimo.' },
+};
+
+/** Celda de mínimo con su origen. NONE se muestra como "Sin mínimo" sin cantidad. */
+export function MinimumValue({ minimum, source, unit }: { minimum: string; source?: Schemas['MinimumSource']; unit?: string }) {
+  if (source === 'NONE') return <span className="muted" data-minimum-source="NONE">Sin mínimo</span>;
+  const s = source ? MIN_SOURCE_LABEL[source] : null;
+  return (
+    <span data-minimum-source={source} title={s?.title}>
+      {formatQty(minimum, unit)}
+      {s && <span className="small muted"> · {s.label}</span>}
+    </span>
   );
 }

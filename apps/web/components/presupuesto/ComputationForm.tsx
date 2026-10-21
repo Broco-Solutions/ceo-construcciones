@@ -7,7 +7,8 @@ import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, Card, DecimalField, Empty, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
 import { useWorks } from './common';
 
-type Row = { key: number; itemId: string; quantity: string };
+/** lineId: id de la línea existente (se envía en PATCH para conservar identidad); undefined en líneas nuevas. */
+type Row = { key: number; lineId?: string; itemId: string; quantity: string };
 let seq = 0;
 
 /** Alta/edición de cómputo. En edición, PATCH reemplaza todas las líneas. */
@@ -27,10 +28,10 @@ export function ComputationForm({
   const apus = useAll<Schemas['ApuDetail']>('/apu-items');
   const [workId, setWorkId] = useState(initial?.workId ?? defaultWorkId ?? '');
   const [name, setName] = useState(initial?.name ?? '');
-  const [rows, setRows] = useState<Row[]>(() => (initial?.lines ?? []).map((l) => ({ key: ++seq, itemId: l.itemId, quantity: decimalToInput(l.quantity) })));
+  const [rows, setRows] = useState<Row[]>(() => (initial?.lines ?? []).map((l) => ({ key: ++seq, lineId: l.id, itemId: l.itemId, quantity: decimalToInput(l.quantity) })));
   const [catFilter, setCatFilter] = useState('');
   const [errs, setErrs] = useState<Record<string, string>>({});
-  const save = useMutation((_k: string, body: Schemas['ComputationInput']) =>
+  const save = useMutation((_k: string, body: Schemas['ComputationPatch']) =>
     initial
       ? api.patch<{ data: Schemas['ComputationWriteResult'] }>(`/computations/${initial.id}`, body)
       : api.post<{ data: Schemas['ComputationWriteResult'] }>('/computations', body),
@@ -61,15 +62,13 @@ export function ComputationForm({
     if (!workId) er.workId = 'Elegí la obra.';
     if (!name.trim()) er.name = 'Ingresá un nombre.';
     if (!rows.length) er.lines = 'Agregá al menos un ítem.';
-    const lines: Schemas['ComputationInput']['lines'] = [];
-    const seen = new Set<string>();
+    const lines: Schemas['ComputationPatch']['lines'] = [];
     rows.forEach((r, i) => {
       if (!r.itemId) er[`lines.${i}.itemId`] = 'Elegí el ítem APU.';
-      else if (seen.has(r.itemId)) er[`lines.${i}.itemId`] = 'Ítem repetido: sumá la cantidad en una sola línea.';
-      seen.add(r.itemId);
       const q = parseDecimalInput(r.quantity);
-      if (!q || q === '0') er[`lines.${i}.quantity`] = 'Cantidad mayor a 0.';
-      if (r.itemId && q) lines.push({ itemId: r.itemId, quantity: q });
+      if (!q || q === '0' || q.startsWith('-')) er[`lines.${i}.quantity`] = 'Cantidad mayor a 0.';
+      // En edición se envía el id de las líneas existentes para conservar su identidad (incluso con APU repetidos).
+      if (r.itemId && q) lines.push(initial && r.lineId ? { id: r.lineId, itemId: r.itemId, quantity: q } : { itemId: r.itemId, quantity: q });
     });
     setErrs(er);
     if (Object.keys(er).length) return;

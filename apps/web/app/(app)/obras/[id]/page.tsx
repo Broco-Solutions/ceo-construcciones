@@ -72,6 +72,24 @@ export default function ObraDetalle() {
           </Card>
         </div>
         <div className="stack">
+          <Card title="Presupuesto de referencia" id="obra-referencia">
+            {work.referenceVersionId ? (
+              <div className="stack" style={{ gap: 8 }}>
+                <p className="small" data-testid="obra-ref-estado">La obra tiene una versión de presupuesto de referencia vigente.</p>
+                {can('readEconomic') ? (
+                  <Link href={`/presupuestos/versiones/${work.referenceVersionId}`} className="btn sec" data-testid="obra-ref-version">
+                    <FileSpreadsheet /> Ver versión de referencia
+                  </Link>
+                ) : (
+                  <Link href={`/reportes?workId=${work.id}`} className="btn sec" data-testid="obra-ref-materiales">
+                    <BarChart3 /> Materiales previstos (sin importes)
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="small muted" data-testid="obra-ref-estado">Sin versión de referencia seleccionada: no hay materiales previstos para comparar.</p>
+            )}
+          </Card>
           <Card title="Accesos">
             <div className="stack" style={{ gap: 8 }}>
               {links.map((l) => (

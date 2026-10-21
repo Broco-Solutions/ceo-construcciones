@@ -90,6 +90,7 @@ export function useMutation<A extends unknown[], R>(fn: (key: string, ...args: A
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const keyRef = useRef<string | null>(null);
+  const argsRef = useRef<string | null>(null);
   const busy = useRef(false);
   const run = useCallback(
     async (...args: A): Promise<R | undefined> => {
@@ -97,6 +98,10 @@ export function useMutation<A extends unknown[], R>(fn: (key: string, ...args: A
       busy.current = true;
       setPending(true);
       setError(null);
+      // Misma intención (mismos argumentos) reutiliza la clave; un cuerpo distinto es una intención nueva.
+      const sig = JSON.stringify(args);
+      if (keyRef.current && argsRef.current !== sig) keyRef.current = null;
+      argsRef.current = sig;
       keyRef.current ??= newIdempotencyKey();
       try {
         const r = await fn(keyRef.current, ...args);
@@ -117,6 +122,7 @@ export function useMutation<A extends unknown[], R>(fn: (key: string, ...args: A
   );
   const reset = useCallback(() => {
     keyRef.current = null;
+    argsRef.current = null;
     setError(null);
   }, []);
   return { run, pending, error, reset, setError };

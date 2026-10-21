@@ -87,11 +87,11 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
   const [file, setFile] = useState<{ name: string; text: string } | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [confirm, setConfirm] = useState(false);
-  const [result, setResult] = useState<{ importedRows: number } | null>(null);
+  const [result, setResult] = useState<{ importedRows: number; createdIds: string[]; confirmationHash?: string } | null>(null);
   const [readErr, setReadErr] = useState<string | null>(null);
   const prev = useMutation(async (_k: string, csv: string) => (await api.post<{ data: Preview }>(`/imports/${kind}/preview`, { csv })).data);
   const commit = useMutation(async (key: string, csv: string, hash: string) =>
-    (await api.post<{ data: { importedRows: number; createdIds: string[] } }>(`/imports/${kind}/commit`, { csv, confirmationHash: hash }, { idempotencyKey: key })).data,
+    (await api.post<{ data: { importedRows: number; createdIds: string[]; confirmationHash: string } }>(`/imports/${kind}/commit`, { csv, confirmationHash: hash }, { idempotencyKey: key })).data,
   );
   const table = useMemo(() => (file ? parseCsv(file.text) : []), [file]);
   const errByRow = useMemo(() => {
@@ -141,12 +141,24 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
       </div>
       {readErr && <div className="alert bad">{readErr}</div>}
       <ErrorBox error={prev.error} />
-      {result && <div className="alert ok">Importación confirmada: {result.importedRows} filas importadas.</div>}
+      <div className="note small" data-testid="import-preview-note">
+        La vista previa muestra el contenido de tu CSV tal como se leyó en este navegador. El servidor sólo valida el archivo
+        (cantidad de filas, errores y huella de confirmación); no devuelve datos normalizados. La fila 1 es la primera fila de datos, sin contar el encabezado.
+      </div>
+      {commit.pending && <div className="note" role="status" data-testid="import-commit-status">Importando… no cierres la página.</div>}
+      {commit.error && !confirm && <ErrorBox error={commit.error} />}
+      {result && (
+        <div className="alert ok" role="status" data-testid="import-commit-result">
+          <b>Importación confirmada:</b> {result.importedRows} filas importadas · {result.createdIds.length} registros creados.
+          {result.confirmationHash && <div className="small mono">Huella: {result.confirmationHash.slice(0, 16)}…</div>}
+        </div>
+      )}
       {preview && (
         <>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {preview.valid ? <Pill tone="ok">Archivo válido</Pill> : <Pill tone="bad">Con errores</Pill>}
-            <span className="small">{preview.rowCount} filas · {preview.rowCount - errByRow.size} válidas · {errByRow.size} con errores</span>
+            <span className="small" data-testid="import-preview-summary">Validación del servidor: {preview.rowCount} filas · {preview.rowCount - errByRow.size} válidas · {errByRow.size} con errores</span>
+            <span className="small muted mono">Huella {preview.confirmationHash.slice(0, 12)}…</span>
             <span style={{ flex: 1 }} />
             <Button variant="ok" disabled={!preview.valid} onClick={() => setConfirm(true)}><Upload /> Confirmar importación</Button>
           </div>
@@ -161,7 +173,7 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
                   <tr>
                     <th>Fila</th>
                     {table[0].map((h, i) => <th key={i}>{h}</th>)}
-                    <th>Resultado</th>
+                    <th>Validación</th>
                   </tr>
                 </thead>
                 <tbody>

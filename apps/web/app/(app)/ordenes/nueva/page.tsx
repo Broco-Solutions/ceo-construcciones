@@ -8,7 +8,7 @@ import { api, fieldErrors, type Schemas } from '@/lib/api';
 import { useApi, useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { formatMoney, formatQty } from '@/lib/format';
-import { LOCATION_KIND, LookupGate, TAX_BASIS, useLookups, type RequestDetail, type TaxBasis } from '@/components/compras/common';
+import { ExistingOrdersWarning, LOCATION_KIND, LookupGate, TAX_BASIS, useExistingOrders, useLookups, type RequestDetail, type TaxBasis } from '@/components/compras/common';
 import { CommercialLines, emptyLine, lineFrom, toCommercial, type LineDraft } from '@/components/compras/CommercialLines';
 
 function NuevaOC() {
@@ -30,6 +30,10 @@ function NuevaOC() {
   const [lines, setLines] = useState<LineDraft[]>([emptyLine()]);
   const [lineErr, setLineErr] = useState<Record<number, string>>({});
   const [confirm, setConfirm] = useState(false);
+  // Advertencia (no bloqueo) de OC no anuladas ya creadas para el mismo pedido o cotización.
+  const existing = useExistingOrders(requestId, quotationId);
+  const [ackExisting, setAckExisting] = useState(false);
+  const needsAck = existing.rows.length > 0 && !ackExisting;
 
   const workId = req.data?.data.workId ?? null;
   useEffect(() => {
@@ -50,13 +54,15 @@ function NuevaOC() {
     if (def) setDestinationId(def.id);
   }, [lk.locations.rows, workId, destinationId]);
 
-  const create = useMutation((key: string, body: Schemas['OrderInput']) => api.post<{ data: Schemas['OrderDetail'] }>('/purchase-orders', body, { idempotencyKey: key }));
+  // Un replay idempotente con clave del contrato anterior devuelve LegacyOrderDetail (sin createdByName/pendingQuantity/importes):
+  // sólo se usan id/number, y el detalle se consulta con GET /purchase-orders/{id} al navegar, sin repetir el POST.
+  const create = useMutation((key: string, body: Schemas['OrderInput']) => api.post<{ data: Schemas['OrderWriteResult'] }>('/purchase-orders', body, { idempotencyKey: key }));
   const errs = fieldErrors(create.error);
   const v = toCommercial(lines);
 
   const review = () => {
     setLineErr(v.errors);
-    if (v.ok && supplierId && destinationId && /^[A-Z]{3}$/.test(currency)) setConfirm(true);
+    if (v.ok && supplierId && destinationId && /^[A-Z]{3}$/.test(currency) && !needsAck) setConfirm(true);
   };
   const submit = async () => {
     const r = await create.run({
@@ -132,10 +138,11 @@ function NuevaOC() {
                 <CommercialLines lines={lines} onChange={setLines} supplierId={supplierId} lk={lk} lockMaterials={mode === 'request'} errors={lineErr} currency={currency} />
               )}
             </Card>
+            {(requestId || quotationId) && <ExistingOrdersWarning existing={existing} ack={ackExisting} onAck={setAckExisting} />}
             <ErrorBox error={create.error} />
             <div className="cmp-bar">
               <Link className="btn sec lg" href="/ordenes">Cancelar</Link>
-              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId}>Revisar y crear</Button>
+              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId || existing.loading || needsAck}>Revisar y crear</Button>
             </div>
           </>
         )}
@@ -148,6 +155,11 @@ function NuevaOC() {
           onConfirm={submit}
         >
           Se creará una OC en <b>borrador</b> para {lk.supplierName(supplierId)} con {v.out.length} renglones ({currency}, {TAX_BASIS[taxBasis]}), destino {lk.locationName(destinationId)}. Podrás revisarla antes de emitirla.
+          {existing.rows.length > 0 && (
+            <div className="small" style={{ color: 'var(--warn)', marginTop: 8 }} data-testid="oc-duplicate-confirm-note">
+              Atención: ya hay {existing.rows.length} OC no anulada{existing.rows.length === 1 ? '' : 's'} para este {quotationId ? 'pedido/cotización' : 'pedido'} ({existing.rows.map((o) => `OC-${o.number}`).join(', ')}).
+            </div>
+          )}
         </Confirm>
       </LookupGate>
     </Page>

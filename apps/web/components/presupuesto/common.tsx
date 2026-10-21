@@ -1,7 +1,7 @@
 'use client';
 // Piezas compartidas del módulo APU / Cómputos / Presupuestos. Todos los montos vienen del backend.
 import { useMemo } from 'react';
-import { useAll } from '@/lib/hooks';
+import { useAll, useApi } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDate, formatDecimal, formatMoney, formatQty } from '@/lib/format';
 import { DecimalField, SelectField, TextField } from '@/components/ui';
@@ -365,3 +365,17 @@ export function CalcMaterials({ calc }: { calc: Calc }) {
 }
 
 export const fmtCoef = (s: string) => formatDecimal(s);
+
+/** Versión de referencia vigente de la obra (WorkDetail.referenceVersionId); null si no hay. */
+export function useWorkReference(workId: string | null | undefined) {
+  const q = useApi<{ data: Schemas['WorkDetail'] }>(workId ? `/works/${workId}` : null);
+  return { referenceVersionId: q.data?.data.id === workId ? q.data?.data.referenceVersionId ?? null : null, reload: q.reload, loading: q.loading };
+}
+
+export function ReferencePill() {
+  return (
+    <span className="pill ok" data-testid="referencia-obra" title="Versión de referencia vigente de la obra">
+      Referencia de la obra
+    </span>
+  );
+}

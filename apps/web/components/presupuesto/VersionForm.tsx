@@ -1,6 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
-import { api, type Schemas } from '@/lib/api';
+import { api, fieldErrors, type Schemas } from '@/lib/api';
 import { useAll, useApi, useMutation } from '@/lib/hooks';
 import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, Card, DecimalField, Empty, ErrorBox, Loading, SelectField, useToast } from '@/components/ui';
@@ -20,8 +20,10 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
   const [ovs, setOvs] = useState<Record<string, LineOv>>({});
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [priceErrs, setPriceErrs] = useState<Record<string, string>>({});
-  const create = useMutation((_k: string, body: Schemas['VersionInput']) =>
-    api.post<{ data: Schemas['VersionCreated'] }>(`/budgets/${budget.id}/versions`, body),
+  // Idempotency-Key estable por intención: useMutation reutiliza la clave si el cuerpo es idéntico (reintento tras
+  // error de red/timeout) y genera una nueva si el cuerpo cambió o tras un éxito. Doble clic: el segundo run() se ignora.
+  const create = useMutation((key: string, body: Schemas['VersionInput']) =>
+    api.post<{ data: Schemas['VersionCreated'] }>(`/budgets/${budget.id}/versions`, body, { idempotencyKey: key }),
   );
   const lines = comp.data?.data.id === computationId ? comp.data.data.lines : [];
   const mats = useMemo(() => {
@@ -77,12 +79,15 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
     setErrs(e);
     setPriceErrs(p.errors);
     if (Object.keys(e).length || Object.keys(p.errors).length) return;
+    if (create.pending) return;
     const r = await create.run({ ...valuationBody(val), prices: p.prices, computationId, ...(overrides.length ? { overrides } : {}) });
     if (r) {
       toast(`Versión ${r.data.number} creada.`);
       onCreated(r.data);
     }
   }
+
+  const fe = { ...fieldErrors(create.error), ...errs };
 
   if (comps.loading) return <Loading />;
   if (comps.error) return <ErrorBox error={comps.error} onRetry={comps.reload} />;
@@ -103,10 +108,10 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
           setOvs({});
           setChoices({});
         }}
-        error={errs.computationId}
+        error={fe.computationId}
       />
       <Card title="Moneda, impuestos y redondeo">
-        <ValuationFields value={val} onChange={setVal} errors={errs} />
+        <ValuationFields value={val} onChange={setVal} errors={fe} />
       </Card>
       {computationId && (comp.loading ? <Loading /> : comp.error ? <ErrorBox error={comp.error} onRetry={comp.reload} /> : (
         <>
@@ -126,16 +131,16 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
                     {o && (o.quantity || o.laborUnitCost || Object.values(o.materials).some((m) => m.coefficient || m.unitPrice)) && <span className="pill blue" style={{ marginLeft: 6 }}>Con ajustes</span>}
                   </summary>
                   <div className="formgrid" style={{ marginTop: 8 }}>
-                    <DecimalField label={`Cantidad (${l.item.unit.code})`} placeholder={decimalToInput(l.quantity)} value={o?.quantity ?? ''} onChange={(e) => setOv(l.id, { quantity: e.target.value })} error={errs[`ov.${l.id}.quantity`]} />
-                    <DecimalField label={`Mano de obra por ${l.item.unit.code}`} value={o?.laborUnitCost ?? ''} onChange={(e) => setOv(l.id, { laborUnitCost: e.target.value })} error={errs[`ov.${l.id}.labor`]} />
+                    <DecimalField label={`Cantidad (${l.item.unit.code})`} placeholder={decimalToInput(l.quantity)} value={o?.quantity ?? ''} onChange={(e) => setOv(l.id, { quantity: e.target.value })} error={fe[`ov.${l.id}.quantity`]} />
+                    <DecimalField label={`Mano de obra por ${l.item.unit.code}`} value={o?.laborUnitCost ?? ''} onChange={(e) => setOv(l.id, { laborUnitCost: e.target.value })} error={fe[`ov.${l.id}.labor`]} />
                   </div>
                   {l.item.components.map((c) => {
                     const mv = o?.materials[c.materialId] ?? { coefficient: '', unitPrice: '' };
                     const setM = (patch: Partial<typeof mv>) => setOv(l.id, { materials: { ...(o?.materials ?? {}), [c.materialId]: { ...mv, ...patch } } });
                     return (
                       <div key={c.materialId} className="formgrid">
-                        <DecimalField label={`${c.material.name}: consumo (${c.material.unit.code})`} placeholder={decimalToInput(c.coefficient)} value={mv.coefficient} onChange={(e) => setM({ coefficient: e.target.value })} error={errs[`ov.${l.id}.${c.materialId}.c`]} />
-                        <DecimalField label={`${c.material.name}: precio unitario`} value={mv.unitPrice} onChange={(e) => setM({ unitPrice: e.target.value })} error={errs[`ov.${l.id}.${c.materialId}.p`]} />
+                        <DecimalField label={`${c.material.name}: consumo (${c.material.unit.code})`} placeholder={decimalToInput(c.coefficient)} value={mv.coefficient} onChange={(e) => setM({ coefficient: e.target.value })} error={fe[`ov.${l.id}.${c.materialId}.c`]} />
+                        <DecimalField label={`${c.material.name}: precio unitario`} value={mv.unitPrice} onChange={(e) => setM({ unitPrice: e.target.value })} error={fe[`ov.${l.id}.${c.materialId}.p`]} />
                       </div>
                     );
                   })}
@@ -150,7 +155,7 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
         <Button variant="sec" size="lg" onClick={onCancel} disabled={create.pending}>
           Cancelar
         </Button>
-        <Button size="lg" onClick={submit} loading={create.pending} disabled={!computationId}>
+        <Button size="lg" onClick={submit} data-testid="crear-version" loading={create.pending} disabled={!computationId}>
           Crear versión
         </Button>
       </div>

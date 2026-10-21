@@ -47,8 +47,13 @@ function ReportInner() {
   const versionId = sp.get('versionId') ?? '';
   const [page, setPage] = useState(1);
   const cats = useAll<{ id: string; code: string; name: string }>('/categories');
-  const q = { workId, categoryId, materialId, versionId, page, pageSize: 50 };
-  const rep = useApi<{ data: Report; pagination: Pagination }>(workId ? '/reports/materials' : null, q);
+  // WorkDetail.referenceVersionId identifica la versión de referencia (sin datos económicos), visible también para el Jefe de Obra.
+  const work = useApi<{ data: Schemas['WorkDetail'] }>(workId ? `/works/${workId}` : null);
+  const refId = work.data?.data.id === workId ? work.data.data.referenceVersionId : undefined;
+  const effVersionId = versionId || refId || '';
+  const ready = !!workId && (!!versionId || !!work.data || !!work.error);
+  const q = { workId, categoryId, materialId, versionId: effVersionId, page, pageSize: 50 };
+  const rep = useApi<{ data: Report; pagination: Pagination }>(ready ? '/reports/materials' : null, q);
   const [exporting, setExporting] = useState(false);
 
   const setParam = (k: string, v: string) => {
@@ -62,7 +67,7 @@ function ReportInner() {
   const exportXlsx = async () => {
     setExporting(true);
     try {
-      const name = await api.download('/reports/materials/export', { workId, categoryId, materialId, versionId }, 'seguimiento-materiales.xlsx');
+      const name = await api.download('/reports/materials/export', { workId, categoryId, materialId, versionId: effVersionId }, 'seguimiento-materiales.xlsx');
       toast(`Descargado ${name}`);
     } catch (e) {
       toast((e as Error).message, 'bad');
@@ -117,7 +122,7 @@ function ReportInner() {
           </div>
         </div>
         <div className="bd stack">
-          <ErrorBox error={lk.error ?? rep.error} onRetry={rep.reload} />
+          <ErrorBox error={lk.error ?? work.error ?? rep.error} onRetry={rep.reload} />
           {!workId ? (
             lk.loading ? <Loading /> : <Empty title="Elegí una obra">El informe muestra cantidades previstas, pedidas, compradas, recibidas, consumidas y disponibles por material.</Empty>
           ) : rep.loading && !r ? (
@@ -126,12 +131,15 @@ function ReportInner() {
             <>
               <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
                 {r.version ? (
-                  <Pill tone="blue">
-                    Referencia: versión {r.version.number} ({STATUS_LABEL[r.version.status] ?? r.version.status})
-                  </Pill>
+                  <span data-testid="report-reference-version">
+                    <Pill tone="blue">
+                      Referencia: versión {r.version.number} ({STATUS_LABEL[r.version.status] ?? r.version.status})
+                    </Pill>
+                  </span>
                 ) : (
-                  <Pill tone="warn">Sin versión de referencia</Pill>
+                  <Pill tone="warn">{refId === null ? 'La obra no tiene versión de referencia' : 'Sin versión de referencia'}</Pill>
                 )}
+                {r.version && refId && r.version.id !== refId && <Pill tone="plain">No es la referencia vigente de la obra</Pill>}
                 {rep.loading && <span className="small muted">Actualizando…</span>}
               </div>
               {r.warnings.length > 0 && (

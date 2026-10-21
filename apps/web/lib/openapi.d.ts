@@ -473,7 +473,7 @@ export interface paths {
         };
         /**
          * Listar ubicaciones
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras.
          */
         get: operations["get__locations"];
         put?: never;
@@ -521,7 +521,7 @@ export interface paths {
         };
         /**
          * Registro de auditoría
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Filtros combinables y paginación global; from/to ISO8601 inclusivos, from<=to. Actor sólo nombre; antes/después de UPDATE Work completos. Orden createdAt,id descendente.
          */
         get: operations["get__audit"];
         put?: never;
@@ -623,7 +623,7 @@ export interface paths {
         head?: never;
         /**
          * Reemplazar computations
-         * @description Reemplazo completo, incluidos componentes/renglones. No es un PATCH parcial.
+         * @description Reemplazo completo. lines[].id opcional debe pertenecer a este cómputo y no repetirse; conserva identidad. Sin id conserva renglón si itemId es único antes/después. APU duplicados requieren id para conservarla; sin él se recrean. Snapshots anteriores no cambian.
          */
         patch: operations["patch__computations_id_"];
         trace?: never;
@@ -703,7 +703,7 @@ export interface paths {
         put?: never;
         /**
          * Crear versión inmutable
-         * @description Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.
+         * @description Idempotency-Key obligatorio por actor/presupuesto: misma clave y cuerpo conserva201 y snapshot, incluso en concurrencia; cuerpo distinto409. Snapshot de cantidades, coeficientes y precios. priceId o unitPrice exclusivo por material; no se infiere IVA, moneda ni redondeo.
          */
         post: operations["post__budgets_id_versions"];
         delete?: never;
@@ -937,7 +937,7 @@ export interface paths {
         };
         /**
          * Necesidades y disponibilidad
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description alreadyRequested suma pedidos no cancelados de la obra e INCLUYE el pedido consultado; no es cantidad de otros pedidos. Jefe sólo disponibilidad de sus ubicaciones.
          */
         get: operations["get__requests_id_needs"];
         put?: never;
@@ -977,7 +977,7 @@ export interface paths {
         };
         /**
          * Historial de la OC
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Incluye acciones de OC y RECEIVE de Receipt de esa OC. entityType/entityId identifican recibo, after.orderId enlaza OC; actorName y createdAt. Orden cronológico createdAt,id. Jefe consulta recepciones sin historia económica vía /receipts.
          */
         get: operations["get__purchase_orders_id_history"];
         put?: never;
@@ -997,7 +997,7 @@ export interface paths {
         };
         /**
          * Comparar cotizaciones de un pedido
-         * @description El parámetro es requestId (no quotationId). Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.
+         * @description El parámetro es requestId (no quotationId). Orden cronológico createdAt,id ascendente; líneas materialId,id. No representa ranking económico ni aprobación automática. Sin ranking monetario cuando monedas o bases impositivas no coinciden/no están especificadas.
          */
         get: operations["get__quotations_requestId_comparison"];
         put?: never;
@@ -1471,7 +1471,7 @@ export interface paths {
         put?: never;
         /**
          * Validar suppliers sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_suppliers_preview"];
         delete?: never;
@@ -1531,7 +1531,7 @@ export interface paths {
         put?: never;
         /**
          * Validar works sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_works_preview"];
         delete?: never;
@@ -1591,7 +1591,7 @@ export interface paths {
         put?: never;
         /**
          * Validar materials sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_materials_preview"];
         delete?: never;
@@ -1651,7 +1651,7 @@ export interface paths {
         put?: never;
         /**
          * Validar prices sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_prices_preview"];
         delete?: never;
@@ -1711,7 +1711,7 @@ export interface paths {
         put?: never;
         /**
          * Validar purchase-orders sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_purchase_orders_preview"];
         delete?: never;
@@ -1771,7 +1771,7 @@ export interface paths {
         put?: never;
         /**
          * Validar initial-stock sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base.
+         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
          */
         post: operations["post__imports_initial_stock_preview"];
         delete?: never;
@@ -1922,6 +1922,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            unit?: components["schemas"]["Unit"];
+            category?: components["schemas"]["Category"] | null;
         };
         Presentation: {
             id: string;
@@ -2183,12 +2185,27 @@ export interface components {
             pageSize: number;
             total: number;
         };
+        ZodFlattenDetails: {
+            formErrors: string[];
+            fieldErrors: {
+                [key: string]: string[];
+            };
+        };
+        ZodIssue: {
+            code: string;
+            message: string;
+            path: (string | number)[];
+        } & {
+            [key: string]: unknown;
+        };
         Error: {
             error: {
                 code: string;
                 message: string;
-                /** @description Detalles de validación: issues Zod, errores por fila o mensajes del dominio. */
-                details?: unknown;
+                /** @description APU/cómputos/presupuestos y reportes: Zod flatten {formErrors,fieldErrors}; catálogos/compras/inventario: array de issues Zod. Otros errores pueden contener objetos de dominio o filas. El cliente debe discriminar por forma, no suponer siempre array. */
+                details?: components["schemas"]["ZodFlattenDetails"] | components["schemas"]["ZodIssue"][] | {
+                    [key: string]: unknown;
+                } | unknown[] | string;
             };
         };
         NamedInput: {
@@ -2227,6 +2244,7 @@ export interface components {
             baseQuantity: string;
             active?: boolean;
         };
+        /** @description Sin presentationId, baseQuantity debe ser decimal igual a1 (p.ej. 1 o 1.0); con presentación debe coincidir exactamente con su equivalencia. Incompatibilidad devuelve409; no se inventan conversiones. */
         PriceInput: {
             materialId: string;
             supplierId?: string | null;
@@ -2239,7 +2257,7 @@ export interface components {
             /** Format: date-time */
             effectiveAt?: string;
             source?: string;
-        };
+        } & unknown;
         ReservationInput: {
             materialId: string;
             sourceId: string;
@@ -2301,6 +2319,15 @@ export interface components {
             workId: string;
             name: string;
             lines: {
+                itemId: string;
+                quantity: string;
+            }[];
+        };
+        ComputationPatch: {
+            workId: string;
+            name: string;
+            lines: {
+                id?: string;
                 itemId: string;
                 quantity: string;
             }[];
@@ -2429,10 +2456,10 @@ export interface components {
             notes?: string | null;
             active?: boolean;
         };
+        /** @description La unidad base es inmutable. unitId no se admite en PATCH (422); crear otro material para cambiarla. */
         MaterialPatch: {
             code?: string;
             name?: string;
-            unitId?: string;
             categoryId?: string | null;
             minimum?: string;
             active?: boolean;
@@ -2441,6 +2468,64 @@ export interface components {
             code?: string;
             name?: string;
         };
+        LocationSummary: {
+            id: string;
+            code: string;
+            name: string;
+            kind: components["schemas"]["LocationKind"];
+        };
+        ReturnDestination: {
+            id: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            kind: "WAREHOUSE" | "YARD";
+            /** @constant */
+            active: true;
+        };
+        /** @description Jefe: ubicación completa de obra propia o sólo metadatos de galpón/patio activo; no concede lectura de saldos globales. */
+        VisibleLocation: components["schemas"]["Location"] | components["schemas"]["ReturnDestination"];
+        AuditEntry: {
+            id: string;
+            actorId: string | null;
+            action: string;
+            entityType: string;
+            entityId: string;
+            before: unknown | null;
+            after: unknown | null;
+            /** Format: date-time */
+            createdAt: string;
+            actorName: string | null;
+        };
+        /** @description Ubicaciones mínimas sin saldos. Para Jefe, source/destination de obras no asignadas se proyectan null, incluso si el movimiento llega a su obra autorizada. Los IDs escalares se conservan como referencia histórica; no conceden acceso. */
+        MovementDetail: {
+            id: string;
+            type: components["schemas"]["MovementType"];
+            materialId: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            quantity: string;
+            sourceId: string | null;
+            destinationId: string | null;
+            workId: string | null;
+            reservationId: string | null;
+            receiptLineId: string | null;
+            createdById: string;
+            reason: string | null;
+            idempotencyKey: string;
+            /** Format: date-time */
+            createdAt: string;
+            categoryId: string | null;
+            source: components["schemas"]["LocationSummary"] | null;
+            destination: components["schemas"]["LocationSummary"] | null;
+            actorName: string;
+        };
+        /** @description Nuevas intenciones devuelven MovementDetail. Replay de claves guardadas con el contrato anterior puede devolver StockMovement sin metadatos; GET /movements los incluye sin repetir la operación. */
+        MovementWriteResult: components["schemas"]["MovementDetail"] | components["schemas"]["StockMovement"];
+        /**
+         * @description LOCATION: override local, incluso 0. MATERIAL: heredado positivo. NONE: sin override y mínimo global 0.
+         * @enum {string}
+         */
+        MinimumSource: "LOCATION" | "MATERIAL" | "NONE";
         MaterialDetail: {
             id: string;
             code: string;
@@ -2483,6 +2568,7 @@ export interface components {
             assignments: {
                 userId: string;
             }[];
+            referenceVersionId: string | null;
         };
         StockMaterial: {
             id: string;
@@ -2498,6 +2584,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             unit: components["schemas"]["Unit"];
+            category?: components["schemas"]["Category"] | null;
         };
         Stock: {
             id: string;
@@ -2516,6 +2603,7 @@ export interface components {
             /** @description Decimal serializado como texto, nunca float. */
             available: string;
             belowMinimum: boolean;
+            minimumSource: components["schemas"]["MinimumSource"];
         };
         StockAlert: {
             balanceId: string | null;
@@ -2546,6 +2634,7 @@ export interface components {
             minimum: string;
             /** @constant */
             belowMinimum: true;
+            minimumSource: components["schemas"]["MinimumSource"];
         };
         RequestDetail: {
             id: string;
@@ -2579,7 +2668,62 @@ export interface components {
             updatedAt: string;
             lines: components["schemas"]["QuotationLine"][];
         };
+        OrderLineDetail: {
+            id: string;
+            orderId: string;
+            materialId: string;
+            presentationId: string | null;
+            /** @description Decimal serializado como texto, nunca float. */
+            quantity: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            receivedQuantity: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            unitPrice: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            baseQuantity: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            pendingQuantity: string;
+            lineAmount: string | null;
+        };
+        /** @description Importes exactos quantity*unitPrice/baseQuantity cuando son representables hasta8decimales; sin agregar IVA ni redondear. Si alguna línea requiere política de redondeo: lineAmount y totalAmount null, amountWarning ROUNDING_POLICY_REQUIRED. No certifica política monetaria final CEO. */
         OrderDetail: {
+            id: string;
+            number: number;
+            supplierId: string;
+            workId: string | null;
+            requestId: string | null;
+            quotationId: string | null;
+            destinationId: string;
+            status: components["schemas"]["PurchaseOrderStatus"];
+            currency: string;
+            taxBasis: components["schemas"]["TaxBasis"];
+            notes: string | null;
+            invoiceNumber: string | null;
+            invoiceLoadedAt: string | null;
+            invoiceLoadedById: string | null;
+            createdById: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            lines: components["schemas"]["OrderLineDetail"][];
+            supplier: {
+                id: string;
+                code: string;
+                name: string;
+            };
+            destination: components["schemas"]["LocationSummary"];
+            work: {
+                id: string;
+                code: string;
+                name: string;
+            } | null;
+            createdByName: string;
+            invoiceLoadedByName: string | null;
+            totalAmount: string | null;
+            amountWarning: "ROUNDING_POLICY_REQUIRED" | null;
+        };
+        LegacyOrderDetail: {
             id: string;
             number: number;
             supplierId: string;
@@ -2601,6 +2745,8 @@ export interface components {
             updatedAt: string;
             lines: components["schemas"]["PurchaseOrderLine"][];
         };
+        /** @description Nueva OC devuelve OrderDetail. Una clave idempotente creada con el contrato anterior conserva LegacyOrderDetail; consultar GET /purchase-orders/{id} para descripciones/importes actuales, sin volver a crear. */
+        OrderWriteResult: components["schemas"]["OrderDetail"] | components["schemas"]["LegacyOrderDetail"];
         ChiefOrderLine: {
             id: string;
             materialId: string;
@@ -2617,6 +2763,8 @@ export interface components {
             workId: string | null;
             requestId: string | null;
             destinationId: string;
+            destination: components["schemas"]["LocationSummary"];
+            createdByName: string;
             status: components["schemas"]["PurchaseOrderStatus"];
             /** Format: date-time */
             createdAt: string;
@@ -2633,7 +2781,21 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             lines: components["schemas"]["ReceiptLine"][];
+            actorName: string;
+            location: components["schemas"]["LocationSummary"];
         };
+        LegacyReceiptDetail: {
+            id: string;
+            orderId: string;
+            locationId: string;
+            receivedById: string;
+            deliveryNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            lines: components["schemas"]["ReceiptLine"][];
+        };
+        /** @description Nuevo evento devuelve ReceiptDetail. Replay previo conserva metadatos originales LegacyReceiptDetail; GET de recepciones incluye nombres/ubicación actuales. */
+        ReceiptWriteResult: components["schemas"]["ReceiptDetail"] | components["schemas"]["LegacyReceiptDetail"];
         ApuMaterialDetail: {
             id: string;
             code: string;
@@ -2648,6 +2810,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
             unit: components["schemas"]["Unit"];
+            category?: components["schemas"]["Category"] | null;
         };
         ApuComponent: {
             id: string;
@@ -2890,6 +3053,16 @@ export interface components {
                 unitId: string;
                 /** @description Decimal serializado como texto, nunca float. */
                 quantity: string;
+                material: {
+                    id: string;
+                    code: string;
+                    name: string;
+                };
+                unit: {
+                    id: string;
+                    code: string;
+                    name: string;
+                };
             }[];
             materialsByCategory: {
                 categoryId: string;
@@ -2897,6 +3070,21 @@ export interface components {
                 unitId: string;
                 /** @description Decimal serializado como texto, nunca float. */
                 quantity: string;
+                material: {
+                    id: string;
+                    code: string;
+                    name: string;
+                };
+                unit: {
+                    id: string;
+                    code: string;
+                    name: string;
+                };
+                category: {
+                    id: string;
+                    code: string;
+                    name: string;
+                };
             }[];
         };
         Needs: {
@@ -4136,6 +4324,8 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 status?: components["schemas"]["WorkStatus"];
+                q?: string;
+                search?: string;
             };
             header?: never;
             path?: never;
@@ -5669,6 +5859,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                search?: string;
+                q?: string;
+                active?: "true" | "false";
             };
             header?: never;
             path?: never;
@@ -6181,7 +6374,9 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 search?: string;
+                q?: string;
                 categoryId?: string;
+                active?: "true" | "false";
             };
             header?: never;
             path?: never;
@@ -7610,7 +7805,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["Location"][];
+                        data: components["schemas"]["VisibleLocation"][];
                         pagination: components["schemas"]["Pagination"];
                     };
                 };
@@ -7873,7 +8068,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["Location"];
+                        data: components["schemas"]["VisibleLocation"];
                     };
                 };
             };
@@ -8120,6 +8315,10 @@ export interface operations {
                 pageSize?: number;
                 entity?: string;
                 entityId?: string;
+                actorId?: string;
+                action?: string;
+                from?: string;
+                to?: string;
             };
             header?: never;
             path?: never;
@@ -8134,7 +8333,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["AuditLog"][];
+                        data: components["schemas"]["AuditEntry"][];
                         pagination: components["schemas"]["Pagination"];
                     };
                 };
@@ -9176,7 +9375,7 @@ export interface operations {
                  *         }
                  *       ]
                  *     } */
-                "application/json": components["schemas"]["ComputationInput"];
+                "application/json": components["schemas"]["ComputationPatch"];
             };
         };
         responses: {
@@ -9815,6 +10014,8 @@ export interface operations {
         parameters: {
             query?: never;
             header: {
+                /** @description Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409. */
+                "Idempotency-Key": string;
                 /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
                 Origin: string;
             };
@@ -10329,6 +10530,7 @@ export interface operations {
                 pageSize?: number;
                 workId?: string;
                 categoryId?: string;
+                status?: components["schemas"]["RequestStatus"];
             };
             header?: never;
             path?: never;
@@ -10718,6 +10920,7 @@ export interface operations {
                 pageSize?: number;
                 requestId?: string;
                 supplierId?: string;
+                status?: components["schemas"]["QuotationStatus"];
             };
             header?: never;
             path?: never;
@@ -11109,6 +11312,10 @@ export interface operations {
                 pageSize?: number;
                 workId?: string;
                 supplierId?: string;
+                status?: components["schemas"]["PurchaseOrderStatus"];
+                requestId?: string;
+                quotationId?: string;
+                destinationId?: string;
             };
             header?: never;
             path?: never;
@@ -11268,7 +11475,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["OrderDetail"];
+                        data: components["schemas"]["OrderWriteResult"];
                     };
                 };
             };
@@ -11910,7 +12117,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["AuditLog"][];
+                        data: components["schemas"]["AuditEntry"][];
                         pagination: components["schemas"]["Pagination"];
                     };
                 };
@@ -12037,7 +12244,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["AuditLog"][];
+                        data: components["schemas"]["AuditEntry"][];
                         pagination: components["schemas"]["Pagination"];
                     };
                 };
@@ -12423,7 +12630,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["PurchaseOrder"];
+                        data: components["schemas"]["OrderDetail"];
                     };
                 };
             };
@@ -12558,7 +12765,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["PurchaseOrder"];
+                        data: components["schemas"]["OrderDetail"];
                     };
                 };
             };
@@ -12827,7 +13034,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["ReceiptDetail"];
+                        data: components["schemas"]["ReceiptWriteResult"];
                     };
                 };
             };
@@ -13978,7 +14185,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["StockMovement"][];
+                        data: components["schemas"]["MovementDetail"][];
                         pagination: components["schemas"]["Pagination"];
                     };
                 };
@@ -14115,7 +14322,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: components["schemas"]["StockMovement"];
+                        data: components["schemas"]["MovementWriteResult"];
                     };
                 };
             };

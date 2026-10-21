@@ -23,7 +23,7 @@ export type VisibleOrder = Schemas['VisibleOrder'];
 export type OrderStatus = Schemas['PurchaseOrderStatus'];
 export type QuotationStatus = Schemas['QuotationStatus'];
 export type TaxBasis = Schemas['TaxBasis'];
-export type AuditLog = Schemas['AuditLog'];
+export type AuditLog = Schemas['AuditEntry'];
 export type Receipt = Schemas['ReceiptDetail'];
 
 type Tone = 'ok' | 'warn' | 'bad' | 'blue' | 'plain';
@@ -112,7 +112,11 @@ export function useLookups(opts: { suppliers?: boolean } = {}) {
   return { works, categories, units, materials, locations, suppliers, loading, error, reload, workName, material, materialLabel, unitOf, locationName, categoryName, supplierName };
 }
 
-/** Nombre de usuario: el backend sólo expone /users a Gerencia; el resto ve "Vos" o "Usuario". */
+/**
+ * Nombre de usuario para DTO que todavía no traen nombre (pedido.requestedById, cotización.selectedById).
+ * Sólo Gerencia consulta /users; el resto ve "Vos" o "Usuario". OC, recepciones e historiales usan
+ * createdByName/invoiceLoadedByName/actorName del DTO y no pasan por acá.
+ */
 export function useUserName() {
   const { user, can } = useSession();
   const users = useMap<Schemas['User']>(can('adminUsers') ? '/users' : null);
@@ -179,21 +183,44 @@ const ACTIONS: Record<string, string> = {
   INVOICE_REFERENCE: 'Referencia de factura',
   RECEIVE: 'Recepción',
 };
-function describe(log: AuditLog, statusMap?: Record<string, [string, Tone]>) {
+function describe(log: AuditLog, statusMap?: Record<string, [string, Tone]>, locationName?: (id: string) => string) {
   const after = log.after as Record<string, unknown> | null;
   if (log.action === 'STATUS' && after && typeof after.from === 'string' && typeof after.to === 'string') {
     const l = (s: string) => statusMap?.[s]?.[0] ?? s;
     return `${l(after.from)} → ${l(after.to)}`;
   }
   if (log.action === 'INVOICE_REFERENCE' && after && 'after' in after) return `Factura N.º ${String(after.after)}`;
+  // Recepciones (entityType Receipt, enlazadas a la OC por after.orderId).
+  if (log.action === 'RECEIVE' && after) {
+    const parts: string[] = [];
+    if (typeof after.deliveryNote === 'string') parts.push(`Remito ${after.deliveryNote}`);
+    if (typeof after.locationId === 'string' && locationName) parts.push(locationName(after.locationId));
+    if (Array.isArray(after.lines)) parts.push(`${after.lines.length} renglón${after.lines.length === 1 ? '' : 'es'}`);
+    return parts.join(' · ') || null;
+  }
   return null;
 }
 
-/** Historial de auditoría como línea de tiempo. */
-export function HistoryTimeline({ path, statusMap, title = 'Seguimiento' }: { path: string | null; statusMap?: Record<string, [string, Tone]>; title?: string }) {
+/** Historial de auditoría como línea de tiempo. El autor sale de actorName del DTO (sin consultar /users). */
+export function HistoryTimeline({
+  path,
+  statusMap,
+  title = 'Seguimiento',
+  locationName,
+}: {
+  path: string | null;
+  statusMap?: Record<string, [string, Tone]>;
+  title?: string;
+  locationName?: (id: string) => string;
+}) {
   const r = useApi<{ data: AuditLog[] }>(path, { pageSize: 100 });
-  const name = useUserName();
+  const { user } = useSession();
   if (!path) return null;
+  const who = (log: AuditLog) => {
+    if (!log.actorId) return 'Sistema';
+    const n = log.actorName ?? 'Usuario';
+    return log.actorId === user?.id ? `${n} (vos)` : n;
+  };
   return (
     <Card title={title}>
       {r.loading ? (
@@ -203,21 +230,24 @@ export function HistoryTimeline({ path, statusMap, title = 'Seguimiento' }: { pa
       ) : !r.data?.data.length ? (
         <div className="muted small">Sin movimientos registrados.</div>
       ) : (
-        <ol className="cmp-tl">
-          {r.data.data.map((log) => (
-            <li key={log.id}>
-              <i aria-hidden />
-              <div>
-                <b>
-                  {ACTIONS[log.action] ?? log.action}
-                  {describe(log, statusMap) ? ` · ${describe(log, statusMap)}` : ''}
-                </b>
-                <span>
-                  {formatDateTime(log.createdAt)} · {name(log.actorId)}
-                </span>
-              </div>
-            </li>
-          ))}
+        <ol className="cmp-tl" data-testid="history-timeline">
+          {r.data.data.map((log) => {
+            const d = describe(log, statusMap, locationName);
+            return (
+              <li key={log.id} data-action={log.action} data-entity={log.entityType}>
+                <i aria-hidden style={log.action === 'RECEIVE' ? { background: 'var(--ok)' } : undefined} />
+                <div>
+                  <b>
+                    {ACTIONS[log.action] ?? log.action}
+                    {d ? ` · ${d}` : ''}
+                  </b>
+                  <span>
+                    {formatDateTime(log.createdAt)} · {who(log)}
+                  </span>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       )}
     </Card>
@@ -236,4 +266,70 @@ export function positiveQty(input: string): string | null {
   const v = parseDecimalInput(input);
   if (!v || v.startsWith('-') || toScaled(v) === BigInt(0)) return null;
   return v;
+}
+
+/* ---------- OC: importes informados por el servidor ---------- */
+
+export const ROUNDING_WARNING = 'Importe no calculado: falta definir política de redondeo (validación CEO pendiente)';
+
+/** Advertencia cuando el servidor no informa importes (amountWarning o null). Nunca se calcula en JS. */
+export function AmountWarning({ order }: { order: OrderDetail }) {
+  const missing = order.amountWarning === 'ROUNDING_POLICY_REQUIRED' || order.totalAmount === null || order.lines.some((l) => l.lineAmount === null);
+  if (!missing) return null;
+  return (
+    <div className="alert warn" role="alert" data-testid="oc-rounding-warning">
+      <b>{ROUNDING_WARNING}</b>
+      <div className="small">
+        Algún renglón no tiene división exacta (cantidad × precio ÷ cantidad base). El sistema no redondea ni completa importes: los renglones afectados y el total
+        quedan sin valor hasta que CEO defina la política.
+      </div>
+    </div>
+  );
+}
+
+/* ---------- OC existentes para un pedido / cotización ---------- */
+
+type ExistingOrders = { rows: VisibleOrder[]; total: number; loading: boolean; error: unknown };
+
+/**
+ * Órdenes no anuladas ya creadas para el pedido o la cotización (filtros requestId/quotationId del servidor).
+ * No bloquea: el pedido admite compras parciales o a distintos proveedores.
+ */
+export function useExistingOrders(requestId: string | null, quotationId: string | null): ExistingOrders {
+  const byReq = useApi<{ data: VisibleOrder[]; pagination: Schemas['Pagination'] }>(requestId ? '/purchase-orders' : null, { requestId: requestId ?? undefined, pageSize: 100 });
+  const byQuo = useApi<{ data: VisibleOrder[]; pagination: Schemas['Pagination'] }>(quotationId ? '/purchase-orders' : null, { quotationId: quotationId ?? undefined, pageSize: 100 });
+  return useMemo(() => {
+    const m = new Map<string, VisibleOrder>();
+    [...(byReq.data?.data ?? []), ...(byQuo.data?.data ?? [])].filter((o) => o.status !== 'CANCELLED').forEach((o) => m.set(o.id, o));
+    const truncated = (byReq.data?.pagination.total ?? 0) > 100 || (byQuo.data?.pagination.total ?? 0) > 100;
+    return { rows: [...m.values()].sort((a, b) => a.number - b.number), total: truncated ? -1 : m.size, loading: byReq.loading || byQuo.loading, error: byReq.error || byQuo.error };
+  }, [byReq.data, byQuo.data, byReq.loading, byQuo.loading, byReq.error, byQuo.error]);
+}
+
+export function ExistingOrdersWarning({ existing, ack, onAck }: { existing: ExistingOrders; ack: boolean; onAck: (v: boolean) => void }) {
+  if (existing.loading) return <div className="small muted">Verificando órdenes existentes…</div>;
+  if (existing.error) return <div className="note small">No se pudo verificar si ya hay órdenes para este pedido/cotización.</div>;
+  if (!existing.rows.length) return null;
+  return (
+    <div className="alert warn" role="alert" data-testid="oc-duplicate-warning">
+      <b>Ya existen órdenes de compra no anuladas para este {existing.rows.some((o) => 'quotationId' in o && o.quotationId) ? 'pedido o cotización' : 'pedido'}:</b>
+      <div className="small">
+        {existing.rows.map((o, i) => (
+          <span key={o.id}>
+            {i > 0 && ', '}
+            <a href={`/ordenes/${o.id}`} target="_blank" rel="noreferrer">
+              OC-{o.number}
+            </a>{' '}
+            ({ORDER_STATUS[o.status][0]})
+          </span>
+        ))}
+        {existing.total === -1 && ' y otras.'}
+      </div>
+      <div className="small">Crear otra OC es válido para compras parciales o a otro proveedor. Verificá que no estés duplicando la compra.</div>
+      <label className="row small" style={{ gap: 6, marginTop: 6 }}>
+        <input type="checkbox" data-testid="oc-duplicate-ack" checked={ack} onChange={(e) => onAck(e.target.checked)} />
+        Revisé las órdenes existentes y quiero crear otra.
+      </label>
+    </div>
+  );
 }

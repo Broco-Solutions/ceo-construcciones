@@ -9,7 +9,7 @@ import { formatDateTime, formatQty } from '@/lib/format';
 import { useSession } from '@/lib/session';
 import { Page } from '@/components/shell';
 import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill, useToast } from '@/components/ui';
-import { InvNav, KIND_LABEL, LocationSelect, MaterialSelect, locLabel, useInvLookups } from '@/components/inventario/common';
+import { InvNav, KIND_LABEL, LocationSelect, MaterialSelect, MinimumValue, locLabel, useInvLookups } from '@/components/inventario/common';
 import { MinimumModal } from '@/components/inventario/MinimumModal';
 
 type Stock = Schemas['Stock'];
@@ -107,7 +107,7 @@ function StockInner() {
             </p>
           )}
           <p className="small muted" style={{ marginTop: 0 }}>
-            Disponible = físico − reservado, calculado por el sistema. El mínimo mostrado es el efectivo para esa ubicación.
+            Disponible = físico − reservado, calculado por el sistema. El mínimo mostrado es el efectivo para esa ubicación e indica si es propio de la ubicación, heredado del material o si no hay mínimo.
           </p>
           <ErrorBox error={error ?? lk.error} onRetry={reload} />
           {loading ? (
@@ -128,7 +128,7 @@ function StockInner() {
                   { key: 'p', header: 'Físico', align: 'r', render: (r) => formatQty(r.physical, r.material.unit.code) },
                   { key: 'r', header: 'Reservado', align: 'r', render: (r) => formatQty(r.reserved, r.material.unit.code) },
                   { key: 'a', header: 'Disponible', align: 'r', render: (r) => <b>{formatQty(r.available, r.material.unit.code)}</b> },
-                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => formatQty(r.minimum, r.material.unit.code) },
+                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => <MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /> },
                   {
                     key: 'st',
                     header: 'Estado',
@@ -167,7 +167,7 @@ function StockInner() {
                       <div><small>Físico</small><span>{formatQty(r.physical, r.material.unit.code)}</span></div>
                       <div><small>Reservado</small><span>{formatQty(r.reserved, r.material.unit.code)}</span></div>
                       <div><small>Disponible</small><span><b>{formatQty(r.available, r.material.unit.code)}</b></span></div>
-                      <div><small>Mínimo</small><span>{formatQty(r.minimum, r.material.unit.code)}</span></div>
+                      <div><small>Mínimo</small><span><MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /></span></div>
                     </div>
                     {can('manageStock') && (
                       <Button size="sm" variant="sec" onClick={() => setMinFor({ locationId: r.locationId, materialId: r.materialId })}>
@@ -186,6 +186,7 @@ function StockInner() {
       {minFor && (
         <MinimumModal
           initial={minFor}
+          current={minFor.locationId && minFor.materialId ? rows.find((r) => r.locationId === minFor.locationId && r.materialId === minFor.materialId) : undefined}
           locations={lk.locations}
           materials={lk.materials}
           onClose={() => setMinFor(null)}

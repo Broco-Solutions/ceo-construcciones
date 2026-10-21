@@ -96,7 +96,7 @@ function Detalle() {
                   <div className="small">Compará con criterio propio: no se ordena ni se destaca ninguna oferta por precio.</div>
                 </div>
               )}
-              <div className="small muted">Las ofertas se muestran en el orden recibido, sin ranking. “Precio por unidad base” lo informa el sistema (precio ÷ cantidad base).</div>
+              <div className="small muted">Las ofertas se muestran en el orden en que se cargaron (más antigua primero), sin ranking ni destacado automático. “Precio por unidad base” lo informa el sistema (precio ÷ cantidad base).</div>
               <div className="grid2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 14 }}>
                 {quotes.map((q) => (
                   <div key={q.id} className="card" style={{ padding: 14 }}>

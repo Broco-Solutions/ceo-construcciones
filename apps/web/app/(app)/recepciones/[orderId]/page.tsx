@@ -22,7 +22,7 @@ function Recibir() {
     <Page title={`Recibir OC-${ord.number}`} crumb={crumb}>
       <LookupGate lk={lk}>
         <Card title="Orden" actions={<StatusPill map={ORDER_STATUS} value={ord.status} />}>
-          <DefList items={[['Obra', lk.workName(ord.workId)], ['Destino', lk.locationName(ord.destinationId)], ['Detalle', <Link key="d" href={`/ordenes/${ord.id}`}>Ver OC</Link>]]} />
+          <DefList items={[['Obra', lk.workName(ord.workId)], ['Destino', ord.destination ? ord.destination.name : lk.locationName(ord.destinationId)], ['Creada por', ord.createdByName ?? '—'], ['Detalle', <Link key="d" href={`/ordenes/${ord.id}`}>Ver OC</Link>]]} />
         </Card>
         {canReceive(ord) ? (
           <ReceiptForm key={`f${tick}`} order={ord} lk={lk} onDone={() => { o.reload(); setTick((t) => t + 1); }} />
