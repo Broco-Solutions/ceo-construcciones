@@ -1,6 +1,6 @@
 # CEO Construcciones - infraestructura inicial
 
-**Estado:** scaffold tecnico SIN logica de negocio. Renzo define el PRD y desarrolla funcionalidades posteriormente.
+**Estado:** infraestructura base operativa, SIN logica de negocio. Borrador funcional en docs/PRD-ETAPA-1.md, pendiente de aprobacion.
 
 ## Stack cerrado
 - Monorepo GitHub: `Broco-Solutions/ceo-construcciones` (creado, privado, rama `main`).
@@ -42,7 +42,7 @@ pnpm dev:web
 pnpm dev:api
 ```
 
-## Reglas para Codex / Renzo
+## Reglas para Codex / Claude Code
 - Respetar la estructura existente y NO introducir frameworks alternativos sin justificacion.
 - Gestionar datos mediante Prisma y migraciones versionadas; nunca `db push` sobre produccion.
 - Autenticacion y permisos se validan en servidor, no solo ocultando controles de UI.
