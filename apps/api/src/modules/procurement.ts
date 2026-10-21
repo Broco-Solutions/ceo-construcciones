@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+import {
+  Prisma,
+  PurchaseOrderStatus,
+  RequestStatus,
+  QuotationStatus,
+} from "@prisma/client";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { createHash } from "node:crypto";
 import { db, transaction, type Tx } from "../core/db";
@@ -110,6 +115,34 @@ async function commercialCheck(tx: Tx, b: z.infer<typeof quotationSchema>) {
   }
   return null;
 }
+const orderInclude = {
+  lines: true,
+  createdBy: { select: { name: true } },
+  invoiceLoadedBy: { select: { name: true } },
+  supplier: { select: { id: true, code: true, name: true } },
+  destination: { select: { id: true, code: true, name: true, kind: true } },
+  work: { select: { id: true, code: true, name: true } },
+} satisfies Prisma.PurchaseOrderInclude;
+const receiptInclude = {
+  lines: true,
+  receivedBy: { select: { name: true } },
+  location: { select: { id: true, code: true, name: true, kind: true } },
+} satisfies Prisma.ReceiptInclude;
+
+/** Return only exact registered amounts; no implicit rounding or extra tax. */
+export function exactOrderAmount(line: {
+  quantity: Prisma.Decimal;
+  unitPrice: Prisma.Decimal;
+  baseQuantity: Prisma.Decimal;
+}): Prisma.Decimal | null {
+  const numerator = line.quantity.mul(line.unitPrice);
+  const amount = numerator.div(line.baseQuantity);
+  return amount.decimalPlaces() <= 8 &&
+    amount.mul(line.baseQuantity).eq(numerator)
+    ? amount
+    : null;
+}
+
 export async function createOrder(
   tx: Tx,
   actor: Actor,
@@ -151,22 +184,47 @@ export async function createOrder(
   const { lines, ...data } = b;
   const order = await tx.purchaseOrder.create({
     data: { ...data, createdById: actor.id, lines: { create: lines } },
-    include: { lines: true },
+    include: orderInclude,
   });
   await audit(tx, actor, "CREATE", "PurchaseOrder", order.id, b);
-  return order;
+  return publicOrder(order, actor);
 }
 function publicOrder(
-  order: Prisma.PurchaseOrderGetPayload<{ include: { lines: true } }>,
+  order: Prisma.PurchaseOrderGetPayload<{ include: typeof orderInclude }>,
   actor: Actor,
 ) {
-  if (actor.role !== "JEFE_OBRA") return order;
+  const { createdBy, invoiceLoadedBy, ...data } = order;
+  if (actor.role !== "JEFE_OBRA") {
+    const amounts = order.lines.map(exactOrderAmount);
+    const allExact = amounts.every((amount) => amount !== null);
+    return {
+      ...data,
+      createdByName: createdBy.name,
+      invoiceLoadedByName: invoiceLoadedBy?.name ?? null,
+      lines: order.lines.map((line, index) => ({
+        ...line,
+        pendingQuantity: line.quantity.minus(line.receivedQuantity),
+        lineAmount: amounts[index]?.toFixed() ?? null,
+      })),
+      totalAmount: allExact
+        ? amounts
+            .reduce<Prisma.Decimal>(
+              (total, amount) => total.plus(amount!),
+              D(0),
+            )
+            .toFixed()
+        : null,
+      amountWarning: allExact ? null : "ROUNDING_POLICY_REQUIRED",
+    };
+  }
   return {
     id: order.id,
     number: order.number,
     workId: order.workId,
     requestId: order.requestId,
     destinationId: order.destinationId,
+    destination: order.destination,
+    createdByName: createdBy.name,
     status: order.status,
     createdAt: order.createdAt,
     lines: order.lines.map((l) => ({
@@ -179,14 +237,16 @@ function publicOrder(
   };
 }
 function publicReceipt(
-  r: Prisma.ReceiptGetPayload<{ include: { lines: true } }>,
+  r: Prisma.ReceiptGetPayload<{ include: typeof receiptInclude }>,
 ) {
   return {
     id: r.id,
     orderId: r.orderId,
     locationId: r.locationId,
+    location: r.location,
     deliveryNote: r.deliveryNote,
     receivedById: r.receivedById,
+    actorName: r.receivedBy.name,
     createdAt: r.createdAt,
     lines: r.lines,
   };
@@ -195,7 +255,7 @@ async function orderAccess(actor: Actor, key: string) {
   const o = found(
     await db.purchaseOrder.findUnique({
       where: { id: key },
-      include: { lines: true },
+      include: orderInclude,
     }),
     "Orden",
   );
@@ -235,11 +295,19 @@ export async function handlerProcurement(
           where,
           skip: p.skip,
           take: p.take,
-          orderBy: { createdAt: "asc" },
+          include: { actor: { select: { name: true } } },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         }),
         db.auditLog.count({ where }),
       ]);
-      return listed(data, total, p);
+      return listed(
+        data.map(({ actor: historyActor, ...entry }) => ({
+          ...entry,
+          actorName: historyActor?.name ?? null,
+        })),
+        total,
+        p,
+      );
     }
     if (method === "GET" && s.length <= 2) {
       if (key) {
@@ -255,6 +323,9 @@ export async function handlerProcurement(
       const where: Prisma.MaterialRequestWhereInput = {
         workId: q.get("workId") || undefined,
         categoryId: q.get("categoryId") || undefined,
+        status: q.has("status")
+          ? z.nativeEnum(RequestStatus).parse(q.get("status"))
+          : undefined,
       };
       if (actor.role === "JEFE_OBRA")
         where.work = { assignments: { some: { userId: actor.id } } };
@@ -403,6 +474,9 @@ export async function handlerProcurement(
       const where = {
         requestId: q.get("requestId") || undefined,
         supplierId: q.get("supplierId") || undefined,
+        status: q.has("status")
+          ? z.nativeEnum(QuotationStatus).parse(q.get("status"))
+          : undefined,
       };
       const [data, total] = await db.$transaction([
         db.quotation.findMany({
@@ -420,9 +494,10 @@ export async function handlerProcurement(
       const quotes = await db.quotation.findMany({
         where: { requestId: key, status: { not: "REJECTED" } },
         include: {
-          lines: true,
+          lines: { orderBy: [{ materialId: "asc" }, { id: "asc" }] },
           supplier: { select: { id: true, name: true } },
         },
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       });
       const bases = new Set(quotes.map((x) => `${x.currency}:${x.taxBasis}`));
       const comparable =
@@ -500,22 +575,45 @@ export async function handlerProcurement(
     if (method === "GET" && key && action === "history" && s.length === 3) {
       requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
       await orderAccess(actor, key);
-      const where = { entityType: "PurchaseOrder", entityId: key };
+      const where: Prisma.AuditLogWhereInput = {
+        OR: [
+          { entityType: "PurchaseOrder", entityId: key },
+          {
+            entityType: "Receipt",
+            action: "RECEIVE",
+            after: { path: ["orderId"], equals: key },
+          },
+        ],
+      };
       const [data, total] = await db.$transaction([
         db.auditLog.findMany({
           where,
           skip: p.skip,
           take: p.take,
-          orderBy: { createdAt: "asc" },
+          include: { actor: { select: { name: true } } },
+          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         }),
         db.auditLog.count({ where }),
       ]);
-      return listed(data, total, p);
+      return listed(
+        data.map(({ actor: historyActor, ...entry }) => ({
+          ...entry,
+          actorName: historyActor?.name ?? null,
+        })),
+        total,
+        p,
+      );
     }
     if (method === "GET" && s.length === 1) {
       const where: Prisma.PurchaseOrderWhereInput = {
         workId: q.get("workId") || undefined,
         supplierId: q.get("supplierId") || undefined,
+        requestId: q.get("requestId") || undefined,
+        quotationId: q.get("quotationId") || undefined,
+        destinationId: q.get("destinationId") || undefined,
+        status: q.has("status")
+          ? z.nativeEnum(PurchaseOrderStatus).parse(q.get("status"))
+          : undefined,
       };
       if (actor.role === "JEFE_OBRA") {
         where.work = { assignments: { some: { userId: actor.id } } };
@@ -526,10 +624,10 @@ export async function handlerProcurement(
       const [data, total] = await db.$transaction([
         db.purchaseOrder.findMany({
           where,
-          include: { lines: true },
+          include: orderInclude,
           skip: p.skip,
           take: p.take,
-          orderBy: { number: "desc" },
+          orderBy: [{ number: "desc" }, { id: "desc" }],
         }),
         db.purchaseOrder.count({ where }),
       ]);
@@ -596,12 +694,13 @@ export async function handlerProcurement(
           const r = await tx.purchaseOrder.update({
             where: { id: key },
             data: b,
+            include: orderInclude,
           });
           await audit(tx, actor, "STATUS", "PurchaseOrder", key, {
             from: o.status,
             to: b.status,
           });
-          return r;
+          return publicOrder(r, actor);
         }),
       );
     }
@@ -650,10 +749,10 @@ export async function handlerProcurement(
               notes: b.notes,
               lines: b.lines ? { create: b.lines } : undefined,
             },
-            include: { lines: true },
+            include: orderInclude,
           });
           await audit(tx, actor, "UPDATE", "PurchaseOrder", key, b);
-          return result;
+          return publicOrder(result, actor);
         }),
       );
     }
@@ -680,12 +779,13 @@ export async function handlerProcurement(
               invoiceLoadedAt: new Date(),
               invoiceLoadedById: actor.id,
             },
+            include: orderInclude,
           });
           await audit(tx, actor, "INVOICE_REFERENCE", "PurchaseOrder", key, {
             before: old.invoiceNumber,
             after: b.invoiceNumber,
           });
-          return result;
+          return publicOrder(result, actor);
         }),
       );
     }
@@ -778,7 +878,7 @@ export async function handlerProcurement(
             found(
               await tx.receipt.findUnique({
                 where: { id: receipt.id },
-                include: { lines: true },
+                include: receiptInclude,
               }),
             ),
           );
@@ -793,7 +893,7 @@ export async function handlerProcurement(
       const [rows, total] = await db.$transaction([
         db.receipt.findMany({
           where,
-          include: { lines: true },
+          include: receiptInclude,
           skip: p.skip,
           take: p.take,
           orderBy: { createdAt: "desc" },
@@ -842,14 +942,12 @@ export async function handlerProcurement(
             include: { unit: true },
           }),
         );
-        const amount = l.quantity.mul(l.unitPrice).div(l.baseQuantity);
-        const exact =
-          amount.decimalPlaces() <= 8 &&
-          amount.mul(l.baseQuantity).eq(l.quantity.mul(l.unitPrice));
+        const amount = exactOrderAmount(l);
+        const exact = amount !== null;
         allExact = allExact && exact;
-        if (exact) total = total.plus(amount);
+        if (amount) total = total.plus(amount);
         write(
-          `${m.code} ${m.name} | ${l.quantity} ${m.unit.code} | precio ${l.unitPrice} por ${l.baseQuantity} | importe ${exact ? amount.toFixed() : `${l.quantity} x ${l.unitPrice} / ${l.baseQuantity} (requiere redondeo explicito)`}`,
+          `${m.code} ${m.name} | ${l.quantity} ${m.unit.code} | precio ${l.unitPrice} por ${l.baseQuantity} | importe ${amount ? amount.toFixed() : `${l.quantity} x ${l.unitPrice} / ${l.baseQuantity} (requiere redondeo explicito)`}`,
         );
       }
       write(

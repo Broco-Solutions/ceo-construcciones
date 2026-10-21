@@ -9,6 +9,7 @@ export async function audit(
   entity: string,
   entityId: string,
   details?: Prisma.InputJsonValue,
+  before?: Prisma.InputJsonValue,
 ) {
   return tx.auditLog.create({
     data: {
@@ -17,6 +18,7 @@ export async function audit(
       entityType: entity,
       entityId,
       ...(details === undefined ? {} : { after: details }),
+      ...(before === undefined ? {} : { before }),
     },
   });
 }

@@ -1,6 +1,6 @@
 # Estado del proyecto — CEO Construcciones
 
-**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, auditoría final corregida y verificación local aprobada; [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
+**Actualizado:** 22/10/2026. **Fase:** backend V1 implementado en rama `codex/ceo-v1-backend`, cierre backend de integración de issue#3 implementado y verificado localmente; [PR#1](https://github.com/Broco-Solutions/ceo-construcciones/pull/1) abierto para revisión. No mergeado ni desplegado. `apps/web` sin modificaciones.
 
 ## Frontend V1 (Claude Code) — 22/10/2026
 
@@ -19,9 +19,30 @@ Rama `claude/ceo-v1-frontend` basada en `codex/ceo-v1-backend`; PR de frontend a
 - [OpenAPI 3.1](api/openapi.json) y [guía para Claude Code](INTEGRACION-CLAUDE-CODE.md).
 - [Operación, inicialización y pasos productivos](OPERACION-BACKEND.md).
 - [Matriz de cobertura y evidencias](VERIFICACION-BACKEND-V1.md).
+- [Cierre backend de issue#3 y los14 hallazgos del frontend](CIERRE-INTEGRACION-V1.md).
 - Repo: https://github.com/Broco-Solutions/ceo-construcciones
 - Railway: https://railway.com/project/d2fb9213-5508-4b3d-91a8-b6bd86451ceb
 - Vercel: https://vercel.com/broco-solutions/ceo-construcciones-web
+
+## Integración con PR #2 — cierre backend de issue #3
+
+Leídas la [issue#3](https://github.com/Broco-Solutions/ceo-construcciones/issues/3) y docs/FRONTEND-V1.md de `claude/ceo-v1-frontend` en9f3a898. Se trabajó en un worktree separado de la misma rama backend, conservando intacta la rama de Claude y apps/web. Tres subagentes implementaron/auditaron presupuestos, compras e inventario/seguridad; la integración principal cubrió catálogo/filtros, OpenAPI y documentación.
+
+Resueltos: destinos mínimos activos galpón/patio para devolver como Jefe, versiones de presupuesto idempotentes, filtros servidor antes de paginar/contar, OC con pendientes/importes exactos y advertencia si falta redondeo, nombres seguros/ubicaciones/actores, referencia no económica por obra, BOM descriptiva, origen de mínimos, recepciones en historia OC, comparación determinista, unidad material inmutable en contrato, precio sin presentación con base1, auditoría obra antes/después e identidad de líneas al editar cómputos. La mano de obra sigue obligatoria y explícita; no se inventó cero ni regla de IVA/redondeo/unicidad de OC.
+
+Se corrigió además una fuga descriptiva: una transferencia desde obra ajena hacia la propia ya no muestra su nombre/código al Jefe; la ubicación se proyecta null sin ocultar el evento. Respuestas idempotentes previas conservan snapshot; OpenAPI permite resultado legado sólo en POST, y GET exige la proyección enriquecida. Regresiones AJV comprueban ambos contratos sin duplicar efectos.
+
+Verificación local de este hito, Node24.19.0/pnpm10.18.3/PostgreSQL16.15:
+
+- Instalación frozen-lockfile, generación Prisma, typecheck y build correctos.
+- Migraciones existentes aplicadas en base nueva `ceo_v1_issue3_final_test`; migrate diff sin diferencias. No hubo cambios de schema ni nuevas migraciones.
+- `RUN_INTEGRATION=1 RUN_RUNTIME=1 pnpm --dir apps/api test`: **122/122**,23 archivos, sin omisiones, pool3. Incluye3 pruebas HTTP del standalone y regresiones de roles, concurrencia, replays actuales/legados, filtros, DTO y snapshots.
+- OpenAPI regenerado y validado:85 rutas/114 operaciones. No se modificaron tipos ni pruebas de apps/web; la CI API no acredita CI/E2E del frontend.
+- La corrida CI final de esta revisión se enlaza en la descripción/checks del PR#1. Los resultados históricos de abajo no sustituyen esos checks.
+
+No quedan hallazgos bloqueantes conocidos en el alcance backend de la issue. Claude debe actualizar PR#2/tipos, enviar claves en VersionForm, habilitar devolución móvil, consumir filtros/DTO nuevos, advertir OC relacionadas y completar CI/E2E frontend. La disposición de cada P0/P1/P2 y los pasos exactos están en [CIERRE-INTEGRACION-V1.md](CIERRE-INTEGRACION-V1.md). No se da por cerrada la issue hasta integración conjunta. Validaciones CEO y bloqueos productivos siguen pendientes.
+
+Sin acceso a Railway/BD productiva, despliegue ni merge. apps/web y configuración Railway/Vercel intactos. El trabajo se actualiza sólo en PR#1.
 
 ## Implementación de la misión
 
@@ -43,7 +64,7 @@ Se repasaron roles/obras y ausencia de economía para Jefes, reservas/transferen
 
 OpenAPI regenerado (85 rutas/114 operaciones), guía Claude actualizada y migración nueva no destructiva revisable. Railway permanece fuera de alcance por caída informada: no se consultó, desplegó, migró ni modificó durante este cierre. No hubo cambios en apps/web ni merge.
 
-## Verificaciones ejecutadas
+## Verificaciones de la auditoría anterior (antes de issue #3)
 
 - Node24.19.0, pnpm10.18.3, PostgreSQL16.15 local aislado (producción observada usa18; CI efímero18 aprobado).
 - Instalación limpia desde copia de fuentes sin node_modules/.next: `pnpm install --frozen-lockfile`, generación Prisma y typecheck correctos.

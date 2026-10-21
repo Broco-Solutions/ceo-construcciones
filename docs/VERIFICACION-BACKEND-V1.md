@@ -66,3 +66,16 @@ La matriz de acceso de OpenAPI se contrasta con las rutas reales para los tres r
 No se detectaron otros defectos confirmados en los ámbitos revisados. La viabilidad del proxy está cubierta en el backend; su prueba completa en el despliegue de Vercel corresponde a la integración del frontend todavía no implementada. Railway no se consultó ni se modificó durante este cierre.
 
 Validación de este cierre: `pnpm install --frozen-lockfile`, generación Prisma y typecheck correctos; ambas migraciones aplicadas en `ceo_v1_audit_final_test` vacía y `prisma migrate diff --exit-code` sin diferencias; build correcto; `RUN_INTEGRATION=1 RUN_RUNTIME=1 pnpm --dir apps/api test`: **95/95**,17 archivos, sin omisiones, PostgreSQL local16.15 y pool3. La CI del mismo PR ejecuta PostgreSQL18 efímero; su corrida final está enlazada en la descripción del PR. No se atribuyen a Railway estos resultados.
+
+## Cierre backend de integración — issue #3
+
+Mapeo completo de14 hallazgos y pendientes de Claude/CEO: [CIERRE-INTEGRACION-V1.md](CIERRE-INTEGRACION-V1.md).
+
+- budgets-integration-contract: Idempotency-Key obligatorio, replay tras editar cómputo conserva versión/auditoría, conflictos por cuerpo y concurrencia; IDs de cómputo propios y estables, snapshots intactos y BOM no económica descriptiva.
+- catalog-integration-gaps: búsquedas/paginación/total global y scope de Jefe; proveedores/materiales activos; auditoría por actor/acción/fecha y before/after; referencia de versión no económica; unidad inmutable, base1 y dos formatos422.
+- procurement.test/integration: importe exacto de OC según presentación con Decimal, fracciones sin política null/advertencia, pendientes, metadatos seguros, filtros, órdenes derivadas sin unicidad inventada, historia con recepciones/actores y orden de comparación.
+- inventory-integration-gaps: descubrimiento de destinos globales mínimos y RETURN idempotente del Jefe sin acceso a stock global/obras ajenas; transferencia recibida oculta etiquetas de origen ajeno; origen del mínimo global/local0/sin mínimo.
+- idempotency-legacy-contract: tres replays HTTP reales con payload del contrato anterior de OC/recepción/consumo validados con AJV; cero operaciones extra y GET enriquecido estricto.
+- OpenAPI:8 pruebas de contrato/generador, permisos, filtros, esquemas y ejemplos, obligatoriedad de MO explícita (incluido0, rechazando null/ausencia). Contrato sigue85 rutas/114 operaciones.
+
+Instalación frozen-lockfile, generación Prisma, typecheck y build ejecutados correctamente. Base nueva ceo_v1_issue3_final_test, ambas migraciones existentes aplicadas y migrate diff sin diferencias. Suite completa con RUN_INTEGRATION=1/RUN_RUNTIME=1: **122/122**,23 archivos, sin omisiones; Node24/PostgreSQL16.15 local/pool3. CI usa PostgreSQL18 aislado; el resultado de la revisión actual se enlaza en PR#1. No se ejecutaron tests ni cambios del frontend ni se atribuye esta evidencia a producción.
