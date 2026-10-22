@@ -7,6 +7,7 @@ import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, Card, DecimalField, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
 import { TAX_OPTIONS, useCatalogs } from './common';
 import { parseLaborCost } from './validation';
+import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
 type Row = { key: number; materialId: string; coefficient: string };
 let seq = 0;
@@ -61,7 +62,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
     setErrs(er);
     if (Object.keys(er).length) return;
     const res = await save.run({
-      code: code.trim() || null,
+      code: initial ? code.trim() || null : AUTO_CODE,
       name: name.trim(),
       categoryId,
       unitId,
@@ -91,7 +92,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
             onChange={(e) => setCategoryId(e.target.value)}
             error={fe.categoryId}
           />
-          <TextField label="Código (opcional)" value={code} onChange={(e) => setCode(e.target.value)} maxLength={100} hint="No necesita ser único." error={fe.code} />
+          <AutoCodeField prefix="APU" value={initial ? code : undefined} />
           <TextField label="Nombre del ítem" value={name} onChange={(e) => setName(e.target.value)} maxLength={300} error={fe.name} placeholder="Aplicado a la cal completo" />
           <SelectField
             label="Unidad de trabajo"
