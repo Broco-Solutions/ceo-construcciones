@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db, transaction } from "../core/db";
+import { sequentialCode } from "./sequential-codes";
 import { audit } from "../core/audit";
 import { type Actor, requireRoles, requireWork } from "../core/auth";
 import { ApiError } from "../core/errors";
@@ -21,11 +22,13 @@ import {
   presentationCheck,
 } from "./shared";
 export const named = z.object({ code: text, name: text }).strict();
-export const workSchema = named.extend({
+/** El servidor asigna códigos si se omiten; las unidades requieren su abreviatura técnica. */
+export const generatedNamed = named.extend({ code: text.optional() });
+export const workSchema = generatedNamed.extend({
   status: z.enum(["ACTIVE", "PAUSED", "COMPLETED"]).optional(),
   managerId: id.nullable().optional(),
 });
-export const supplierSchema = named.extend({
+export const supplierSchema = generatedNamed.extend({
   taxId: text.nullable().optional(),
   email: z.string().email().nullable().optional(),
   phone: text.nullable().optional(),
@@ -33,7 +36,7 @@ export const supplierSchema = named.extend({
   notes: z.string().max(4000).nullable().optional(),
   active: z.boolean().optional(),
 });
-export const materialSchema = named.extend({
+export const materialSchema = generatedNamed.extend({
   unitId: id,
   categoryId: id.nullable().optional(),
   minimum: nonnegative.optional(),
@@ -186,11 +189,13 @@ export async function handlerCatalog(
       const b = await parse(request, workSchema);
       return ok(
         await transaction(async (tx) => {
+          const code = b.code ?? (await sequentialCode(tx, "work"));
           const w = await tx.work.create({
             data: {
               ...b,
+              code,
               location: {
-                create: { code: `OBRA-${b.code}`, name: b.name, kind: "WORK" },
+                create: { code: `OBRA-${code}`, name: b.name, kind: "WORK" },
               },
             },
           });
@@ -281,7 +286,7 @@ export async function handlerCatalog(
       );
     }
     requireRoles(actor, "GERENCIA");
-    const schema = named.extend({
+    const schema = generatedNamed.extend({
       kind: z.enum(["WAREHOUSE", "YARD"]),
       active: z.boolean().optional(),
     });
@@ -289,7 +294,8 @@ export async function handlerCatalog(
       const b = await parse(request, schema);
       return ok(
         await transaction(async (tx) => {
-          const l = await tx.location.create({ data: b });
+          const code = b.code ?? (await sequentialCode(tx, b.kind === "WAREHOUSE" ? "warehouse" : "yard"));
+          const l = await tx.location.create({ data: { ...b, code } });
           await audit(tx, actor, "CREATE", "Location", l.id);
           return l;
         }),
@@ -343,7 +349,10 @@ export async function handlerCatalog(
     }
     requireRoles(actor, "GERENCIA", "COMPUTO");
     if ((method === "POST" && !key) || (method === "PATCH" && key)) {
-      const b = await parse(request, key ? named.partial() : named);
+      const b = await parse(
+        request,
+        key ? named.partial() : resource === "units" ? named : generatedNamed,
+      );
       return ok(
         await transaction(async (tx) => {
           const row =
@@ -354,7 +363,7 @@ export async function handlerCatalog(
               : key
                 ? await tx.category.update({ where: { id: key }, data: b })
                 : await tx.category.create({
-                    data: b as z.infer<typeof named>,
+                    data: { ...b, code: b.code ?? (await sequentialCode(tx, "category")) },
                   });
           await audit(
             tx,
@@ -416,7 +425,7 @@ export async function handlerCatalog(
           const row = key
             ? await tx.material.update({ where: { id: key }, data: b })
             : await tx.material.create({
-                data: b as z.infer<typeof materialSchema>,
+                data: { ...b, code: b.code ?? (await sequentialCode(tx, "material")) },
               });
           await audit(
             tx,
@@ -471,7 +480,7 @@ export async function handlerCatalog(
           const row = key
             ? await tx.supplier.update({ where: { id: key }, data: b })
             : await tx.supplier.create({
-                data: b as z.infer<typeof supplierSchema>,
+                data: { ...b, code: b.code ?? (await sequentialCode(tx, "supplier")) },
               });
           await audit(
             tx,
