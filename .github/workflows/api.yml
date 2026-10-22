@@ -1,0 +1,50 @@
+name: API V1
+on:
+  pull_request:
+    paths:
+      [
+        "apps/api/**",
+        "scripts/**",
+        "docs/api/**",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        ".github/workflows/api.yml",
+      ]
+  push:
+    branches: ["codex/ceo-v1-backend"]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ceo_v1_test
+          POSTGRES_USER: ceo_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ceo_test -d ceo_v1_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://ceo_test@127.0.0.1:5432/ceo_v1_test?connection_limit=3&pool_timeout=2
+      RUN_INTEGRATION: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --dir apps/api db:generate
+      - run: pnpm --dir apps/api db:deploy
+      - run: pnpm --dir apps/api typecheck
+      - run: pnpm --dir apps/api test
+      - run: pnpm --dir apps/api build
+      - run: pnpm --dir apps/api test:runtime

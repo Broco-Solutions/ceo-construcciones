@@ -1,2 +1,12 @@
 packages:
   - apps/*
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+  - esbuild
+overrides:
+  "next@15.5.27>postcss": "8.5.23"
+  "exceljs@4.4.0>uuid": "11.1.1"
+  "@prisma/config@6.19.0>effect": "3.20.0"
+  "@prisma/config@6.19.0>deepmerge-ts": "8.0.0"

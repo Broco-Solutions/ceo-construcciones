@@ -7,4 +7,572 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Sin modelos: Renzo los definira durante el relevamiento funcional.
+enum Role {
+  GERENCIA
+  COMPRAS
+  COMPUTO
+  JEFE_OBRA
+}
+
+enum WorkStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum LocationKind {
+  WAREHOUSE
+  YARD
+  WORK
+}
+
+enum BudgetStatus {
+  DRAFT
+  REFERENCE
+  ARCHIVED
+}
+
+enum RequestStatus {
+  DRAFT
+  SUBMITTED
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum QuotationStatus {
+  DRAFT
+  RECEIVED
+  SELECTED
+  REJECTED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  FULFILLED
+  CANCELLED
+}
+
+enum MovementType {
+  INITIAL
+  RECEIPT
+  TRANSFER
+  CONSUMPTION
+  RETURN
+  ADJUSTMENT
+}
+
+enum TaxBasis {
+  UNSPECIFIED
+  INCLUDED
+  EXCLUDED
+}
+
+model User {
+  id                             String              @id @default(cuid())
+  email                          String              @unique
+  name                           String
+  passwordHash                   String
+  role                           Role
+  active                         Boolean             @default(true)
+  createdAt                      DateTime            @default(now())
+  updatedAt                      DateTime            @updatedAt
+  sessions                       Session[]
+  assignments                    WorkAssignment[]
+  managedWorks                   Work[]
+  auditLogs                      AuditLog[]
+  BudgetVersioncreatedById       BudgetVersion[]     @relation("BudgetVersioncreatedById")
+  MaterialRequestrequestedById   MaterialRequest[]   @relation("MaterialRequestrequestedById")
+  QuotationselectedById          Quotation[]         @relation("QuotationselectedById")
+  PurchaseOrdercreatedById       PurchaseOrder[]     @relation("PurchaseOrdercreatedById")
+  PurchaseOrderinvoiceLoadedById PurchaseOrder[]     @relation("PurchaseOrderinvoiceLoadedById")
+  ReceiptreceivedById            Receipt[]           @relation("ReceiptreceivedById")
+  ReservationcreatedById         Reservation[]       @relation("ReservationcreatedById")
+  StockMovementcreatedById       StockMovement[]     @relation("StockMovementcreatedById")
+  IdempotencyRecordactorId       IdempotencyRecord[] @relation("IdempotencyRecordactorId")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuthAttempt {
+  key      String   @id
+  failures Int      @default(0)
+  resetAt  DateTime
+
+  @@index([resetAt])
+}
+
+model Work {
+  id             String            @id @default(cuid())
+  code           String            @unique
+  name           String
+  status         WorkStatus        @default(ACTIVE)
+  managerId      String?
+  manager        User?             @relation(fields: [managerId], references: [id], onDelete: Restrict)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  assignments    WorkAssignment[]
+  location       Location?
+  budgets        Budget[]
+  computations   Computation[]
+  requests       MaterialRequest[]
+  purchaseOrders PurchaseOrder[]
+  reservations   Reservation[]
+  movements      StockMovement[]
+}
+
+model WorkAssignment {
+  userId    String
+  workId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  work      Work     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, workId])
+  @@index([workId])
+}
+
+model Location {
+  id             String          @id @default(cuid())
+  code           String          @unique
+  name           String
+  kind           LocationKind
+  workId         String?         @unique
+  work           Work?           @relation(fields: [workId], references: [id], onDelete: Restrict)
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  purchaseOrders PurchaseOrder[]
+  receipts       Receipt[]
+  balances       StockBalance[]
+  reservations   Reservation[]
+  outgoing       StockMovement[] @relation("MovementSource")
+  incoming       StockMovement[] @relation("MovementDestination")
+}
+
+model Unit {
+  id              String           @id @default(cuid())
+  code            String           @unique
+  name            String
+  materials       Material[]
+  apuItems        ApuItem[]
+  budgetMaterials BudgetMaterial[]
+}
+
+model Category {
+  id              String            @id @default(cuid())
+  code            String            @unique
+  name            String
+  materials       Material[]
+  apuItems        ApuItem[]
+  budgetMaterials BudgetMaterial[]
+  requests        MaterialRequest[]
+  movements       StockMovement[]
+}
+
+model Supplier {
+  id             String          @id @default(cuid())
+  code           String          @unique
+  name           String
+  taxId          String?         @unique
+  email          String?
+  phone          String?
+  address        String?
+  notes          String?
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  presentations  Presentation[]
+  prices         MaterialPrice[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Material {
+  id                 String              @id @default(cuid())
+  code               String              @unique
+  name               String
+  unitId             String
+  unit               Unit                @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  categoryId         String?
+  category           Category?           @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  minimum            Decimal             @default(0) @db.Decimal(24, 8)
+  active             Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  presentations      Presentation[]
+  prices             MaterialPrice[]
+  apuComponents      ApuMaterial[]
+  budgetMaterials    BudgetMaterial[]
+  requestLines       RequestLine[]
+  quotationLines     QuotationLine[]
+  purchaseOrderLines PurchaseOrderLine[]
+  balances           StockBalance[]
+  reservations       Reservation[]
+  movements          StockMovement[]
+}
+
+model Presentation {
+  id                 String              @id @default(cuid())
+  materialId         String
+  material           Material            @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  supplierId         String?
+  supplier           Supplier?           @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  name               String
+  baseQuantity       Decimal             @db.Decimal(24, 8)
+  active             Boolean             @default(true)
+  prices             MaterialPrice[]
+  quotationLines     QuotationLine[]
+  purchaseOrderLines PurchaseOrderLine[]
+}
+
+model MaterialPrice {
+  id             String        @id @default(cuid())
+  materialId     String
+  material       Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  supplierId     String?
+  supplier       Supplier?     @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  presentationId String?
+  presentation   Presentation? @relation(fields: [presentationId], references: [id], onDelete: Restrict)
+  price          Decimal       @db.Decimal(24, 8)
+  baseQuantity   Decimal       @default(1) @db.Decimal(24, 8)
+  currency       String        @db.VarChar(3)
+  taxBasis       TaxBasis      @default(UNSPECIFIED)
+  effectiveAt    DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  source         String?
+
+  @@index([materialId, effectiveAt])
+}
+
+model ApuItem {
+  id               String            @id @default(cuid())
+  code             String?
+  name             String
+  categoryId       String
+  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  unitId           String
+  unit             Unit              @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  laborCost        Decimal?          @db.Decimal(24, 8)
+  laborCurrency    String?           @db.VarChar(3)
+  laborTaxBasis    TaxBasis          @default(UNSPECIFIED)
+  active           Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  components       ApuMaterial[]
+  computationLines ComputationLine[]
+}
+
+model ApuMaterial {
+  id          String   @id @default(cuid())
+  itemId      String
+  item        ApuItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  materialId  String
+  material    Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  coefficient Decimal  @db.Decimal(24, 8)
+
+  @@unique([itemId, materialId])
+}
+
+model Computation {
+  id        String            @id @default(cuid())
+  workId    String
+  work      Work              @relation(fields: [workId], references: [id], onDelete: Restrict)
+  name      String
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  lines     ComputationLine[]
+}
+
+model ComputationLine {
+  id            String      @id @default(cuid())
+  computationId String
+  computation   Computation @relation(fields: [computationId], references: [id], onDelete: Cascade)
+  itemId        String
+  item          ApuItem     @relation(fields: [itemId], references: [id], onDelete: Restrict)
+  quantity      Decimal     @db.Decimal(24, 8)
+}
+
+model Budget {
+  id        String          @id @default(cuid())
+  workId    String
+  work      Work            @relation(fields: [workId], references: [id], onDelete: Restrict)
+  name      String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  versions  BudgetVersion[]
+}
+
+model BudgetVersion {
+  id           String           @id @default(cuid())
+  budgetId     String
+  budget       Budget           @relation(fields: [budgetId], references: [id], onDelete: Restrict)
+  number       Int
+  status       BudgetStatus     @default(DRAFT)
+  currency     String           @db.VarChar(3)
+  taxBasis     TaxBasis         @default(UNSPECIFIED)
+  precision    Int
+  roundingMode String
+  createdById  String
+  snapshot     Json
+  createdAt    DateTime         @default(now())
+  materials    BudgetMaterial[]
+  createdBy    User             @relation("BudgetVersioncreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@unique([budgetId, number])
+}
+
+model BudgetMaterial {
+  id         String        @id @default(cuid())
+  versionId  String
+  version    BudgetVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  categoryId String
+  category   Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  materialId String
+  material   Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  unitId     String
+  unit       Unit          @relation(fields: [unitId], references: [id], onDelete: Restrict)
+  quantity   Decimal       @db.Decimal(36, 16)
+
+  @@unique([versionId, categoryId, materialId])
+}
+
+model MaterialRequest {
+  id             String          @id @default(cuid())
+  workId         String
+  work           Work            @relation(fields: [workId], references: [id], onDelete: Restrict)
+  categoryId     String?
+  category       Category?       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  requestedById  String
+  requiredAt     DateTime?
+  status         RequestStatus   @default(DRAFT)
+  notes          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  lines          RequestLine[]
+  quotations     Quotation[]
+  purchaseOrders PurchaseOrder[]
+  requestedBy    User            @relation("MaterialRequestrequestedById", fields: [requestedById], references: [id], onDelete: Restrict)
+}
+
+model RequestLine {
+  id           String          @id @default(cuid())
+  requestId    String
+  request      MaterialRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  materialId   String
+  material     Material        @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  quantity     Decimal         @db.Decimal(24, 8)
+  reservations Reservation[]
+
+  @@unique([requestId, materialId])
+}
+
+model Quotation {
+  id             String           @id @default(cuid())
+  requestId      String?
+  request        MaterialRequest? @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  supplierId     String
+  supplier       Supplier         @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  status         QuotationStatus  @default(DRAFT)
+  currency       String           @db.VarChar(3)
+  taxBasis       TaxBasis         @default(UNSPECIFIED)
+  validUntil     DateTime?
+  deliveryTerms  String?
+  notes          String?
+  selectedById   String?
+  selectedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  lines          QuotationLine[]
+  purchaseOrders PurchaseOrder[]
+  selectedBy     User?            @relation("QuotationselectedById", fields: [selectedById], references: [id], onDelete: Restrict)
+}
+
+model QuotationLine {
+  id             String        @id @default(cuid())
+  quotationId    String
+  quotation      Quotation     @relation(fields: [quotationId], references: [id], onDelete: Restrict)
+  materialId     String
+  material       Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  presentationId String?
+  presentation   Presentation? @relation(fields: [presentationId], references: [id], onDelete: Restrict)
+  quantity       Decimal       @db.Decimal(24, 8)
+  unitPrice      Decimal       @db.Decimal(24, 8)
+  baseQuantity   Decimal       @default(1) @db.Decimal(24, 8)
+}
+
+model PurchaseOrder {
+  id                String              @id @default(cuid())
+  number            Int                 @unique @default(autoincrement())
+  supplierId        String
+  supplier          Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  workId            String?
+  work              Work?               @relation(fields: [workId], references: [id], onDelete: Restrict)
+  requestId         String?
+  request           MaterialRequest?    @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  quotationId       String?
+  quotation         Quotation?          @relation(fields: [quotationId], references: [id], onDelete: Restrict)
+  destinationId     String
+  destination       Location            @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+  status            PurchaseOrderStatus @default(DRAFT)
+  currency          String              @db.VarChar(3)
+  taxBasis          TaxBasis            @default(UNSPECIFIED)
+  notes             String?
+  invoiceNumber     String?
+  invoiceLoadedAt   DateTime?
+  invoiceLoadedById String?
+  createdById       String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lines             PurchaseOrderLine[]
+  receipts          Receipt[]
+  createdBy         User                @relation("PurchaseOrdercreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+  invoiceLoadedBy   User?               @relation("PurchaseOrderinvoiceLoadedById", fields: [invoiceLoadedById], references: [id], onDelete: Restrict)
+}
+
+model PurchaseOrderLine {
+  id               String        @id @default(cuid())
+  orderId          String
+  order            PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  materialId       String
+  material         Material      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  presentationId   String?
+  presentation     Presentation? @relation(fields: [presentationId], references: [id], onDelete: Restrict)
+  quantity         Decimal       @db.Decimal(24, 8)
+  receivedQuantity Decimal       @default(0) @db.Decimal(24, 8)
+  unitPrice        Decimal       @db.Decimal(24, 8)
+  baseQuantity     Decimal       @default(1) @db.Decimal(24, 8)
+  receiptLines     ReceiptLine[]
+}
+
+model Receipt {
+  id             String        @id @default(cuid())
+  orderId        String
+  order          PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  locationId     String
+  location       Location      @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  receivedById   String
+  deliveryNote   String?
+  idempotencyKey String        @unique
+  createdAt      DateTime      @default(now())
+  lines          ReceiptLine[]
+  receivedBy     User          @relation("ReceiptreceivedById", fields: [receivedById], references: [id], onDelete: Restrict)
+}
+
+model ReceiptLine {
+  id          String            @id @default(cuid())
+  receiptId   String
+  receipt     Receipt           @relation(fields: [receiptId], references: [id], onDelete: Restrict)
+  orderLineId String
+  orderLine   PurchaseOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+  quantity    Decimal           @db.Decimal(24, 8)
+  movement    StockMovement?
+
+  @@unique([receiptId, orderLineId])
+}
+
+model StockBalance {
+  id         String   @id @default(cuid())
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  physical   Decimal  @default(0) @db.Decimal(24, 8)
+  reserved   Decimal  @default(0) @db.Decimal(24, 8)
+  minimum    Decimal? @db.Decimal(24, 8)
+  updatedAt  DateTime @updatedAt
+
+  @@unique([materialId, locationId])
+}
+
+model Reservation {
+  id                String            @id @default(cuid())
+  materialId        String
+  material          Material          @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  sourceId          String
+  source            Location          @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  workId            String
+  work              Work              @relation(fields: [workId], references: [id], onDelete: Restrict)
+  requestLineId     String?
+  requestLine       RequestLine?      @relation(fields: [requestLineId], references: [id], onDelete: Restrict)
+  quantity          Decimal           @db.Decimal(24, 8)
+  fulfilledQuantity Decimal           @default(0) @db.Decimal(24, 8)
+  status            ReservationStatus @default(ACTIVE)
+  createdById       String
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  movements         StockMovement[]
+  createdBy         User              @relation("ReservationcreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([sourceId, materialId, status])
+}
+
+model StockMovement {
+  id             String       @id @default(cuid())
+  type           MovementType
+  materialId     String
+  material       Material     @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  quantity       Decimal      @db.Decimal(24, 8)
+  sourceId       String?
+  source         Location?    @relation("MovementSource", fields: [sourceId], references: [id], onDelete: Restrict)
+  destinationId  String?
+  destination    Location?    @relation("MovementDestination", fields: [destinationId], references: [id], onDelete: Restrict)
+  workId         String?
+  work           Work?        @relation(fields: [workId], references: [id], onDelete: Restrict)
+  reservationId  String?
+  reservation    Reservation? @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+  receiptLineId  String?      @unique
+  receiptLine    ReceiptLine? @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  createdById    String
+  reason         String?
+  idempotencyKey String       @unique
+  createdAt      DateTime     @default(now())
+  createdBy      User         @relation("StockMovementcreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+  categoryId     String?
+  category       Category?    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([workId, materialId, type])
+  @@index([materialId, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  action     String
+  entityType String
+  entityId   String
+  before     Json?
+  after      Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}
+
+model IdempotencyRecord {
+  key         String   @id
+  scope       String
+  actorId     String
+  requestHash String
+  response    Json
+  createdAt   DateTime @default(now())
+  actor       User     @relation("IdempotencyRecordactorId", fields: [actorId], references: [id], onDelete: Restrict)
+}
