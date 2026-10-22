@@ -1890,7 +1890,6 @@
                 "$ref": "#/components/schemas/WorkInput"
               },
               "example": {
-                "code": "ejemplo",
                 "name": "ejemplo"
               }
             }
@@ -3290,10 +3289,9 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NamedInput"
+                "$ref": "#/components/schemas/GeneratedNamedInput"
               },
               "example": {
-                "code": "ejemplo",
                 "name": "ejemplo"
               }
             }
@@ -4022,7 +4020,6 @@
                 "$ref": "#/components/schemas/SupplierInput"
               },
               "example": {
-                "code": "ejemplo",
                 "name": "ejemplo"
               }
             }
@@ -4760,7 +4757,6 @@
                 "$ref": "#/components/schemas/MaterialInput"
               },
               "example": {
-                "code": "ejemplo",
                 "name": "ejemplo",
                 "unitId": "ejemplo"
               }
@@ -6743,14 +6739,12 @@
                   }
                 },
                 "required": [
-                  "code",
                   "name",
                   "kind"
                 ],
                 "additionalProperties": false
               },
               "example": {
-                "code": "ejemplo",
                 "name": "ejemplo",
                 "kind": "WAREHOUSE"
               }
@@ -23252,6 +23246,25 @@
         ],
         "additionalProperties": false
       },
+      "GeneratedNamedInput": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
       "WorkInput": {
         "type": "object",
         "properties": {
@@ -23287,7 +23300,6 @@
           }
         },
         "required": [
-          "code",
           "name"
         ],
         "additionalProperties": false
@@ -23368,7 +23380,6 @@
           }
         },
         "required": [
-          "code",
           "name"
         ],
         "additionalProperties": false
@@ -23412,7 +23423,6 @@
           }
         },
         "required": [
-          "code",
           "name",
           "unitId"
         ],
