@@ -576,3 +576,12 @@ model IdempotencyRecord {
   createdAt   DateTime @default(now())
   actor       User     @relation("IdempotencyRecordactorId", fields: [actorId], references: [id], onDelete: Restrict)
 }
+
+/**
+ * Contadores de códigos por entidad; sólo se incrementan al crear registros.
+ * Las importaciones siguen conservando sus códigos de origen.
+ */
+model CodeCounter {
+  entity    String @id
+  lastValue Int    @default(0)
+}
