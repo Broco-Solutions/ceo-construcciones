@@ -61,15 +61,18 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await login(page, 'GERENCIA');
   await page.goto('/obras');
   await page.getByRole('button', { name: 'Nueva obra' }).click();
-  const code = `OBR-E2E-${SUF}`;
   const name = `Obra E2E ${SUF}`;
   const dlg = page.getByRole('dialog');
-  await dlg.getByLabel('Código').fill(code);
   await dlg.getByLabel('Nombre').fill(name);
   await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
   await dlg.getByRole('button', { name: 'Crear obra' }).click();
   await toast(page, 'Obra creada');
   await page.waitForURL(/\/obras\/[^/]+$/);
+  const id = page.url().split('/').pop()!;
+  const workRes = await page.request.get(`/api/v1/works/${id}`);
+  expect(workRes.ok()).toBe(true);
+  const code: string = (await workRes.json()).data.code;
+  expect(code).toMatch(/^OBR-\d{3,}$/);
   // Consulta desde el listado con búsqueda.
   await page.goto('/obras');
   await page.getByLabel('Buscar').fill(code);
@@ -77,7 +80,7 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
   await expect(page.getByText(code).first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Ubicación de stock' })).toBeVisible();
-  st.work = { id: page.url().split('/').pop()!, code, name };
+  st.work = { id, code, name };
   await snap(page, '01-obra-detalle-gerencia');
 });
 

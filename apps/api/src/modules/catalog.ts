@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { db, transaction } from "../core/db";
 import { audit } from "../core/audit";
+import { codeForCreate } from "./automatic-codes";
 import { type Actor, requireRoles, requireWork } from "../core/auth";
 import { ApiError } from "../core/errors";
 import {
@@ -186,11 +187,13 @@ export async function handlerCatalog(
       const b = await parse(request, workSchema);
       return ok(
         await transaction(async (tx) => {
+          const code = await codeForCreate(tx, "works", b.code);
           const w = await tx.work.create({
             data: {
               ...b,
+              code,
               location: {
-                create: { code: `OBRA-${b.code}`, name: b.name, kind: "WORK" },
+                create: { code: `OBRA-${code}`, name: b.name, kind: "WORK" },
               },
             },
           });
@@ -289,7 +292,7 @@ export async function handlerCatalog(
       const b = await parse(request, schema);
       return ok(
         await transaction(async (tx) => {
-          const l = await tx.location.create({ data: b });
+          const l = await tx.location.create({ data: { ...b, code: await codeForCreate(tx, "locations", b.code) } });
           await audit(tx, actor, "CREATE", "Location", l.id);
           return l;
         }),
@@ -350,11 +353,19 @@ export async function handlerCatalog(
             resource === "units"
               ? key
                 ? await tx.unit.update({ where: { id: key }, data: b })
-                : await tx.unit.create({ data: b as z.infer<typeof named> })
+                : await tx.unit.create({
+                    data: {
+                      ...b as z.infer<typeof named>,
+                      code: await codeForCreate(tx, "units", (b as z.infer<typeof named>).code),
+                    },
+                  })
               : key
                 ? await tx.category.update({ where: { id: key }, data: b })
                 : await tx.category.create({
-                    data: b as z.infer<typeof named>,
+                    data: {
+                      ...b as z.infer<typeof named>,
+                      code: await codeForCreate(tx, "categories", (b as z.infer<typeof named>).code),
+                    },
                   });
           await audit(
             tx,
@@ -416,7 +427,10 @@ export async function handlerCatalog(
           const row = key
             ? await tx.material.update({ where: { id: key }, data: b })
             : await tx.material.create({
-                data: b as z.infer<typeof materialSchema>,
+                data: {
+                  ...b as z.infer<typeof materialSchema>,
+                  code: await codeForCreate(tx, "materials", (b as z.infer<typeof materialSchema>).code),
+                },
               });
           await audit(
             tx,
@@ -471,7 +485,10 @@ export async function handlerCatalog(
           const row = key
             ? await tx.supplier.update({ where: { id: key }, data: b })
             : await tx.supplier.create({
-                data: b as z.infer<typeof supplierSchema>,
+                data: {
+                  ...b as z.infer<typeof supplierSchema>,
+                  code: await codeForCreate(tx, "suppliers", (b as z.infer<typeof supplierSchema>).code),
+                },
               });
           await audit(
             tx,

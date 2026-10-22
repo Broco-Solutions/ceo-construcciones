@@ -4,6 +4,7 @@ import { api, type Schemas } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
 import { Button, ErrorBox, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
 import { WORK_STATUS_OPTIONS } from './labels';
+import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
 type Work = Schemas['WorkList'];
 
@@ -23,7 +24,7 @@ export function WorkForm({ open, work, onClose, onSaved }: { open: boolean; work
     setManagerId(work?.managerId ?? '');
   }, [open, work]);
   const save = useMutation(async (_key: string) => {
-    const body = { code: code.trim(), name: name.trim(), status, managerId: managerId || null };
+    const body = { code: work ? code.trim() : AUTO_CODE, name: name.trim(), status, managerId: managerId || null };
     const r = work
       ? await api.patch<{ data: Schemas['Work'] }>(`/works/${work.id}`, body)
       : await api.post<{ data: Schemas['Work'] }>('/works', body);
@@ -47,7 +48,7 @@ export function WorkForm({ open, work, onClose, onSaved }: { open: boolean; work
   return (
     <Modal open={open} onClose={close} side title={work ? `Editar obra ${work.code}` : 'Nueva obra'}>
       <form className="stack" onSubmit={submit}>
-        <TextField label="Código" value={code} onChange={(e) => setCode(e.target.value)} required maxLength={500} error={fe.code} />
+        <AutoCodeField prefix="OBR" value={work ? code : undefined} />
         <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required maxLength={500} error={fe.name} />
         <SelectField label="Estado" value={status} onChange={(e) => setStatus(e.target.value as Schemas['WorkStatus'])} options={WORK_STATUS_OPTIONS} error={fe.status} />
         <SelectField

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db, transaction } from "../core/db";
+import { codeForCreate, AUTO_CODE } from "./automatic-codes";
 import { Actor, requireRoles, requireWork } from "../core/auth";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
@@ -624,7 +625,7 @@ export async function handlerBudgets(
       const result = await transaction(async (tx) => {
         const { components, ...data } = input;
         const item = await tx.apuItem.create({
-          data: { ...data, components: { create: components } },
+          data: { ...data, code: await codeForCreate(tx, "apu-items", data.code ?? AUTO_CODE), components: { create: components } },
           include: itemInclude,
         });
         await audit(tx, actor, "CREATE", "ApuItem", item.id, input);
