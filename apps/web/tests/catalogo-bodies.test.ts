@@ -8,10 +8,12 @@ describe('materialBody', () => {
   it('nunca envía unitId en edición (MaterialPatch lo rechaza 422)', () => {
     const b = materialBody(true, f, '0');
     expect(b).not.toHaveProperty('unitId');
-    expect(b).toEqual({ code: 'CEM-9', name: 'Cemento', categoryId: null, active: true, minimum: '0' });
+    expect(b).toEqual({ name: 'Cemento', categoryId: null, active: true, minimum: '0' });
   });
-  it('envía unitId al crear', () => {
-    expect(materialBody(false, f, undefined)).toMatchObject({ unitId: 'u1' });
+  it('envía unidad al crear pero nunca código manual', () => {
+    const body = materialBody(false, f, undefined);
+    expect(body).toMatchObject({ unitId: 'u1' });
+    expect(body).not.toHaveProperty('code');
   });
 });
 
