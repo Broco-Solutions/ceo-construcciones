@@ -363,7 +363,7 @@ export async function handlerCatalog(
               : key
                 ? await tx.category.update({ where: { id: key }, data: b })
                 : await tx.category.create({
-                    data: { ...b, code: b.code ?? (await sequentialCode(tx, "category")) },
+                    data: { ...b, code: b.code ?? (await sequentialCode(tx, "category")) } as z.infer<typeof named>,
                   });
           await audit(
             tx,
@@ -425,7 +425,7 @@ export async function handlerCatalog(
           const row = key
             ? await tx.material.update({ where: { id: key }, data: b })
             : await tx.material.create({
-                data: { ...b, code: b.code ?? (await sequentialCode(tx, "material")) },
+                data: { ...b, code: b.code ?? (await sequentialCode(tx, "material")) } as z.infer<typeof materialSchema> & { code: string },
               });
           await audit(
             tx,
@@ -480,7 +480,7 @@ export async function handlerCatalog(
           const row = key
             ? await tx.supplier.update({ where: { id: key }, data: b })
             : await tx.supplier.create({
-                data: { ...b, code: b.code ?? (await sequentialCode(tx, "supplier")) },
+                data: { ...b, code: b.code ?? (await sequentialCode(tx, "supplier")) } as z.infer<typeof supplierSchema> & { code: string },
               });
           await audit(
             tx,
