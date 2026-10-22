@@ -272,7 +272,6 @@ export function Modal({
   title,
   children,
   footer,
-  side,
   wide,
 }: {
   open: boolean;
@@ -280,11 +279,15 @@ export function Modal({
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  /** Propiedad heredada: todos los formularios se presentan como diálogos centrados. */
   side?: boolean;
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const tid = useId();
+  // El callback del padre cambia al actualizar cada campo. No debe rearmar el focus trap.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -292,7 +295,7 @@ export function Modal({
     const first = el?.querySelector<HTMLElement>('input,select,textarea,button:not(.x)');
     (first ?? el)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') onCloseRef.current();
       if (e.key === 'Tab' && el) {
         const f = Array.from(el.querySelectorAll<HTMLElement>('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter((x) => !x.hasAttribute('disabled'));
         if (!f.length) return;
@@ -310,20 +313,20 @@ export function Modal({
       document.removeEventListener('keydown', onKey);
       prev?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
-    <div className={`scrim${side ? '' : ' center'}`} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="scrim center" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         ref={ref}
-        className={side ? 'drawer' : 'modal'}
-        style={!side && wide ? { width: 'min(1000px,100%)' } : undefined}
+        className="modal"
+        style={wide ? { width: 'min(1000px,100%)' } : undefined}
         role="dialog"
         aria-modal="true"
         aria-labelledby={tid}
         tabIndex={-1}
       >
-        <div className="row" style={side ? undefined : { padding: '16px 20px', borderBottom: '1px solid var(--line2)' }}>
+        <div className="row" style={{ padding: '16px 20px', borderBottom: '1px solid var(--line2)' }}>
           <h2 id={tid} style={{ fontSize: 17, flex: 1 }}>
             {title}
           </h2>
@@ -331,11 +334,11 @@ export function Modal({
             <X size={16} />
           </button>
         </div>
-        <div className="stack" style={side ? undefined : { padding: 20 }}>
+        <div className="stack" style={{ padding: 20 }}>
           {children}
         </div>
         {footer && (
-          <div className="row" style={{ justifyContent: 'flex-end', padding: side ? 0 : '0 20px 20px' }}>
+          <div className="row" style={{ justifyContent: 'flex-end', padding: '0 20px 20px' }}>
             {footer}
           </div>
         )}
