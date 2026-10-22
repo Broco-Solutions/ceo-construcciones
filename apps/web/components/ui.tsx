@@ -35,6 +35,17 @@ export function Field({ label, error, hint, children, htmlFor }: { label: string
   );
 }
 
+/** Código de entidad generado al confirmar el alta; no se reserva en el cliente. */
+export function GeneratedCode({ current, example }: { current?: string | null; example: string }) {
+  return (
+    <Field label="Código" hint={current ? 'Identificador asignado automáticamente.' : `Se asignará al guardar (por ejemplo, ${example}).`}>
+      <output className="input auto-code" aria-label="Código asignado">
+        {current ?? 'Automático'}
+      </output>
+    </Field>
+  );
+}
+
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string };
 export function TextField({ label, error, hint, id, className = '', ...rest }: InputProps) {
   const auto = useId();
