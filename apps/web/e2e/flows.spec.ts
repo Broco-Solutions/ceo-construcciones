@@ -61,15 +61,18 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await login(page, 'GERENCIA');
   await page.goto('/obras');
   await page.getByRole('button', { name: 'Nueva obra' }).click();
-  const code = `OBR-E2E-${SUF}`;
+  let code = '';
   const name = `Obra E2E ${SUF}`;
   const dlg = page.getByRole('dialog');
-  await dlg.getByLabel('Código').fill(code);
   await dlg.getByLabel('Nombre').fill(name);
   await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
   await dlg.getByRole('button', { name: 'Crear obra' }).click();
   await toast(page, 'Obra creada');
   await page.waitForURL(/\/obras\/[^/]+$/);
+  const workResp = await page.request.get(`/api/v1/works/${page.url().split('/').pop()!}`);
+  expect(workResp.ok()).toBe(true);
+  code = (await workResp.json()).data.code;
+  expect(code).toMatch(/^OBR-\d{3,}$/);
   // Consulta desde el listado con búsqueda.
   await page.goto('/obras');
   await page.getByLabel('Buscar').fill(code);
