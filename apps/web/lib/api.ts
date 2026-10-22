@@ -104,12 +104,13 @@ export const api = {
   put: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'body'>) => json<T>('PUT', path, { ...opts, body }),
   patch: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'body'>) => json<T>('PATCH', path, { ...opts, body }),
   /** Descarga binaria (PDF/XLSX/CSV) respetando Content-Disposition. */
-  async download(path: string, query?: Query, fallbackName = 'descarga') {
+  async download(path: string, query?: Query, fallbackName = 'descarga', forceFilename = false) {
     const res = await send('GET', path, { query });
     const blob = await res.blob();
     const cd = res.headers.get('content-disposition') ?? '';
     const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);
-    const name = m ? decodeURIComponent(m[1]) : fallbackName;
+    // Los reportes exportados desde la UI pueden imponer un nombre en español; otros respetan el servidor.
+    const name = forceFilename ? fallbackName : m ? decodeURIComponent(m[1]) : fallbackName;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
