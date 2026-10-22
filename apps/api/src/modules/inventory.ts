@@ -240,6 +240,8 @@ export async function handlerInventory(
       materialName: string;
       unitId: string;
       unitCode: string;
+      unitName: string;
+      unitSymbol: string | null;
       locationId: string;
       locationCode: string;
       locationName: string;
@@ -252,7 +254,7 @@ export async function handlerInventory(
     };
     return transaction(async (tx) => {
       const rows = await tx.$queryRaw<AlertRow[]>(
-        Prisma.sql`SELECT b.id AS "balanceId",m.id AS "materialId",m.code AS "materialCode",m.name AS "materialName",m."unitId",u.code AS "unitCode",l.id AS "locationId",l.code AS "locationCode",l.name AS "locationName",l."workId",COALESCE(b.physical,0) AS physical,COALESCE(b.reserved,0) AS reserved,COALESCE(b.minimum,m.minimum) AS minimum,b.minimum AS "locationMinimum",m.minimum AS "materialMinimum" ${from} ORDER BY m.code,l.code LIMIT ${p.take} OFFSET ${p.skip}`,
+        Prisma.sql`SELECT b.id AS "balanceId",m.id AS "materialId",m.code AS "materialCode",m.name AS "materialName",m."unitId",u.code AS "unitCode",u.name AS "unitName",u.symbol AS "unitSymbol",l.id AS "locationId",l.code AS "locationCode",l.name AS "locationName",l."workId",COALESCE(b.physical,0) AS physical,COALESCE(b.reserved,0) AS reserved,COALESCE(b.minimum,m.minimum) AS minimum,b.minimum AS "locationMinimum",m.minimum AS "materialMinimum" ${from} ORDER BY m.code,l.code LIMIT ${p.take} OFFSET ${p.skip}`,
       );
       const totals = await tx.$queryRaw<{ total: bigint }[]>(
         Prisma.sql`SELECT COUNT(*) AS total ${from}`,
@@ -267,7 +269,7 @@ export async function handlerInventory(
             code: row.materialCode,
             name: row.materialName,
             unitId: row.unitId,
-            unit: { code: row.unitCode },
+            unit: { code: row.unitCode, name: row.unitName, symbol: row.unitSymbol },
           },
           location: {
             id: row.locationId,

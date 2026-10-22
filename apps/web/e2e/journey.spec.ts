@@ -47,7 +47,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await dlg.getByLabel('Nombre').fill(W.name);
     await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
     await dlg.getByRole('button', { name: 'Crear obra' }).click();
-    await toast(p, 'Obra creada');
+    await toast(p, 'Obra creada correctamente');
     await p.waitForURL(/\/obras\/[^/]+$/);
     st.workId = p.url().split('/').pop()!;
     W.code = (await admin.get<{ code: string }>(`/works/${st.workId}`)).code;
@@ -63,7 +63,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto('/apu/nuevo');
     await pick(p.getByLabel('Rubro'), 'Revoques');
     await p.getByLabel('Nombre del ítem').fill(APU);
-    await pick(p.getByLabel('Unidad de trabajo'), 'M2');
+    await pick(p.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
     await p.getByRole('button', { name: 'Agregar material' }).click();
     await pick(p.getByLabel('Material 1', { exact: true }), 'CEM-001');
     await p.getByLabel(/^Consumo/).first().fill('2');
@@ -71,7 +71,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByLabel('Moneda').fill('ARS');
     await p.getByLabel('Base impositiva').selectOption({ index: 1 });
     await p.getByRole('button', { name: 'Crear APU' }).click();
-    await toast(p, 'APU creado.');
+    await toast(p, 'APU creado correctamente');
     await p.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
 
     // 3. Cómputo: 10 m² → 20 kg previstos.
@@ -81,7 +81,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await pick(p.getByLabel('Ítem APU').first(), APU);
     await p.getByLabel(/^Cantidad/).first().fill('10');
     await p.getByRole('button', { name: 'Crear cómputo' }).click();
-    await toast(p, 'Cómputo creado.');
+    await toast(p, 'Cómputo creado correctamente');
     await p.waitForURL(/\/computos\/(?!nuevo)[^/]+$/);
   });
 
@@ -100,11 +100,11 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await dlg.locator('select:has(option[value="manual"])').first().selectOption('manual');
     await dlg.getByLabel(/^Precio por/).first().fill('1000');
     await dlg.getByTestId('crear-version').click();
-    await toast(p, 'Versión 1 creada.');
+    await toast(p, 'Versión 1 creada correctamente');
     await p.waitForURL(/\/presupuestos\/versiones\//);
     await p.getByRole('button', { name: 'Marcar como referencia' }).click();
     await confirmModal(p, 'Marcar como referencia');
-    await toast(p, 'Versión 1 marcada como referencia.');
+    await toast(p, 'Versión 1 marcada como referencia');
   });
 
   // 5. Pedido (Jefe): 20 kg de cemento, con lo previsto de la referencia a la vista.
@@ -129,7 +129,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto(`/pedidos/${st.requestId}`);
     await p.getByRole('button', { name: 'Tomar en proceso' }).click();
     await confirmModal(p, /Confirmar|Tomar en proceso/);
-    await toast(p, /Pedido: En proceso/);
+    await toast(p, 'Pedido marcado en proceso');
     await p.goto(`/cotizaciones/${st.requestId}`);
     await p.getByRole('button', { name: 'Cargar cotización' }).click();
     const dlg = p.getByRole('dialog');
@@ -137,7 +137,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await dlg.getByLabel('Válida hasta').fill(day(30));
     await dlg.getByLabel(/^Precio \(ARS\)/).first().fill('1000');
     await dlg.getByRole('button', { name: 'Guardar cotización' }).click();
-    await toast(p, 'Cotización cargada');
+    await toast(p, 'Cotización cargada correctamente');
     await p.getByRole('button', { name: 'Seleccionar esta oferta' }).first().click();
     await confirmModal(p, 'Confirmar');
     await toast(p, 'Cotización de Corralón Demo Sur seleccionada');
@@ -146,14 +146,14 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByLabel('Destino de entrega').selectOption(st.locId!);
     await p.getByRole('button', { name: 'Revisar y crear' }).click();
     await confirmModal(p, /Confirmar|Crear/);
-    await toast(p, /OC-\d+ creada en borrador/);
+    await toast(p, /Orden OC-\d+ creada como borrador/);
     await p.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
     st.orderId = p.url().split('/').pop()!;
     await expect(p.getByRole('heading', { level: 1 })).toHaveText(/^OC-\d+$/);
     st.orderNumber = (await p.getByRole('heading', { level: 1 }).innerText()).trim();
     await p.getByRole('button', { name: 'Emitir' }).click();
     await confirmModal(p, 'Emitir');
-    await toast(p, `${st.orderNumber} emitida`);
+    await toast(p, `Orden ${st.orderNumber} emitida`);
     await expect(p.getByTestId('oc-total-amount')).toHaveText(/ARS 20\.000,00/);
   });
 
@@ -167,7 +167,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await expect(p.getByLabel(/^Cantidad recibida de Cemento portland/)).toHaveValue('20');
     await p.getByRole('button', { name: 'Revisar recepción' }).click();
     await confirmModal(p, 'Confirmar recepción');
-    await toast(p, 'Recepción registrada');
+    await toast(p, 'Recepción registrada correctamente');
     await expect(p.getByTestId('receipt-history')).toContainText('Jefe Demo');
     await expect(p.getByTestId('receipt-history')).toContainText(`RJ-${SUF}`);
   });
@@ -185,7 +185,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await pick(dlg.getByLabel('Obra destino'), W.code);
     await dlg.getByLabel(/^Cantidad/).fill('5');
     await dlg.getByRole('button', { name: 'Reservar' }).click();
-    await toast(p, 'Reserva creada.');
+    await toast(p, 'Reserva creada correctamente');
     await p.goto('/stock/movimientos/nuevo?type=TRANSFER');
     await pickMaterial(p, 'CEM-001');
     await p.getByLabel('Origen', { exact: true }).selectOption(st.whId!);
@@ -194,7 +194,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await pick(p.getByLabel('Satisfacer reserva (opcional)'), 'Reservado 5');
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');
-    await toast(p, 'Transferencia: movimiento registrado.');
+    await toast(p, 'Movimiento registrado correctamente', 'Transferencia');
   });
 
   // 11-12. Consumo 8 kg y devolución 3 kg (Jefe).
@@ -208,7 +208,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByLabel('Rubro (opcional)').selectOption({ label: 'Revoques' });
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');
-    await toast(p, 'Consumo en obra: movimiento registrado.');
+    await toast(p, 'Movimiento registrado correctamente', 'Consumo en obra');
     await p.getByRole('button', { name: 'Devolución' }).click();
     await pickMaterial(p, 'CEM-001');
     await p.getByLabel('Obra (origen)').selectOption(st.locId!);
@@ -216,7 +216,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByLabel(/^Cantidad/).fill('3');
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');
-    await toast(p, 'Devolución: movimiento registrado.');
+    await toast(p, 'Movimiento registrado correctamente', 'Devolución');
     await expect(p.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
     await expect(p.getByTestId('movement-created-source')).toContainText(W.name);
   });
@@ -239,7 +239,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await expect(tr).toHaveCount(1);
     const cells = await tr.locator('td').allInnerTexts();
     // Previsto, Pedido, Comprado, Recibido, Consumido, Físico obra
-    expect(cells.slice(1, 7)).toEqual(['20 KG', '20 KG', '20 KG', '20 KG', '8 KG', '14 KG']);
+    expect(cells.slice(1, 7)).toEqual(['20 kg', '20 kg', '20 kg', '20 kg', '8 kg', '14 kg']);
     await p.screenshot({ path: 'docs/evidencia/10-reporte-seguimiento.png', fullPage: true });
   });
 });

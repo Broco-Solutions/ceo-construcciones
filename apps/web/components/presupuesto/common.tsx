@@ -14,9 +14,9 @@ export const TAX_LABEL: Record<TaxBasis, string> = {
 };
 export const TAX_OPTIONS = (Object.keys(TAX_LABEL) as TaxBasis[]).map((k) => ({ value: k, label: TAX_LABEL[k] }));
 export const ROUNDING_LABEL: Record<string, string> = {
-  HALF_UP: 'Mitad arriba (HALF_UP)',
-  HALF_EVEN: 'Mitad al par (HALF_EVEN)',
-  DOWN: 'Truncar (DOWN)',
+  HALF_UP: 'Redondeo común (desde 5, hacia arriba)',
+  HALF_EVEN: 'Redondeo al par',
+  DOWN: 'Sin redondeo (corta los decimales)',
 };
 export const ROUNDING_OPTIONS = Object.entries(ROUNDING_LABEL).map(([value, label]) => ({ value, label }));
 export const BOUNDARY = 'EXTENDED_LINE_COMPONENTS' as const;
@@ -61,7 +61,7 @@ export function BudgetFlow({ step }: { step: 0 | 1 | 2 | 3 }) {
   const steps = [
     ['APU', 'Receta por unidad'],
     ['Cómputo', 'Cantidades por obra'],
-    ['Presupuesto', 'Versión inmutable'],
+    ['Presupuesto', 'Versiones guardadas'],
     ['Materiales', 'Necesarios consolidados'],
   ];
   return (

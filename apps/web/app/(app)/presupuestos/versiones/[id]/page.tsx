@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -49,7 +50,7 @@ function VersionDetail() {
       <Card>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
           <Pill tone={STATUS_TONE[v.status]}>{STATUS_LABEL[v.status]}</Pill>
-          <span className="small muted">Versión inmutable · creada {formatDateTime(v.createdAt)}</span>
+          <span className="small muted">Versión guardada, no se modifica · creada {formatDateTime(v.createdAt)}</span>
           {ref.referenceVersionId === v.id && (
             <>
               <ReferencePill />
@@ -133,7 +134,7 @@ function Materials({ versionId }: { versionId: string }) {
               {d.materials.map((m) => (
                 <tr key={m.materialId}>
                   <td>{name(m)}</td>
-                  <td className="r qty">{formatQty(m.quantity, m.unit.code)}</td>
+                  <td className="r qty">{formatQty(m.quantity, unitSymbol(m.unit))}</td>
                 </tr>
               ))}
             </tbody>
@@ -149,7 +150,7 @@ function Materials({ versionId }: { versionId: string }) {
               {g.rows.map((m) => (
                 <div key={m.materialId} className="row" style={{ padding: '4px 0', borderTop: '1px solid var(--line2)' }}>
                   <span style={{ flex: 1 }}>{name(m)}</span>
-                  <b className="qty">{formatQty(m.quantity, m.unit.code)}</b>
+                  <b className="qty">{formatQty(m.quantity, unitSymbol(m.unit))}</b>
                 </div>
               ))}
             </div>

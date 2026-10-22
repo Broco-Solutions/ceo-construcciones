@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -92,7 +93,7 @@ function Detail() {
                       {l.item.name}
                     </Link>
                     {l.item.components.length === 0 && <Pill tone="blue">Sólo MO</Pill>}
-                    <b className="qty">{formatQty(l.quantity, l.item.unit.code)}</b>
+                    <b className="qty">{formatQty(l.quantity, unitSymbol(l.item.unit))}</b>
                   </div>
                 ))}
               </div>

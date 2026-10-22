@@ -30,7 +30,7 @@ export default function CatalogoPage() {
             singular="unidad"
             fem
             canEdit={canEdit}
-            hint="Editar una unidad cambia su código o nombre visible; no convierte cantidades de los materiales que la usan."
+            hint="Cambiar el nombre o el símbolo de una unidad no modifica las cantidades ya cargadas en materiales ni APU."
           />
         )}
       </div>

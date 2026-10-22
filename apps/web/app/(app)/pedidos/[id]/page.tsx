@@ -13,6 +13,14 @@ import { HistoryTimeline, LookupGate, REQUEST_STATUS, REQUEST_TRANSITIONS, Statu
 
 const ACTION_LABEL: Partial<Record<RequestStatus, string>> = { PROCESSING: 'Tomar en proceso', COMPLETED: 'Marcar completado', CANCELLED: 'Cancelar pedido' };
 
+const STATUS_DONE: Record<Schemas['RequestStatus'], string> = {
+  DRAFT: 'Pedido devuelto a borrador',
+  SUBMITTED: 'Pedido enviado a Compras',
+  PROCESSING: 'Pedido marcado en proceso',
+  COMPLETED: 'Pedido marcado como completado',
+  CANCELLED: 'Pedido cancelado',
+};
+
 export default function PedidoDetalle() {
   const { id } = useParams<{ id: string }>();
   const { can } = useSession();
@@ -36,7 +44,7 @@ export default function PedidoDetalle() {
     if (!target) return;
     const ok = await change.run(target);
     if (ok !== undefined) {
-      toast(`Pedido: ${REQUEST_STATUS[target][0]}`);
+      toast.success(STATUS_DONE[target]);
       setTarget(null);
       r.reload();
       setHistKey((k) => k + 1);

@@ -2,7 +2,7 @@
 // Cada corrida crea su propia obra/APU/cómputo/presupuesto con sufijo único (re-ejecutable sobre base nueva con sólo el seed).
 // La API directa (apiAs) se usa SÓLO para PREPARACIÓN y para verificar conteos/ids; está marcada así.
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { apiAs, assignJefe, byCode, confirmModal, isoDays, login, pickMaterial, SUFFIX, toast, type Api } from './helpers';
+import { apiAs, assignJefe, byCode, confirmModal, unitBySymbol, isoDays, login, pickMaterial, SUFFIX, toast, type Api } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -30,7 +30,7 @@ test.beforeAll(async () => {
   // PREPARACIÓN: obra propia de la corrida, asignada al Jefe, con APU/cómputo/presupuesto.
   admin = await apiAs('GERENCIA');
   const rev = await byCode<Ref>(admin, '/categories', 'REV');
-  const m2 = await byCode<Ref>(admin, '/units', 'M2');
+  const m2 = await unitBySymbol<Ref>(admin, 'm²');
   st.cem = await byCode<Ref>(admin, '/materials', 'CEM-001');
   st.are = await byCode<Ref>(admin, '/materials', 'ARE-001');
   const w = await admin.send<Ref>('POST', '/works', { code: `FEA-${SUF}`, name: `Obra Casos ${SUF}`, status: 'ACTIVE' });
@@ -89,7 +89,7 @@ test('versión de presupuesto: doble clic crea una sola versión', async ({ page
   await page.goto(`/presupuestos/${st.budgetId}?nuevaVersion=1`);
   const dlg = await fillVersion(page, ['950', '42000']);
   await dlg.getByTestId('crear-version').dblclick();
-  await toast(page, 'Versión 1 creada.');
+  await toast(page, 'Versión 1 creada correctamente');
   await page.waitForURL(/\/presupuestos\/versiones\//);
   st.versions.push(page.url().split('/').pop()!);
   expect(new Set(posts).size).toBe(1);
@@ -117,7 +117,7 @@ test('versión de presupuesto: reintento tras timeout reutiliza la clave y no du
   await expect(dlg.getByRole('alert').or(dlg.locator('.alert.bad')).first()).toBeVisible({ timeout: 15_000 });
   expect(await versionCount()).toBe(2); // el servidor ya la creó
   await dlg.getByTestId('crear-version').click(); // reintento del usuario
-  await toast(page, 'Versión 2 creada.');
+  await toast(page, 'Versión 2 creada correctamente');
   await page.waitForURL(/\/presupuestos\/versiones\//);
   st.versions.push(page.url().split('/').pop()!);
   expect(keys).toHaveLength(2);
@@ -138,7 +138,7 @@ test('selección de versión de referencia y su reflejo en la obra (Gerencia y J
   await page.goto(`/presupuestos/versiones/${st.versions[1]}`);
   await page.getByRole('button', { name: 'Marcar como referencia' }).click();
   await confirmModal(page, 'Marcar como referencia');
-  await toast(page, 'Versión 2 marcada como referencia.');
+  await toast(page, 'Versión 2 marcada como referencia');
   await expect(page.getByTestId('referencia-obra').first()).toBeVisible();
   await page.screenshot({ path: `${EVID}/03-presupuesto-version-referencia.png`, fullPage: true });
   expect((await admin.get<{ referenceVersionId: string }>(`/works/${st.work!.id}`)).referenceVersionId).toBe(st.versions[1]);
@@ -171,7 +171,7 @@ test('editar cómputo conserva los ids de las líneas', async ({ page }) => {
   await page.getByRole('button', { name: 'Editar' }).click();
   await page.getByLabel(/^Cantidad/).first().fill('12,5');
   await page.getByRole('button', { name: 'Guardar cómputo' }).click();
-  await toast(page, 'Cómputo actualizado.');
+  await toast(page, 'Los cambios del cómputo se guardaron');
   const after = await admin.get<{ lines: { id: string; itemId: string; quantity: string }[] }>(`/computations/${st.computationId}`);
   expect(after.lines.map((l) => l.id).sort()).toEqual(before.lines.map((l) => l.id).sort());
   expect(after.lines.some((l) => l.quantity === '12.5')).toBe(true);
@@ -188,7 +188,7 @@ async function newGeneralOrder(page: Page, qty: string, price: string, presentat
   await page.getByLabel(/^Precio \(ARS\)/).fill(price);
   await page.getByRole('button', { name: 'Revisar y crear' }).click();
   await confirmModal(page, /Confirmar|Crear/);
-  await toast(page, /OC-\d+ creada en borrador/);
+  await toast(page, /Orden OC-\d+ creada como borrador/);
   await page.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
 }
 
@@ -239,7 +239,7 @@ test('OC: advertencia de OC existente para el mismo pedido', async ({ page }) =>
     await btn.click();
     if (expectWarning) await expect(page.getByTestId('oc-duplicate-confirm-note')).toBeVisible();
     await confirmModal(page, /Confirmar|Crear/);
-    await toast(page, /OC-\d+ creada en borrador/);
+    await toast(page, /Orden OC-\d+ creada como borrador/);
     await page.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
   };
   await create(false);
@@ -251,7 +251,7 @@ test('filtros del servidor y paginación con total coherente', async ({ page }) 
   // PREPARACIÓN: 51 obras con prefijo propio (una pausada) para superar la página de 50.
   const pre = `PAG-${SUF}`;
   for (let i = 0; i < 51; i++) await admin.send('POST', '/works', { code: `${pre}-${String(i).padStart(2, '0')}`, name: `Paginada ${SUF} ${i}`, status: i === 0 ? 'PAUSED' : 'ACTIVE' });
-  await admin.send('POST', '/materials', { code: `MAT-${SUF}`, name: `Material filtro ${SUF}`, unitId: (await byCode<Ref>(admin, '/units', 'U')).id, categoryId: (await byCode<Ref>(admin, '/categories', 'MAMP')).id });
+  await admin.send('POST', '/materials', { code: `MAT-${SUF}`, name: `Material filtro ${SUF}`, unitId: (await unitBySymbol<Ref>(admin, 'un')).id, categoryId: (await byCode<Ref>(admin, '/categories', 'MAMP')).id });
   await login(page, 'GERENCIA');
 
   // Obras: búsqueda + estado en el servidor, paginación sobre el total filtrado.

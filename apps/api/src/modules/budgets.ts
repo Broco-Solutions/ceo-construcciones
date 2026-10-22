@@ -546,7 +546,7 @@ export async function handlerBudgets(
         materials: {
           include: {
             material: { select: { id: true, code: true, name: true } },
-            unit: { select: { id: true, code: true, name: true } },
+            unit: { select: { id: true, code: true, name: true, symbol: true } },
             category: { select: { id: true, code: true, name: true } },
           },
         },

@@ -68,9 +68,9 @@ function ReportInner() {
     setExporting(true);
     try {
       const name = await api.download('/reports/materials/export', { workId, categoryId, materialId, versionId: effVersionId }, 'seguimiento-materiales.xlsx');
-      toast(`Descargado ${name}`);
+      toast.success('Informe descargado', { description: name });
     } catch (e) {
-      toast((e as Error).message, 'bad');
+      toast.failure('No se pudo descargar el informe', e);
     } finally {
       setExporting(false);
     }

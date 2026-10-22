@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { api, fieldErrors, type Schemas } from '@/lib/api';
@@ -74,14 +75,14 @@ export function ComputationForm({
     if (Object.keys(er).length) return;
     const res = await save.run({ workId, name: name.trim(), lines });
     if (res) {
-      toast(initial ? 'Cómputo actualizado.' : 'Cómputo creado.');
+      toast.success(initial ? 'Los cambios del cómputo se guardaron' : 'Cómputo creado correctamente');
       onSaved(res.data.id);
     }
   }
   const fe = { ...fieldErrors(save.error), ...errs };
   const options = apus.rows
     .filter((a) => (a.active && (!catFilter || a.categoryId === catFilter)) || rows.some((r) => r.itemId === a.id))
-    .map((a) => ({ value: a.id, label: `${a.category.name} · ${a.code ? `${a.code} ` : ''}${a.name} (${a.unit.code})` }));
+    .map((a) => ({ value: a.id, label: `${a.category.name} · ${a.code ? `${a.code} ` : ''}${a.name} (${unitSymbol(a.unit)})` }));
 
   return (
     <form onSubmit={submit} className="stack" noValidate>
@@ -138,7 +139,7 @@ export function ComputationForm({
                         error={fe[`lines.${i}.itemId`]}
                       />
                       <DecimalField
-                        label={`Cantidad${a ? ` (${a.unit.code})` : ''}`}
+                        label={`Cantidad${a ? ` (${unitSymbol(a.unit)})` : ''}`}
                         value={r.quantity}
                         placeholder="120,5"
                         onChange={(e) => setRows((rs) => rs.map((x) => (x.key === r.key ? { ...x, quantity: e.target.value } : x)))}

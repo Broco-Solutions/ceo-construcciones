@@ -66,7 +66,7 @@ function Importaciones() {
       <Card bodyClass="">
         <Tabs tabs={KINDS.map((k) => ({ key: k.key, label: k.label }))} value={kind} onChange={setKind} />
         <div className="bd">
-          <ImportKind key={kind} kind={kind} onTemplate={() => download(`/imports/${kind}/template`, templateFilename(kind))} templateBusy={busy === `/imports/${kind}/template`} onDone={(n) => toast(`${n} filas importadas`)} />
+          <ImportKind key={kind} kind={kind} onTemplate={() => download(`/imports/${kind}/template`, templateFilename(kind))} templateBusy={busy === `/imports/${kind}/template`} onDone={(n) => toast.success('Importación completada', { description: n === 1 ? 'Se cargó 1 fila.' : `Se cargaron ${n} filas.` })} />
         </div>
       </Card>
       <Card title="Exportaciones">
@@ -143,8 +143,8 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
       {readErr && <div className="alert bad">{readErr}</div>}
       <ErrorBox error={prev.error} />
       <div className="note small" data-testid="import-preview-note">
-        La vista previa muestra el contenido de tu CSV tal como se leyó en este navegador. El servidor sólo valida el archivo
-        (cantidad de filas, errores y huella de confirmación); no devuelve datos normalizados. La fila 1 es la primera fila de datos, sin contar el encabezado.
+        La vista previa muestra el archivo tal como lo cargaste. Antes de importar, el sistema revisa cada fila e indica cuáles tienen errores;
+        no corrige ni completa datos. La fila 1 es la primera fila de datos (el encabezado no se cuenta).
       </div>
       {commit.pending && <div className="note" role="status" data-testid="import-commit-status">Importando… no cierres la página.</div>}
       {commit.error && !confirm && <ErrorBox error={commit.error} />}
@@ -158,7 +158,7 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
         <>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
             {preview.valid ? <Pill tone="ok">Archivo válido</Pill> : <Pill tone="bad">Con errores</Pill>}
-            <span className="small" data-testid="import-preview-summary">Validación del servidor: {preview.rowCount} filas · {preview.rowCount - errByRow.size} válidas · {errByRow.size} con errores</span>
+            <span className="small" data-testid="import-preview-summary">Resultado de la revisión: {preview.rowCount} filas · {preview.rowCount - errByRow.size} válidas · {errByRow.size} con errores</span>
             <span className="small muted mono">Huella {preview.confirmationHash.slice(0, 12)}…</span>
             <span style={{ flex: 1 }} />
             <Button variant="ok" disabled={!preview.valid} onClick={() => setConfirm(true)}><Upload /> Confirmar importación</Button>

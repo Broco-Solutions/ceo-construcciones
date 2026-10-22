@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { api, ApiError, newIdempotencyKey, type Page } from './api';
+import { api, ApiError, friendlyError, newIdempotencyKey, type Page } from './api';
 
 type Query = Record<string, string | number | boolean | undefined | null>;
 
@@ -108,7 +108,7 @@ export function useMutation<A extends unknown[], R>(fn: (key: string, ...args: A
         keyRef.current = null;
         return r;
       } catch (e) {
-        const err = e instanceof ApiError ? e : new ApiError(0, 'NETWORK', String(e));
+        const err = e instanceof ApiError ? e : new ApiError(0, 'NETWORK', friendlyError(e));
         // Ante error de transporte se conserva la clave para reintentar la misma intención.
         if (!err.isNetwork) keyRef.current = null;
         setError(err);

@@ -39,19 +39,55 @@ export function buildUrl(path: string, query?: Query) {
   return `/api/v1${path}${s ? `?${s}` : ''}`;
 }
 
+// Respuestas del servidor que describen la implementación: se reemplazan por indicaciones para el usuario.
+const BY_CODE: Record<string, string> = {
+  INVALID_JSON: 'No se pudo procesar la solicitud. Actualizá la página e intentá nuevamente.',
+  METHOD_NOT_ALLOWED: 'No se pudo procesar la solicitud. Actualizá la página e intentá nuevamente.',
+  BODY_TOO_LARGE: 'Los datos enviados superan el tamaño permitido (1 MB). Dividí la carga en partes más chicas.',
+  AUTO_CODE_EXHAUSTED: 'No se pudo asignar el código automático. Intentá nuevamente.',
+  PROXY_NOT_CONFIGURED: 'El sistema no está disponible en este entorno. Avisá al administrador.',
+  API_UNAVAILABLE: 'No hay conexión con el servidor. Intentá nuevamente en unos minutos.',
+  UNAUTHENTICATED: 'Tu sesión venció. Ingresá nuevamente.',
+};
+const BY_MESSAGE: Record<string, string> = {
+  'Datos inválidos': 'Revisá los datos marcados e intentá nuevamente.',
+  'Datos inválidos.': 'Revisá los datos marcados e intentá nuevamente.',
+  'Paginación inválida.': 'No se pudo cargar la lista. Actualizá la página.',
+  'Ruta inexistente': 'La sección solicitada no existe.',
+  'Se requiere un objeto JSON.': 'No se pudo procesar la solicitud. Actualizá la página e intentá nuevamente.',
+  'La clave de idempotencia ya fue utilizada con otros datos': 'Esta operación ya se envió con otros datos. Actualizá la página antes de volver a intentar.',
+  'Los datos incumplen una restricción de integridad.': 'Los datos no son compatibles con la información ya registrada. Revisalos e intentá nuevamente.',
+  'Referencia inexistente o registro en uso.': 'El registro está en uso o hace referencia a datos que ya no existen.',
+  'No se pudo completar la operación.': 'No se pudo completar la operación. Intentá nuevamente.',
+  'Saldo reservado inconsistente': 'El saldo reservado no coincide con el stock actual. Actualizá la página e intentá nuevamente.',
+};
+function userMessage(status: number, code: string, message: string): string {
+  if (BY_CODE[code]) return BY_CODE[code];
+  if (BY_MESSAGE[message]) return BY_MESSAGE[message];
+  if (status >= 500 && !message.trim()) return 'No se pudo completar la operación. Intentá nuevamente en unos minutos.';
+  return message;
+}
+/** Texto para mostrar al usuario a partir de cualquier error. */
+export function friendlyError(err: unknown): string {
+  if (err instanceof ApiError) return err.message;
+  // Errores propios de la aplicación ya vienen redactados en español; los del navegador no se muestran.
+  if (err instanceof Error && err.name === 'Error' && err.message) return err.message;
+  return 'Ocurrió un problema inesperado. Intentá nuevamente.';
+}
+
 const MESSAGES: Record<number, string> = {
   401: 'Tu sesión venció. Ingresá nuevamente.',
   403: 'No tenés permisos para esta operación.',
-  404: 'El recurso no existe o no está disponible para tu usuario.',
-  409: 'La operación entra en conflicto con el estado actual. Actualizá los datos.',
-  422: 'Revisá los datos ingresados.',
-  429: 'Demasiados intentos. Esperá antes de volver a intentar.',
+  404: 'El registro no existe o no está disponible para tu usuario.',
+  409: 'Los datos cambiaron mientras trabajabas. Actualizá la página e intentá nuevamente.',
+  422: 'Revisá los datos marcados e intentá nuevamente.',
+  429: 'Demasiados intentos seguidos. Esperá un momento antes de volver a intentar.',
 };
 
 async function toError(res: Response): Promise<ApiError> {
   const retry = res.headers.get('retry-after');
   let code = `HTTP_${res.status}`;
-  let message = MESSAGES[res.status] ?? 'Ocurrió un error inesperado en el servidor.';
+  let message = MESSAGES[res.status] ?? 'No se pudo completar la operación. Intentá nuevamente en unos minutos.';
   let details: unknown;
   try {
     const body = await res.json();
@@ -63,7 +99,7 @@ async function toError(res: Response): Promise<ApiError> {
   } catch {
     /* cuerpo no JSON */
   }
-  return new ApiError(res.status, code, message, details, retry ? Number(retry) : undefined);
+  return new ApiError(res.status, code, userMessage(res.status, code, message), details, retry ? Number(retry) : undefined);
 }
 
 async function send(method: string, path: string, opts: RequestOptions = {}): Promise<Response> {
@@ -134,12 +170,52 @@ export function fieldErrors(err: unknown): Record<string, string> {
   if (!(err instanceof ApiError) || !err.details) return out;
   const flat = err.details as { fieldErrors?: Record<string, string[]>; formErrors?: string[] };
   if (!Array.isArray(err.details) && flat.fieldErrors) {
-    for (const [k, v] of Object.entries(flat.fieldErrors)) if (v?.length) out[k] = v.join('; ');
+    for (const [k, v] of Object.entries(flat.fieldErrors)) if (v?.length) out[k] = v.map(issueMessage).join('; ');
     return out;
   }
   if (!Array.isArray(err.details)) return out;
   for (const issue of err.details as { path?: (string | number)[]; message?: string }[]) {
-    if (issue?.path && issue.message) out[issue.path.join('.')] = issue.message;
+    if (issue?.path && issue.message) out[issue.path.join('.')] = issueMessage(issue.message);
   }
   return out;
+}
+
+/** Mensajes estándar de validación (en inglés) traducidos para mostrar junto a cada campo. */
+export function issueMessage(message: string): string {
+  const m = message.trim();
+  let r: RegExpExecArray | null;
+  if (m === 'Required' || /^String must contain at least 1 character/.test(m) || /received (null|undefined)$/.test(m)) return 'Completá este campo';
+  if ((r = /^String must contain at most (\d+) character/.exec(m))) return `Máximo ${r[1]} caracteres`;
+  if ((r = /^String must contain at least (\d+) character/.exec(m))) return `Mínimo ${r[1]} caracteres`;
+  if ((r = /^Number must be greater than or equal to (-?[\d.]+)/.exec(m))) return `Debe ser ${r[1]} o más`;
+  if ((r = /^Number must be greater than (-?[\d.]+)/.exec(m))) return `Debe ser mayor que ${r[1]}`;
+  if ((r = /^Array must contain at least (\d+) element/.exec(m))) return r[1] === '1' ? 'Agregá al menos un renglón' : `Agregá al menos ${r[1]} renglones`;
+  if (m === 'Invalid email') return 'Ingresá un email válido';
+  if (/^Invalid enum value|^Invalid discriminator value/.test(m)) return 'Elegí una opción válida';
+  if (/^Invalid (date|datetime)/.test(m)) return 'Ingresá una fecha válida';
+  if (/^Unrecognized key/.test(m)) return 'Dato no admitido';
+  if (m === 'Invalid' || m === 'Invalid input' || /^Expected .*, received/.test(m)) return 'Valor no válido';
+  return m;
+}
+
+const FIELD_LABEL: Record<string, string> = {
+  name: 'Nombre', code: 'Código', symbol: 'Símbolo', email: 'Email', password: 'Contraseña', role: 'Rol',
+  quantity: 'Cantidad', unitId: 'Unidad', categoryId: 'Rubro', materialId: 'Material', supplierId: 'Proveedor',
+  workId: 'Obra', locationId: 'Ubicación', sourceId: 'Origen', destinationId: 'Destino', presentationId: 'Presentación',
+  price: 'Precio', unitPrice: 'Precio unitario', currency: 'Moneda', taxBasis: 'Impuestos', validFrom: 'Vigencia',
+  baseQuantity: 'Equivalencia', minimum: 'Mínimo', laborCost: 'Mano de obra', reason: 'Motivo', notes: 'Observaciones',
+  taxId: 'CUIT', lines: 'Renglón', components: 'Componente', items: 'Renglón', status: 'Estado',
+};
+/** Ubicación legible de un error de validación, p.ej. «Renglón 2 · Cantidad»; vacío si no se reconoce. */
+export function fieldLabel(path: readonly unknown[]): string {
+  const parts: string[] = [];
+  for (let i = 0; i < path.length; i++) {
+    const k = path[i];
+    if (typeof k === 'number') continue;
+    const label = FIELD_LABEL[String(k)];
+    if (!label) return '';
+    const idx = path[i + 1];
+    parts.push(typeof idx === 'number' ? `${label} ${idx + 1}` : label);
+  }
+  return parts.join(' · ');
 }

@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol, unitLabel } from '@/lib/units';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -74,13 +75,13 @@ function ApuDetail() {
           items={[
             ['Código', apu.code ? <span className="mono">{apu.code}</span> : '—'],
             ['Rubro', apu.category.name],
-            ['Unidad de trabajo', `${apu.unit.code} · ${apu.unit.name}`],
+            ['Unidad de trabajo', unitLabel(apu.unit)],
             ['Mano de obra por unidad', apu.laborCost ? `${formatMoney(apu.laborCost, apu.laborCurrency)} · ${TAX_LABEL[apu.laborTaxBasis]}` : `Sin importe · ${TAX_LABEL[apu.laborTaxBasis]}`],
             ['Estado', apu.active ? <Pill tone="ok">Activo</Pill> : <Pill>Inactivo</Pill>],
           ]}
         />
       </Card>
-      <Card title={`Receta por 1 ${apu.unit.code}`} bodyClass={laborOnly ? 'bd' : ''}>
+      <Card title={`Receta por 1 ${unitSymbol(apu.unit)}`} bodyClass={laborOnly ? 'bd' : ''}>
         {laborOnly ? (
           <div className="alert warn">Ítem sólo de mano de obra: no consume materiales.</div>
         ) : (
@@ -89,7 +90,7 @@ function ApuDetail() {
               <thead>
                 <tr>
                   <th scope="col">Material</th>
-                  <th className="r" scope="col">Consumo por {apu.unit.code}</th>
+                  <th className="r" scope="col">Consumo por {unitSymbol(apu.unit)}</th>
                 </tr>
               </thead>
               <tbody>
@@ -98,7 +99,7 @@ function ApuDetail() {
                     <td>
                       <span className="mono small">{c.material.code}</span> {c.material.name}
                     </td>
-                    <td className="r qty">{formatQty(c.coefficient, c.material.unit.code)}</td>
+                    <td className="r qty">{formatQty(c.coefficient, unitSymbol(c.material.unit))}</td>
                   </tr>
                 ))}
               </tbody>
@@ -122,7 +123,7 @@ function CalculatePanel({ apu }: { apu: Schemas['ApuDetail'] }) {
   const calc = useMutation((_k: string, body: Schemas['ValuationInput']) =>
     api.post<{ data: Schemas['BudgetCalculation'] }>(`/apu-items/${apu.id}/calculate`, body),
   );
-  const mats = apu.components.map((c) => ({ id: c.materialId, name: c.material.name, unit: c.material.unit.code }));
+  const mats = apu.components.map((c) => ({ id: c.materialId, name: c.material.name, unit: unitSymbol(c.material.unit) }));
 
   async function run() {
     const e = validateValuation(val);
@@ -138,14 +139,14 @@ function CalculatePanel({ apu }: { apu: Schemas['ApuDetail'] }) {
     const r = await calc.run({ ...valuationBody(val), prices: p.prices });
     if (r) {
       setResult(r.data);
-      toast('Costo calculado por el servidor.');
+      toast.success('Costo del APU calculado');
     }
   }
 
   return (
     <Card title="Consultar costo calculado">
       <p className="small muted">
-        Elegí la moneda, la base impositiva y el redondeo, y un precio por material. El cálculo lo hace el servidor sobre 1 {apu.unit.code}; no se guarda.
+        Elegí la moneda, los impuestos, el redondeo y un precio por material para estimar el costo de 1 {unitSymbol(apu.unit)}. Es una simulación: el resultado no se guarda.
       </p>
       <ValuationFields value={val} onChange={setVal} errors={errs} />
       {prices.loading ? <Loading label="Cargando precios…" /> : prices.error ? <ErrorBox error={prices.error} onRetry={prices.reload} /> : (

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { Download, Pencil, PackageCheck, Send, XCircle } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
 import { Button, Card, Confirm, DataTable, DefList, ErrorBox, Loading, Modal, Mono, TextArea, TextField, useToast } from '@/components/ui';
-import { api, ApiError, type Schemas } from '@/lib/api';
+import { api, type Schemas } from '@/lib/api';
 import { useApi, useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { formatDateTime, formatMoney, formatQty } from '@/lib/format';
@@ -56,7 +56,7 @@ function Detalle() {
     if (!status) return;
     const r = await changeStatus.run(status);
     if (r !== undefined) {
-      toast(status === 'ISSUED' ? `OC-${ord.number} emitida` : `OC-${ord.number} anulada`);
+      toast.success(status === 'ISSUED' ? `Orden OC-${ord.number} emitida` : `Orden OC-${ord.number} anulada`);
       setStatus(null);
     }
     refresh();
@@ -65,9 +65,9 @@ function Detalle() {
     setPdfBusy(true);
     try {
       await api.download(`/purchase-orders/${id}/pdf`, undefined, `OC-${ord.number}.pdf`);
-      toast('PDF descargado');
+      toast.success('PDF de la orden descargado', { description: `OC-${ord.number}.pdf` });
     } catch (e) {
-      toast(e instanceof ApiError ? e.message : 'No se pudo descargar el PDF', 'bad');
+      toast.failure('No se pudo descargar el PDF', e);
     } finally {
       setPdfBusy(false);
     }
@@ -209,7 +209,7 @@ function InvoiceRef({ order, onSaved }: { order: OrderDetail; onSaved: () => voi
   const submit = async () => {
     const r = await save.run(value.trim());
     if (r !== undefined) {
-      toast('Referencia de factura guardada');
+      toast.success('Número de factura guardado');
       setConfirm(false);
       onSaved();
     }
@@ -258,7 +258,7 @@ function EditDraft({ order, lk, onClose, onSaved }: { order: OrderDetail; lk: Re
     }
     const r = await save.run(body);
     if (r !== undefined) {
-      toast('Borrador actualizado');
+      toast.success('Los cambios del borrador se guardaron');
       onSaved();
     }
   };

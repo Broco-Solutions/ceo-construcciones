@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
@@ -28,7 +29,7 @@ export default function MaterialesPage() {
   const list = usePaged<Material>('/materials', { search: search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
   const rows = list.rows;
   // Relaciones incluidas en el DTO; el catálogo sólo como respaldo.
-  const unit = (m: Material) => m.unit?.code ?? units.map.get(m.unitId)?.code ?? '';
+  const unit = (m: Material) => unitSymbol(m.unit ?? units.map.get(m.unitId));
   const cat = (m: Material) => (m.categoryId ? (m.category?.name ?? cats.map.get(m.categoryId)?.name ?? '…') : '—');
 
   return (

@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Schemas } from '@/lib/api';
@@ -45,10 +46,10 @@ export default function AlertasPage() {
                 columns={[
                   { key: 'm', header: 'Material', render: (r) => <><b>{r.material.name}</b> <span className="mono small muted">{r.material.code}</span></> },
                   { key: 'l', header: 'Ubicación', render: (r) => <Link href={`/stock?locationId=${r.locationId}`}>{r.location.name}</Link> },
-                  { key: 'p', header: 'Físico', align: 'r', render: (r) => formatQty(r.physical, r.material.unit.code) },
-                  { key: 'r', header: 'Reservado', align: 'r', render: (r) => formatQty(r.reserved, r.material.unit.code) },
-                  { key: 'a', header: 'Disponible', align: 'r', render: (r) => <b style={{ color: 'var(--bad)' }}>{formatQty(r.available, r.material.unit.code)}</b> },
-                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => <MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /> },
+                  { key: 'p', header: 'Físico', align: 'r', render: (r) => formatQty(r.physical, unitSymbol(r.material.unit)) },
+                  { key: 'r', header: 'Reservado', align: 'r', render: (r) => formatQty(r.reserved, unitSymbol(r.material.unit)) },
+                  { key: 'a', header: 'Disponible', align: 'r', render: (r) => <b style={{ color: 'var(--bad)' }}>{formatQty(r.available, unitSymbol(r.material.unit))}</b> },
+                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => <MinimumValue minimum={r.minimum} source={r.minimumSource} unit={unitSymbol(r.material.unit)} /> },
                   { key: 's', header: '', render: (r) => <Pill tone="bad">{r.balanceId ? 'Bajo mínimo' : 'Sin stock registrado'}</Pill> },
                 ]}
                 mobile={(r) => (
@@ -59,10 +60,10 @@ export default function AlertasPage() {
                     </div>
                     <span className="small muted">{r.location.name}</span>
                     <div className="dl">
-                      <div><small>Disponible</small><span><b>{formatQty(r.available, r.material.unit.code)}</b></span></div>
-                      <div><small>Mínimo</small><span><MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /></span></div>
-                      <div><small>Físico</small><span>{formatQty(r.physical, r.material.unit.code)}</span></div>
-                      <div><small>Reservado</small><span>{formatQty(r.reserved, r.material.unit.code)}</span></div>
+                      <div><small>Disponible</small><span><b>{formatQty(r.available, unitSymbol(r.material.unit))}</b></span></div>
+                      <div><small>Mínimo</small><span><MinimumValue minimum={r.minimum} source={r.minimumSource} unit={unitSymbol(r.material.unit)} /></span></div>
+                      <div><small>Físico</small><span>{formatQty(r.physical, unitSymbol(r.material.unit))}</span></div>
+                      <div><small>Reservado</small><span>{formatQty(r.reserved, unitSymbol(r.material.unit))}</span></div>
                     </div>
                   </div>
                 )}

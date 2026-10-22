@@ -22,6 +22,8 @@ import {
   presentationCheck,
 } from "./shared";
 export const named = z.object({ code: text, name: text }).strict();
+/** Unidad de medida: el símbolo es opcional; null lo quita. */
+export const unitSchema = named.extend({ symbol: z.string().trim().min(1).max(20).nullable().optional() });
 export const workSchema = named.extend({
   status: z.enum(["ACTIVE", "PAUSED", "COMPLETED"]).optional(),
   managerId: id.nullable().optional(),
@@ -346,7 +348,8 @@ export async function handlerCatalog(
     }
     requireRoles(actor, "GERENCIA", "COMPUTO");
     if ((method === "POST" && !key) || (method === "PATCH" && key)) {
-      const b = await parse(request, key ? named.partial() : named);
+      const schema = resource === "units" ? unitSchema : named;
+      const b = await parse(request, key ? schema.partial() : schema);
       return ok(
         await transaction(async (tx) => {
           const row =
@@ -355,8 +358,8 @@ export async function handlerCatalog(
                 ? await tx.unit.update({ where: { id: key }, data: b })
                 : await tx.unit.create({
                     data: {
-                      ...b as z.infer<typeof named>,
-                      code: await codeForCreate(tx, "units", (b as z.infer<typeof named>).code),
+                      ...b as z.infer<typeof unitSchema>,
+                      code: await codeForCreate(tx, "units", (b as z.infer<typeof unitSchema>).code),
                     },
                   })
               : key

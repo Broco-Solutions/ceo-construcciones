@@ -29,7 +29,7 @@ export function ReferenceButton({ version, onDone }: { version: Pick<Schemas['Bu
           const r = await m.run();
           if (r) {
             setOpen(false);
-            toast(`Versión ${version.number} marcada como referencia.`);
+            toast.success(`Versión ${version.number} marcada como referencia`);
             onDone();
           }
         }}

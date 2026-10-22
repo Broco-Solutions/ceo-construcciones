@@ -10,7 +10,7 @@ Next.js App Router + React + TypeScript. Sin librería de UI externa: design sys
 - Fechas: `formatDate/formatDateTime`, `dateInputToIso`.
 - Permisos: `useSession().can('perm')` (matriz en `lib/permissions.ts`). Si el rol no tiene el permiso, NO llamar el endpoint (pasar `null` como path al hook) y no renderizar la acción. Jefe de Obra nunca ve ni pide datos económicos.
 - Pantalla: `<Page title crumb actions>` de `components/shell.tsx`; bloques `<Card>`; listas con `<DataTable>` + prop `mobile` (tarjetas en celular); `<PagerBar>`.
-- Estados: `<Loading>`, `<Empty>`, `<ErrorBox error onRetry>`, `useToast()` para éxito, `<Confirm>` antes de operaciones sensibles, `<Modal side>` para formularios.
+- Estados: `<Loading>`, `<Empty>`, `<ErrorBox error onRetry>`, `useToast()` (`toast.success/error/warning/info/failure`, ver `docs/UX-NOTIFICACIONES-UNIDADES-V1.md`) sólo después de que el servidor confirme, `<Confirm>` antes de operaciones sensibles, `<Modal side>` para formularios.
 - Mutaciones idempotentes (OC, reservas, movimientos, recepciones, imports commit): `useMutation((key, ...) => api.post(path, body, { idempotencyKey: key }))`. La clave se conserva ante error de red y se renueva tras éxito o error de negocio.
 - Errores 422: `fieldErrors(err)` para marcar campos; 409: mostrar mensaje y recargar.
 - Sin datos hardcodeados que simulen integración. Sin botones sin acción.

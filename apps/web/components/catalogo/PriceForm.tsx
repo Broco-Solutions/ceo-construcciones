@@ -1,6 +1,7 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useEffect, useState } from 'react';
-import { api, ApiError, fieldErrors } from '@/lib/api';
+import { api, ApiError, fieldErrors, type Schemas } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
 import { dateInputToIso, formatQty, isPositiveDecimal, parseDecimalInput } from '@/lib/format';
 import { Button, DecimalField, ErrorBox, Modal, SelectField, TextField, useToast } from '@/components/ui';
@@ -42,17 +43,17 @@ export function PriceForm({
   const pres = useAll<Presentation>(materialId ? '/presentations' : null, { materialId: materialId ?? undefined });
   const activePres = pres.rows.filter((p) => p.active);
   const selPres = activePres.find((p) => p.id === f.presentationId) ?? null;
-  const [fixedUnit, setFixedUnit] = useState<{ id: string; code: string } | null>(null);
+  const [fixedUnit, setFixedUnit] = useState<Schemas['Unit'] | null>(null);
   useEffect(() => {
     if (!fixedMaterial) return;
     // MaterialDetail trae la relación unit.
     api
-      .get<{ data: { unitId: string; unit?: { id: string; code: string } } }>(`/materials/${fixedMaterial}`)
-      .then((r) => setFixedUnit(r.data.unit ?? { id: r.data.unitId, code: units.map.get(r.data.unitId)?.code ?? '' }))
+      .get<{ data: { unitId: string; unit?: Schemas['Unit'] } }>(`/materials/${fixedMaterial}`)
+      .then((r) => setFixedUnit(r.data.unit ?? units.map.get(r.data.unitId) ?? null))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fixedMaterial]);
-  const unitCode = material?.unit?.code ?? fixedUnit?.code ?? units.map.get(material?.unitId ?? fixedUnit?.id ?? '')?.code ?? '';
+  const unitCode = unitSymbol(material?.unit ?? fixedUnit ?? units.map.get(material?.unitId ?? ''));
 
   const m = useMutation(async (_k, body: Record<string, unknown>) => api.post<{ data: MaterialPrice }>('/prices', body));
   const errs = { ...fieldErrors(m.error), ...local };
@@ -83,7 +84,7 @@ export function PriceForm({
     if (f.source.trim()) body.source = f.source.trim();
     const r = await m.run(body);
     if (r) {
-      toast('Precio registrado');
+      toast.success('Precio registrado correctamente');
       onSaved(r.data);
     }
   };
@@ -140,7 +141,7 @@ export function PriceForm({
           <div className="field">
             <label>Cantidad en unidad base</label>
             <div className="input muted">{formatQty(selPres.baseQuantity, unitCode)}</div>
-            <span className="hint">Equivalencia exacta de la presentación: el precio corresponde a 1 {selPres.name}. Si la presentación cambió, el servidor rechaza el registro (conflicto) y hay que recargar.</span>
+            <span className="hint">El precio corresponde a 1 {selPres.name}. Si alguien modificó esta presentación mientras cargabas el precio, no se podrá registrar: recargá la página e intentá de nuevo.</span>
           </div>
         ) : (
           <div className="field">

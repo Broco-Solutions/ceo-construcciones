@@ -40,7 +40,7 @@ function Detalle() {
     if (!sel) return;
     const ok = await select.run(sel.id);
     if (ok !== undefined) {
-      toast(`Cotización de ${sel.supplier.name} seleccionada`);
+      toast.success(`Cotización de ${sel.supplier.name} seleccionada`);
       setSel(null);
     }
     cmp.reload();
@@ -216,7 +216,7 @@ function QuotationForm({ request, lk, onClose, onSaved }: { request: RequestDeta
       lines: v.out,
     });
     if (ok !== undefined) {
-      toast('Cotización cargada');
+      toast.success('Cotización cargada correctamente');
       onSaved();
     }
   };

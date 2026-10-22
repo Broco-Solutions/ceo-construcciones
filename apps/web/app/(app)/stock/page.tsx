@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -37,9 +38,9 @@ function StockInner() {
     setExporting(true);
     try {
       const name = await api.download('/exports/stock', undefined, 'stock.xlsx');
-      toast(`Descargado ${name}`);
+      toast.success('Planilla de stock descargada', { description: name });
     } catch (e) {
-      toast((e as Error).message, 'bad');
+      toast.failure('No se pudo descargar la planilla de stock', e);
     } finally {
       setExporting(false);
     }
@@ -126,10 +127,10 @@ function StockInner() {
                 columns={[
                   { key: 'm', header: 'Material', render: (r) => <><b>{r.material.name}</b> <span className="mono small muted">{r.material.code}</span></> },
                   { key: 'l', header: 'Ubicación', render: (r) => locLabel(r.location) },
-                  { key: 'p', header: 'Físico', align: 'r', render: (r) => formatQty(r.physical, r.material.unit.code) },
-                  { key: 'r', header: 'Reservado', align: 'r', render: (r) => formatQty(r.reserved, r.material.unit.code) },
-                  { key: 'a', header: 'Disponible', align: 'r', render: (r) => <b>{formatQty(r.available, r.material.unit.code)}</b> },
-                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => <MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /> },
+                  { key: 'p', header: 'Físico', align: 'r', render: (r) => formatQty(r.physical, unitSymbol(r.material.unit)) },
+                  { key: 'r', header: 'Reservado', align: 'r', render: (r) => formatQty(r.reserved, unitSymbol(r.material.unit)) },
+                  { key: 'a', header: 'Disponible', align: 'r', render: (r) => <b>{formatQty(r.available, unitSymbol(r.material.unit))}</b> },
+                  { key: 'min', header: 'Mínimo', align: 'r', render: (r) => <MinimumValue minimum={r.minimum} source={r.minimumSource} unit={unitSymbol(r.material.unit)} /> },
                   {
                     key: 'st',
                     header: 'Estado',
@@ -165,10 +166,10 @@ function StockInner() {
                     </div>
                     <span className="small muted">{locLabel(r.location)}</span>
                     <div className="dl">
-                      <div><small>Físico</small><span>{formatQty(r.physical, r.material.unit.code)}</span></div>
-                      <div><small>Reservado</small><span>{formatQty(r.reserved, r.material.unit.code)}</span></div>
-                      <div><small>Disponible</small><span><b>{formatQty(r.available, r.material.unit.code)}</b></span></div>
-                      <div><small>Mínimo</small><span><MinimumValue minimum={r.minimum} source={r.minimumSource} unit={r.material.unit.code} /></span></div>
+                      <div><small>Físico</small><span>{formatQty(r.physical, unitSymbol(r.material.unit))}</span></div>
+                      <div><small>Reservado</small><span>{formatQty(r.reserved, unitSymbol(r.material.unit))}</span></div>
+                      <div><small>Disponible</small><span><b>{formatQty(r.available, unitSymbol(r.material.unit))}</b></span></div>
+                      <div><small>Mínimo</small><span><MinimumValue minimum={r.minimum} source={r.minimumSource} unit={unitSymbol(r.material.unit)} /></span></div>
                     </div>
                     {can('manageStock') && (
                       <Button size="sm" variant="sec" onClick={() => setMinFor({ locationId: r.locationId, materialId: r.materialId })}>

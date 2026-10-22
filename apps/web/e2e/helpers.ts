@@ -70,6 +70,13 @@ export async function apiAs(role: RoleKey): Promise<Api> {
 }
 
 /** Busca por código en un listado paginado completo. */
+/** Unidad predeterminada por símbolo (m², kg, un): sus códigos UNI-### dependen de la base. */
+export async function unitBySymbol<T extends { id: string }>(api: Api, symbol: string): Promise<T> {
+  const { data } = await api.list<T & { symbol: string | null }>('/units?page=1&pageSize=100');
+  const f = data.find((u) => u.symbol === symbol);
+  if (!f) throw new Error(`Unidad ${symbol} no encontrada`);
+  return f;
+}
 export async function byCode<T extends { code: string }>(api: Api, path: string, code: string): Promise<T> {
   for (let page = 1; ; page++) {
     const { data, total } = await api.list<T>(`${path}${path.includes('?') ? '&' : '?'}page=${page}&pageSize=100`);
@@ -88,7 +95,12 @@ export async function assignJefe(admin: Api, workId: string) {
   await admin.send('PUT', `/users/${jefe.id}/assignments`, { workIds: [...new Set([...ids, workId])] });
 }
 
-export const toast = (page: Page, text: string | RegExp) => expect(page.getByText(text).locator('visible=true').first()).toBeVisible({ timeout: 15_000 });
+/** Notificación visible con ese texto (título o detalle). Varios textos deben estar en la misma notificación. */
+export const toast = (page: Page, ...texts: (string | RegExp)[]) => {
+  let loc = page.locator('.toast');
+  for (const t of texts) loc = loc.filter({ hasText: t });
+  return expect(loc.first()).toBeVisible({ timeout: 15_000 });
+};
 export async function confirmModal(page: Page, label: string | RegExp) {
   await page.getByRole('dialog').getByRole('button', { name: label }).click();
 }

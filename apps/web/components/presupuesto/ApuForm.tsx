@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol, unitLabel } from '@/lib/units';
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { api, fieldErrors, type Schemas } from '@/lib/api';
@@ -37,7 +38,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
 
   const matOptions = cat.materials.rows
     .filter((m) => m.active || rows.some((r) => r.materialId === m.id))
-    .map((m) => ({ value: m.id, label: `${m.code} · ${m.name} (${cat.unitById.get(m.unitId)?.code ?? '?'})` }));
+    .map((m) => ({ value: m.id, label: `${m.code} · ${m.name} (${unitSymbol(cat.unitById.get(m.unitId)) || '?'})` }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -73,12 +74,12 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
       components,
     });
     if (res) {
-      toast(initial ? 'APU actualizado.' : 'APU creado.');
+      toast.success(initial ? 'Los cambios del APU se guardaron' : 'APU creado correctamente');
       onSaved(res.data);
     }
   }
   const fe = { ...fieldErrors(save.error), ...errs };
-  const unitCode = cat.unitById.get(unitId)?.code;
+  const unitCode = unitSymbol(cat.unitById.get(unitId)) || undefined;
 
   return (
     <form onSubmit={submit} className="stack" noValidate>
@@ -98,7 +99,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
             label="Unidad de trabajo"
             value={unitId}
             placeholder="Elegir unidad…"
-            options={cat.units.rows.map((u) => ({ value: u.id, label: `${u.code} · ${u.name}` }))}
+            options={cat.units.rows.map((u) => ({ value: u.id, label: unitLabel(u) }))}
             onChange={(e) => setUnitId(e.target.value)}
             error={fe.unitId}
           />
@@ -139,7 +140,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
                     error={fe[`components.${i}.materialId`]}
                   />
                   <DecimalField
-                    label={`Consumo${m ? ` (${cat.unitById.get(m.unitId)?.code ?? ''})` : ''}`}
+                    label={`Consumo${m ? ` (${unitSymbol(cat.unitById.get(m.unitId))})` : ''}`}
                     value={r.coefficient}
                     placeholder="4,5"
                     onChange={(e) => setRows((rs) => rs.map((x) => (x.key === r.key ? { ...x, coefficient: e.target.value } : x)))}

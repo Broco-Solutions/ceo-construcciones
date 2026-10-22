@@ -39,7 +39,7 @@ export function WorkForm({ open, work, onClose, onSaved }: { open: boolean; work
     e.preventDefault();
     const w = await save.run();
     if (w) {
-      toast(work ? 'Obra actualizada' : 'Obra creada');
+      toast.success(work ? 'Los cambios de la obra se guardaron' : 'Obra creada correctamente');
       onSaved(w);
       close();
     }

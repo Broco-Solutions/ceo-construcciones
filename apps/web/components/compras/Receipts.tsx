@@ -46,7 +46,7 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
   const submit = async () => {
     const r = await save.run(body);
     if (r) {
-      toast('Recepción registrada');
+      toast.success('Recepción registrada correctamente', { description: 'El stock se actualizó con lo recibido.' });
       setConfirm(false);
       setQty({});
       setDeliveryNote('');

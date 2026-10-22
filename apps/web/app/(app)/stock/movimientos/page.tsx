@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -71,7 +72,7 @@ function MovimientosInner() {
                   { key: 'f', header: 'Fecha', render: (r) => <span className="small">{formatDateTime(r.createdAt)}</span> },
                   { key: 't', header: 'Tipo', render: (r) => <Pill tone={TONE[r.type]}>{MOVEMENT_LABEL[r.type]}</Pill> },
                   { key: 'm', header: 'Material', render: (r) => mat(r.materialId)?.name ?? <span className="mono small">{r.materialId}</span> },
-                  { key: 'q', header: 'Cantidad', align: 'r', render: (r) => formatQty(r.quantity, mat(r.materialId)?.unit?.code) },
+                  { key: 'q', header: 'Cantidad', align: 'r', render: (r) => formatQty(r.quantity, unitSymbol(mat(r.materialId)?.unit)) },
                   { key: 'o', header: 'Origen', render: (r) => movementLocLabel(r.source, r.sourceId) },
                   { key: 'd', header: 'Destino', render: (r) => movementLocLabel(r.destination, r.destinationId) },
                   { key: 'ac', header: 'Registró', hideMobile: true, render: (r) => <span className="small">{r.actorName || '—'}</span> },
@@ -87,7 +88,7 @@ function MovimientosInner() {
                       </span>
                     </div>
                     <b>
-                      {mat(r.materialId)?.name ?? 'Material'} · {formatQty(r.quantity, mat(r.materialId)?.unit?.code)}
+                      {mat(r.materialId)?.name ?? 'Material'} · {formatQty(r.quantity, unitSymbol(mat(r.materialId)?.unit))}
                     </b>
                     <span className="small muted">
                       {movementLocLabel(r.source, r.sourceId)} → {movementLocLabel(r.destination, r.destinationId)}
