@@ -4,6 +4,7 @@ import { api, fieldErrors } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { Button, ErrorBox, Modal, TextArea, TextField, useToast } from '@/components/ui';
 import { orNull, type Supplier } from './common';
+import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
 export function SupplierForm({ supplier, onClose, onSaved }: { supplier?: Supplier | null; onClose: () => void; onSaved: (s: Supplier) => void }) {
   const toast = useToast();
@@ -27,13 +28,12 @@ export function SupplierForm({ supplier, onClose, onSaved }: { supplier?: Suppli
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const le: Record<string, string> = {};
-    if (!f.code.trim()) le.code = 'Ingresá un código';
     if (!f.name.trim()) le.name = 'Ingresá la razón social o nombre';
     if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) le.email = 'Email inválido';
     setLocal(le);
     if (Object.keys(le).length) return;
     const r = await m.run({
-      code: f.code.trim(),
+      code: editing ? f.code.trim() : AUTO_CODE,
       name: f.name.trim(),
       taxId: orNull(f.taxId),
       email: orNull(f.email),
@@ -65,7 +65,7 @@ export function SupplierForm({ supplier, onClose, onSaved }: { supplier?: Suppli
       }
     >
       <form id="supplier-form" className="stack" onSubmit={submit} noValidate>
-        <TextField label="Código" value={f.code} onChange={set('code')} error={errs.code} maxLength={500} />
+        <AutoCodeField prefix="PRV" value={editing ? f.code : undefined} />
         <TextField label="Nombre / razón social" value={f.name} onChange={set('name')} error={errs.name} maxLength={500} />
         <TextField label="CUIT" value={f.taxId} onChange={set('taxId')} error={errs.taxId} maxLength={500} placeholder="30-12345678-9" />
         <TextField label="Email" type="email" value={f.email} onChange={set('email')} error={errs.email} />
