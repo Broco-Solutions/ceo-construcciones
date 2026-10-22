@@ -1,0 +1,85 @@
+name: Web V1
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "apps/api/**"
+      - "docs/api/**"
+      - "scripts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/web.yml"
+  push:
+    branches: ["main", "claude/ceo-v1-frontend"]
+    paths:
+      - "apps/web/**"
+      - "apps/api/**"
+      - "docs/api/**"
+      - "scripts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - ".github/workflows/web.yml"
+permissions:
+  contents: read
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: Frontend (tipos, typecheck, unit, build, E2E)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: ceo_web_e2e_test
+          POSTGRES_USER: ceo_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ceo_test -d ceo_web_e2e_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      # Base efímera del job: nunca Railway ni producción. Sin secretos del repositorio.
+      DATABASE_URL: postgresql://ceo_test@127.0.0.1:5432/ceo_web_e2e_test?connection_limit=5&pool_timeout=10
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Tipos OpenAPI sincronizados
+        run: |
+          pnpm --dir apps/web api:types
+          git diff --exit-code apps/web/lib/openapi.d.ts
+      - run: pnpm --dir apps/web typecheck
+      - run: pnpm --dir apps/web test
+      - name: Build API y web
+        run: |
+          pnpm --dir apps/api db:generate
+          pnpm --dir apps/api build
+          pnpm --dir apps/web build
+        env:
+          API_BASE_URL: http://127.0.0.1:3001
+      - run: pnpm --dir apps/web exec playwright install --with-deps chromium
+      - name: E2E Playwright contra API real y PostgreSQL 18
+        run: apps/web/scripts/e2e-ci.sh
+        env:
+          E2E_SKIP_BUILD: "1"
+          E2E_SECRETS_DIR: ${{ runner.temp }}/e2e-secrets
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-artifacts
+          path: |
+            apps/web/test-results/
+            apps/web/playwright-report/
+          retention-days: 7
