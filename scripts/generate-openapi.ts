@@ -91,7 +91,7 @@ for (const enumeration of Prisma.dmmf.datamodel.enums)
     enum: enumeration.values.map((v) => v.name),
   });
 for (const model of Prisma.dmmf.datamodel.models) {
-  if (["Session", "AuthAttempt", "IdempotencyRecord"].includes(model.name))
+  if (["Session", "AuthAttempt", "IdempotencyRecord", "CodeCounter"].includes(model.name))
     continue;
   const properties: Record<string, S> = {};
   for (const field of model.fields) {
