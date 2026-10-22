@@ -2,26 +2,24 @@
 import { useEffect, useState } from 'react';
 import { api, type Schemas } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
-import { Button, ErrorBox, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
+import { Button, ErrorBox, GeneratedCode, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
 
 type Loc = Schemas['Location'];
 
 /** Alta de galpón/patio o edición (código, nombre, activo). Las ubicaciones de obra se crean con la obra. */
 export function LocationForm({ open, loc, onClose, onSaved }: { open: boolean; loc?: Loc; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
-  const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [kind, setKind] = useState<'WAREHOUSE' | 'YARD'>('WAREHOUSE');
   const [active, setActive] = useState(true);
   useEffect(() => {
     if (!open) return;
-    setCode(loc?.code ?? '');
     setName(loc?.name ?? '');
     setKind(loc?.kind === 'YARD' ? 'YARD' : 'WAREHOUSE');
     setActive(loc?.active ?? true);
   }, [open, loc]);
   const save = useMutation((_k: string) =>
-    loc ? api.patch(`/locations/${loc.id}`, { code: code.trim(), name: name.trim(), active }) : api.post('/locations', { code: code.trim(), name: name.trim(), kind }),
+    loc ? api.patch(`/locations/${loc.id}`, { name: name.trim(), active }) : api.post('/locations', { name: name.trim(), kind }),
   );
   const fe = fieldErrors(save.error);
   const close = () => {
@@ -41,7 +39,7 @@ export function LocationForm({ open, loc, onClose, onSaved }: { open: boolean; l
           }
         }}
       >
-        <TextField label="Código" value={code} onChange={(e) => setCode(e.target.value)} required error={fe.code} />
+        <GeneratedCode current={loc?.code} example={kind === "WAREHOUSE" ? "GAL-001" : "PAT-001"} />
         <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required error={fe.name} />
         {!loc && (
           <SelectField label="Tipo" value={kind} onChange={(e) => setKind(e.target.value as 'WAREHOUSE' | 'YARD')} options={[{ value: 'WAREHOUSE', label: 'Galpón' }, { value: 'YARD', label: 'Patio' }]} error={fe.kind} />
