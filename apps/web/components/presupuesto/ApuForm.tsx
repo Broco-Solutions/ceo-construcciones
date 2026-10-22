@@ -4,7 +4,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { api, fieldErrors, type Schemas } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { decimalToInput, parseDecimalInput } from '@/lib/format';
-import { Button, Card, DecimalField, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
+import { Button, Card, DecimalField, ErrorBox, GeneratedCode, Loading, SelectField, TextField, useToast } from '@/components/ui';
 import { TAX_OPTIONS, useCatalogs } from './common';
 import { parseLaborCost } from './validation';
 
@@ -14,7 +14,6 @@ let seq = 0;
 export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['ApuDetail']; onSaved: (apu: Schemas['ApuDetail']) => void; onCancel: () => void }) {
   const cat = useCatalogs();
   const toast = useToast();
-  const [code, setCode] = useState(initial?.code ?? '');
   const [name, setName] = useState(initial?.name ?? '');
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? '');
   const [unitId, setUnitId] = useState(initial?.unitId ?? '');
@@ -61,7 +60,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
     setErrs(er);
     if (Object.keys(er).length) return;
     const res = await save.run({
-      code: code.trim() || null,
+      code: initial?.code ?? null,
       name: name.trim(),
       categoryId,
       unitId,
@@ -91,7 +90,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
             onChange={(e) => setCategoryId(e.target.value)}
             error={fe.categoryId}
           />
-          <TextField label="Código (opcional)" value={code} onChange={(e) => setCode(e.target.value)} maxLength={100} hint="No necesita ser único." error={fe.code} />
+          <GeneratedCode current={initial?.code} example="APU-001" />
           <TextField label="Nombre del ítem" value={name} onChange={(e) => setName(e.target.value)} maxLength={300} error={fe.name} placeholder="Aplicado a la cal completo" />
           <SelectField
             label="Unidad de trabajo"
@@ -128,7 +127,7 @@ export function ApuForm({ initial, onSaved, onCancel }: { initial?: Schemas['Apu
             {rows.map((r, i) => {
               const m = cat.matById.get(r.materialId);
               return (
-                <div key={r.key} className="formgrid" style={{ alignItems: 'end' }}>
+                <div key={r.key} className="formgrid">
                   <SelectField
                     label={`Material ${i + 1}`}
                     value={r.materialId}
