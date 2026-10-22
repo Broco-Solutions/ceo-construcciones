@@ -63,7 +63,7 @@ describe.skipIf(!enabled)("códigos correlativos asignados en PostgreSQL", () =>
   it("crea obras OBR-001 ... y su ubicación asociada sin código enviado", async () => {
     const first = await create("works", { name: "Obra secuencial A " + tag });
     const second = await create("works", { name: "Obra secuencial B " + tag });
-    expect(numberOf(second.code, "OBR")).toBe(numberOf(first.code, "OBR") + 1n);
+    expect(numberOf(second.code, "OBR")).toBe(numberOf(first.code, "OBR") + BigInt(1));
     const location = await db.location.findUniqueOrThrow({ where: { workId: first.id } });
     expect(location.code).toBe("OBRA-" + first.code);
   });
@@ -116,6 +116,6 @@ describe.skipIf(!enabled)("códigos correlativos asignados en PostgreSQL", () =>
     const values = rows.map((x) => numberOf(x.code, "PRV"));
     expect(new Set(values.map(String)).size).toBe(rows.length);
     const sorted = values.slice().sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
-    expect(sorted.every((v, i) => i === 0 || v === sorted[i - 1] + 1n)).toBe(true);
+    expect(sorted.every((v, i) => i === 0 || v === sorted[i - 1] + BigInt(1))).toBe(true);
   });
 });
