@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useMemo, useState } from 'react';
 import { api, fieldErrors, type Schemas } from '@/lib/api';
 import { useAll, useApi, useMutation } from '@/lib/hooks';
@@ -28,7 +29,7 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
   const lines = comp.data?.data.id === computationId ? comp.data.data.lines : [];
   const mats = useMemo(() => {
     const m = new Map<string, { id: string; name: string; unit?: string }>();
-    lines.forEach((l) => l.item.components.forEach((c) => m.set(c.materialId, { id: c.materialId, name: c.material.name, unit: c.material.unit.code })));
+    lines.forEach((l) => l.item.components.forEach((c) => m.set(c.materialId, { id: c.materialId, name: c.material.name, unit: unitSymbol(c.material.unit) })));
     return [...m.values()];
   }, [lines]);
 
@@ -82,7 +83,7 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
     if (create.pending) return;
     const r = await create.run({ ...valuationBody(val), prices: p.prices, computationId, ...(overrides.length ? { overrides } : {}) });
     if (r) {
-      toast(`Versión ${r.data.number} creada.`);
+      toast.success(`Versión ${r.data.number} creada correctamente`);
       onCreated(r.data);
     }
   }
@@ -96,7 +97,7 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
   return (
     <div className="stack">
       <div className="note small">
-        La versión es una foto inmutable: guarda cantidades, consumos y precios elegidos. Si después cambia el cómputo o un precio, esta versión no cambia; para reflejarlo, creá otra.
+        Cada versión guarda las cantidades, los consumos y los precios tal como están ahora. Si después cambia el cómputo o un precio, esta versión no se modifica: para reflejar los cambios, creá una versión nueva.
       </div>
       <SelectField
         label="Cómputo de origen"
@@ -131,15 +132,15 @@ export function VersionForm({ budget, defaultComputationId, onCreated, onCancel 
                     {o && (o.quantity || o.laborUnitCost || Object.values(o.materials).some((m) => m.coefficient || m.unitPrice)) && <span className="pill blue" style={{ marginLeft: 6 }}>Con ajustes</span>}
                   </summary>
                   <div className="formgrid" style={{ marginTop: 8 }}>
-                    <DecimalField label={`Cantidad (${l.item.unit.code})`} placeholder={decimalToInput(l.quantity)} value={o?.quantity ?? ''} onChange={(e) => setOv(l.id, { quantity: e.target.value })} error={fe[`ov.${l.id}.quantity`]} />
-                    <DecimalField label={`Mano de obra por ${l.item.unit.code}`} value={o?.laborUnitCost ?? ''} onChange={(e) => setOv(l.id, { laborUnitCost: e.target.value })} error={fe[`ov.${l.id}.labor`]} />
+                    <DecimalField label={`Cantidad (${unitSymbol(l.item.unit)})`} placeholder={decimalToInput(l.quantity)} value={o?.quantity ?? ''} onChange={(e) => setOv(l.id, { quantity: e.target.value })} error={fe[`ov.${l.id}.quantity`]} />
+                    <DecimalField label={`Mano de obra por ${unitSymbol(l.item.unit)}`} value={o?.laborUnitCost ?? ''} onChange={(e) => setOv(l.id, { laborUnitCost: e.target.value })} error={fe[`ov.${l.id}.labor`]} />
                   </div>
                   {l.item.components.map((c) => {
                     const mv = o?.materials[c.materialId] ?? { coefficient: '', unitPrice: '' };
                     const setM = (patch: Partial<typeof mv>) => setOv(l.id, { materials: { ...(o?.materials ?? {}), [c.materialId]: { ...mv, ...patch } } });
                     return (
                       <div key={c.materialId} className="formgrid">
-                        <DecimalField label={`${c.material.name}: consumo (${c.material.unit.code})`} placeholder={decimalToInput(c.coefficient)} value={mv.coefficient} onChange={(e) => setM({ coefficient: e.target.value })} error={fe[`ov.${l.id}.${c.materialId}.c`]} />
+                        <DecimalField label={`${c.material.name}: consumo (${unitSymbol(c.material.unit)})`} placeholder={decimalToInput(c.coefficient)} value={mv.coefficient} onChange={(e) => setM({ coefficient: e.target.value })} error={fe[`ov.${l.id}.${c.materialId}.c`]} />
                         <DecimalField label={`${c.material.name}: precio unitario`} value={mv.unitPrice} onChange={(e) => setM({ unitPrice: e.target.value })} error={fe[`ov.${l.id}.${c.materialId}.p`]} />
                       </div>
                     );

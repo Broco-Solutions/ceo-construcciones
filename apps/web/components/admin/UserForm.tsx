@@ -44,7 +44,7 @@ export function UserForm({ open, user, onClose, onSaved }: { open: boolean; user
         onSubmit={async (e) => {
           e.preventDefault();
           if (await save.run()) {
-            toast(user ? 'Usuario actualizado' : 'Usuario creado');
+            toast.success(user ? 'Los cambios del usuario se guardaron' : 'Usuario creado correctamente');
             onSaved();
             close();
           }
@@ -136,7 +136,7 @@ export function AssignmentsForm({ user, onClose }: { user?: User; onClose: () =>
           disabled={!current.data}
           onClick={async () => {
             if (await save.run()) {
-              toast('Asignaciones guardadas');
+              toast.success('Obras asignadas guardadas');
               close();
             }
           }}

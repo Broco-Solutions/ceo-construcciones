@@ -39,7 +39,10 @@ function Inner() {
       }
     >
       <div className="stack">
-        <div className="note small">Historial append-only: cada precio queda registrado con su vigencia, moneda y base impositiva. No se editan; para actualizar, registrá uno nuevo.</div>
+        <div className="note small" role="note">
+          <b className="ink">¿Cómo se actualizan los precios?</b>
+          <div>Para cambiar el precio de un material, registrá uno nuevo. Los precios anteriores se conservan en el historial, con su vigencia, moneda e impuestos, para que puedas consultar los cambios.</div>
+        </div>
         <Card bodyClass="">
           <div className="formgrid" style={{ padding: 12 }}>
             <MaterialPicker label="Filtrar por material" value={materialId} onChange={(m) => setMaterialId(m?.id ?? null)} includeInactive />

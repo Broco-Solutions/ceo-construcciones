@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { Download } from 'lucide-react';
-import { api, ApiError, type Schemas } from '@/lib/api';
+import { api, type Schemas } from '@/lib/api';
 import { useAll } from '@/lib/hooks';
 import { Button, useToast } from '@/components/ui';
 
@@ -54,9 +54,9 @@ export function ExportButton({ path, label, fallbackName }: { path: string; labe
         setBusy(true);
         try {
           const name = await api.download(path, undefined, fallbackName);
-          toast(`Descargado ${name}`);
+          toast.success('Planilla descargada', { description: name });
         } catch (e) {
-          toast(e instanceof ApiError ? e.message : 'No se pudo descargar', 'bad');
+          toast.failure('No se pudo descargar la planilla', e);
         } finally {
           setBusy(false);
         }

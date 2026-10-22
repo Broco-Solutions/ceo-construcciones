@@ -1,4 +1,5 @@
 'use client';
+import { unitLabel, unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { use, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
@@ -26,7 +27,7 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
   const m = r.data?.data;
   // MaterialDetail incluye unit/category; el catálogo es sólo respaldo.
   const unit = m ? (m.unit ?? units.map.get(m.unitId)) : undefined;
-  const unitCode = unit?.code ?? '';
+  const unitCode = unitSymbol(unit);
 
   return (
     <Page
@@ -55,7 +56,7 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
             <DefList
               items={[
                 ['Código', <span className="mono" key="c">{m.code}</span>],
-                ['Unidad base', unit ? `${unit.code} — ${unit.name}` : '…'],
+                ['Unidad base', unit ? unitLabel(unit) : '…'],
                 ['Rubro', m.categoryId ? (m.category?.name ?? cats.map.get(m.categoryId)?.name ?? '…') : 'Sin rubro'],
                 ['Stock mínimo', formatQty(m.minimum, unitCode)],
                 ['Estado', m.active ? <Pill tone="ok" key="s">Activo</Pill> : <Pill key="s">Inactivo</Pill>],
@@ -63,7 +64,7 @@ export default function MaterialDetail({ params }: { params: Promise<{ id: strin
               ]}
             />
             <p className="small muted" style={{ marginTop: 8 }}>
-              La unidad base es inmutable. Stock, pedidos y cómputos se registran siempre en {unitCode || 'esta unidad'}.
+              La unidad base no se puede cambiar: stock, pedidos y cómputos se registran siempre en {unitCode || 'esta unidad'}.
             </p>
           </Card>
           <Presentations materialId={m.id} unitCode={unitCode} />

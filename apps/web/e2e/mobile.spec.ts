@@ -103,7 +103,7 @@ test('recepción desde el celular', async ({ page, browser }) => {
   await page.screenshot({ path: `${EVID}/14-movil-recepcion.png`, fullPage: true });
   await page.getByRole('button', { name: 'Revisar recepción' }).tap();
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar recepción' }).tap();
-  await toast(page, 'Recepción registrada');
+  await toast(page, 'Recepción registrada correctamente');
 });
 
 test('consumo desde el celular', async ({ page }) => {
@@ -119,7 +119,7 @@ test('consumo desde el celular', async ({ page }) => {
   await page.screenshot({ path: `${EVID}/15-movil-consumo.png`, fullPage: true });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).tap();
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar movimiento' }).tap();
-  await toast(page, 'Consumo en obra: movimiento registrado.');
+  await toast(page, 'Movimiento registrado correctamente', 'Consumo en obra');
 });
 
 test('devolución desde el celular: obra → material → galpón → cantidad → confirmar', async ({ page }) => {
@@ -146,7 +146,7 @@ test('devolución desde el celular: obra → material → galpón → cantidad �
   await page.screenshot({ path: `${EVID}/20-movil-devolucion-jefe.png`, fullPage: true });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).tap();
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar movimiento' }).tap();
-  await toast(page, 'Devolución: movimiento registrado.');
+  await toast(page, 'Movimiento registrado correctamente', 'Devolución');
   await expect(page.getByTestId('movement-created-source')).toContainText('Obra Demo Norte');
   await expect(page.getByTestId('movement-created-destination')).toContainText('Galpón Demo Central');
   await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');

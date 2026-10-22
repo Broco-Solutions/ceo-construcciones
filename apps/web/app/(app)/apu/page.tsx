@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -77,7 +78,7 @@ function ApuList() {
                 { key: 'code', header: 'Código', render: (r) => <span className="mono">{r.code ?? '—'}</span> },
                 { key: 'name', header: 'Ítem', render: (r) => <b>{r.name}</b> },
                 { key: 'cat', header: 'Rubro', render: (r) => r.category.name },
-                { key: 'unit', header: 'Unidad', render: (r) => r.unit.code },
+                { key: 'unit', header: 'Unidad', render: (r) => unitSymbol(r.unit) },
                 {
                   key: 'mat',
                   header: 'Materiales',
@@ -93,7 +94,7 @@ function ApuList() {
                     {r.name}
                   </b>
                   <span className="small muted">
-                    {r.category.name} · {r.unit.code}
+                    {r.category.name} · {unitSymbol(r.unit)}
                   </span>
                   <span className="small">{r.components.length ? `${r.components.length} materiales` : 'Sólo mano de obra'} · MO {labor(r)}</span>
                 </div>

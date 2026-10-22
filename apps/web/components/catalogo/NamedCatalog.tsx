@@ -6,7 +6,7 @@ import { useAll, useMutation } from '@/lib/hooks';
 import { Button, Card, DataTable, Empty, ErrorBox, Loading, Modal, TextField, useToast } from '@/components/ui';
 import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
-type Named = { id: string; code: string; name: string };
+type Named = { id: string; code: string; name: string; symbol?: string | null };
 
 /** Listado + alta/edición para catálogos código/nombre (rubros, unidades). */
 export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { path: '/categories' | '/units'; title: string; singular: string; canEdit: boolean; hint?: string; fem?: boolean }) {
@@ -14,7 +14,10 @@ export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { pa
   const [q, setQ] = useState('');
   const [edit, setEdit] = useState<Named | 'new' | null>(null);
   const needle = q.trim().toLowerCase();
-  const rows = list.rows.filter((r) => !needle || r.code.toLowerCase().includes(needle) || r.name.toLowerCase().includes(needle)).sort((a, b) => a.code.localeCompare(b.code));
+  const units = path === '/units';
+  const rows = list.rows
+    .filter((r) => !needle || [r.code, r.name, r.symbol ?? ''].some((v) => v.toLowerCase().includes(needle)))
+    .sort((a, b) => a.code.localeCompare(b.code));
   return (
     <Card
       title={title}
@@ -45,6 +48,7 @@ export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { pa
           columns={[
             { key: 'c', header: 'Código', render: (r) => <span className="mono">{r.code}</span> },
             { key: 'n', header: 'Nombre', render: (r) => r.name },
+            ...(units ? [{ key: 's', header: 'Símbolo', render: (r: Named) => r.symbol || <span className="muted">—</span> }] : []),
             ...(canEdit
               ? [
                   {
@@ -63,7 +67,10 @@ export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { pa
           mobile={(r) => (
             <div className="row">
               <span className="mono">{r.code}</span>
-              <span style={{ flex: 1 }}>{r.name}</span>
+              <span style={{ flex: 1 }}>
+                {r.name}
+                {units && r.symbol ? <span className="muted"> · {r.symbol}</span> : null}
+              </span>
               {canEdit && (
                 <Button size="sm" variant="sec" onClick={() => setEdit(r)}>
                   Editar
@@ -92,9 +99,10 @@ export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { pa
 
 function NamedForm({ path, singular, fem, item, onClose, onSaved }: { path: string; singular: string; fem?: boolean; item: Named | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
-  const [f, setF] = useState({ code: item?.code ?? '', name: item?.name ?? '' });
+  const units = path === '/units';
+  const [f, setF] = useState({ code: item?.code ?? '', name: item?.name ?? '', symbol: item?.symbol ?? '' });
   const [local, setLocal] = useState<Record<string, string>>({});
-  const m = useMutation(async (_k, body: { code: string; name: string }) => (item ? api.patch(`${path}/${item.id}`, body) : api.post(path, body)));
+  const m = useMutation(async (_k, body: { code: string; name: string; symbol?: string | null }) => (item ? api.patch(`${path}/${item.id}`, body) : api.post(path, body)));
   const errs = { ...fieldErrors(m.error), ...local };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,10 +110,11 @@ function NamedForm({ path, singular, fem, item, onClose, onSaved }: { path: stri
     if (!f.name.trim()) le.name = 'Ingresá un nombre';
     setLocal(le);
     if (Object.keys(le).length) return;
-    const r = await m.run({ code: item ? f.code.trim() : AUTO_CODE, name: f.name.trim() });
+    const body = { code: item ? f.code.trim() : AUTO_CODE, name: f.name.trim(), ...(units ? { symbol: f.symbol.trim() || null } : {}) };
+    const r = await m.run(body);
     if (r) {
       const S = `${singular[0].toUpperCase()}${singular.slice(1)}`;
-      toast(`${S} ${item ? 'actualizad' : 'cread'}${fem ? 'a' : 'o'}`);
+      toast.success(item ? 'Los cambios se guardaron' : `${S} ${fem ? 'creada' : 'creado'} correctamente`);
       onSaved();
     }
   };
@@ -127,7 +136,18 @@ function NamedForm({ path, singular, fem, item, onClose, onSaved }: { path: stri
     >
       <form id="named-form" className="stack" onSubmit={submit} noValidate>
         <AutoCodeField prefix={path === '/categories' ? 'RUB' : 'UNI'} value={item ? f.code : undefined} />
-        <TextField label="Nombre" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} maxLength={500} />
+        <TextField label="Nombre" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} maxLength={500} placeholder={units ? 'Ej.: Metro cuadrado' : undefined} />
+        {units && (
+          <TextField
+            label="Símbolo (opcional)"
+            value={f.symbol}
+            onChange={(e) => setF({ ...f, symbol: e.target.value })}
+            error={errs.symbol}
+            maxLength={20}
+            placeholder="Ej.: m²"
+            hint="Abreviatura que acompaña a las cantidades, por ejemplo 12 m²."
+          />
+        )}
         <ErrorBox error={m.error && Object.keys(fieldErrors(m.error)).length === 0 ? m.error : null} />
       </form>
     </Modal>

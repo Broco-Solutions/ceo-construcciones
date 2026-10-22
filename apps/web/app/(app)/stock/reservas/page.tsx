@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { api, type Page as PageOf, type Schemas } from '@/lib/api';
@@ -34,13 +35,13 @@ function ReservasInner() {
     if (!cancelling) return;
     const r = await cancel.run(cancelling.id);
     if (r) {
-      toast('Saldo de la reserva cancelado.');
+      toast.success('Reserva cancelada', { description: 'El saldo pendiente vuelve a estar disponible.' });
       setCancelling(null);
       reload();
     } else reload();
   };
 
-  const unit = (id: string) => lk.matById.get(id)?.unit?.code;
+  const unit = (id: string) => unitSymbol(lk.matById.get(id)?.unit);
 
   return (
     <Page
@@ -177,7 +178,7 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
     if (Object.keys(errs).length) return;
     const r = await m.run({ materialId: f.materialId, sourceId: f.sourceId, workId: f.workId, quantity: quantity as string });
     if (r) {
-      toast('Reserva creada.');
+      toast.success('Reserva creada correctamente');
       onSaved();
     } else bal.reload();
   };
@@ -205,11 +206,11 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
       <LocationSelect label="Origen (galpón o patio)" value={f.sourceId} onChange={set('sourceId')} locations={locations} kinds={['WAREHOUSE', 'YARD']} error={fe.sourceId} />
       {f.materialId && f.sourceId && (
         <div className="small">
-          {bal.loading ? 'Consultando saldo…' : row ? <>Disponible en origen: <b>{formatQty(row.available, row.material.unit.code)}</b> (físico {formatQty(row.physical)}, reservado {formatQty(row.reserved)})</> : 'Sin saldo registrado en esta ubicación.'}
+          {bal.loading ? 'Consultando saldo…' : row ? <>Disponible en origen: <b>{formatQty(row.available, unitSymbol(row.material.unit))}</b> (físico {formatQty(row.physical)}, reservado {formatQty(row.reserved)})</> : 'Sin saldo registrado en esta ubicación.'}
         </div>
       )}
       <SelectField label="Obra destino" value={f.workId} onChange={(e) => set('workId')(e.target.value)} placeholder="Seleccioná una obra" error={fe.workId} options={works.filter((w) => w.status === 'ACTIVE').map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
-      <DecimalField label={`Cantidad${mat?.unit ? ` (${mat.unit.code})` : ''}`} value={f.quantity} onChange={(e) => set('quantity')(e.target.value)} error={fe.quantity} />
+      <DecimalField label={`Cantidad${mat?.unit ? ` (${unitSymbol(mat.unit)})` : ''}`} value={f.quantity} onChange={(e) => set('quantity')(e.target.value)} error={fe.quantity} />
       <ErrorBox error={m.error} />
     </Modal>
   );

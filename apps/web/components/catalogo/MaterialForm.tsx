@@ -1,4 +1,5 @@
 'use client';
+import { unitLabel } from '@/lib/units';
 import { useState } from 'react';
 import { api, fieldErrors } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
@@ -57,14 +58,14 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
     const body = materialBody(editing, f, minimum);
     const r = await m.run(body);
     if (r) {
-      toast(editing ? 'Material actualizado' : 'Material creado');
+      toast.success(editing ? 'Los cambios del material se guardaron' : 'Material creado correctamente');
       onSaved(r.data);
     }
   };
 
-  const unitLabel = (id: string) => {
+  const unitText = (id: string) => {
     const u = (material?.unit && material.unit.id === id ? material.unit : null) ?? units.map.get(id);
-    return u ? `${u.code} — ${u.name}` : '…';
+    return u ? unitLabel(u) : '…';
   };
 
   return (
@@ -90,8 +91,8 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
         {editing ? (
           <div className="field">
             <label>Unidad base</label>
-            <div className="input muted">{unitLabel(f.unitId)}</div>
-            <span className="hint">La unidad base es inmutable para no alterar cantidades históricas. Si necesitás otra, creá un material nuevo.</span>
+            <div className="input muted">{unitText(f.unitId)}</div>
+            <span className="hint">La unidad base no se puede cambiar, para no alterar las cantidades ya registradas. Si necesitás otra, creá un material nuevo.</span>
           </div>
         ) : (
           <SelectField
@@ -100,7 +101,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
             onChange={set('unitId')}
             error={errs.unitId}
             placeholder={units.loading ? 'Cargando…' : 'Elegí la unidad'}
-            options={units.rows.map((u) => ({ value: u.id, label: `${u.code} — ${u.name}` }))}
+            options={units.rows.map((u) => ({ value: u.id, label: unitLabel(u) }))}
             hint="No se podrá cambiar después. Stock, pedidos y cómputos se expresan en esta unidad."
           />
         )}

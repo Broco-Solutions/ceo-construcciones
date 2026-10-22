@@ -1,5 +1,6 @@
 'use client';
 // Selector reutilizable de material (sin precios). Apto móvil: lista táctil con unidad base visible.
+import { unitSymbol } from '@/lib/units';
 import { useEffect, useId, useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { api, type Page, type Schemas } from '@/lib/api';
@@ -53,7 +54,7 @@ export function MaterialPicker({
   }, [value]);
 
   const unitOf = (m: Schemas['Material']) => m.unit ?? units.map.get(m.unitId) ?? null;
-  const unitCode = (m: Schemas['Material']) => unitOf(m)?.code ?? '…';
+  const unitCode = (m: Schemas['Material']) => unitSymbol(unitOf(m)) || '…';
   const rows = list.data?.data ?? [];
 
   const pick = (m: Schemas['Material']) => {

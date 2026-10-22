@@ -106,7 +106,7 @@ export function Presentations({ materialId, unitCode }: { materialId: string; un
           if (!toggle) return;
           const r = await tm.run(toggle);
           if (r) {
-            toast(r.data.active ? 'Presentación activada' : 'Presentación desactivada');
+            toast.success(r.data.active ? 'Presentación activada' : 'Presentación desactivada');
             setToggle(null);
             list.reload();
           }
@@ -150,7 +150,7 @@ function PresentationForm({
     if (suppliers) body.supplierId = f.supplierId || null;
     const r = await m.run(body);
     if (r) {
-      toast('Presentación creada');
+      toast.success('Presentación creada correctamente');
       onSaved();
     }
   };

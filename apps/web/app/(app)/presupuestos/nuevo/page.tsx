@@ -43,7 +43,7 @@ function Form() {
     if (Object.keys(er).length) return;
     const r = await save.run({ workId, name: name.trim() });
     if (r) {
-      toast('Presupuesto creado. Ahora creá la primera versión.');
+      toast.success('Presupuesto creado correctamente', { description: 'Ahora creá la primera versión.' });
       router.push(`/presupuestos/${r.data.id}?nuevaVersion=1${computationId ? `&computationId=${computationId}` : ''}`);
     }
   }

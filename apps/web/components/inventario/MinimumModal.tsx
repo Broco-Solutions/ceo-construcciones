@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useState } from 'react';
 import { api } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
@@ -49,7 +50,7 @@ export function MinimumModal({
     if (Object.keys(errs).length) return;
     const r = await m.run({ materialId, minimum });
     if (r) {
-      toast(mode === 'inherit' ? 'Se quitó el mínimo propio de la ubicación.' : 'Mínimo actualizado.');
+      toast.success(mode === 'inherit' ? 'La ubicación vuelve a usar el mínimo del material' : 'Stock mínimo actualizado');
       onSaved();
     }
   };
@@ -72,14 +73,14 @@ export function MinimumModal({
       }
     >
       <div className="note">
-        El mínimo general se define en el material{mat ? ` (${formatQty(mat.minimum, mat.unit?.code)})` : ''} y se hereda en todas las ubicaciones. Acá podés
+        El mínimo general se define en el material{mat ? ` (${formatQty(mat.minimum, unitSymbol(mat.unit))})` : ''} y se hereda en todas las ubicaciones. Acá podés
         fijar un mínimo propio para una ubicación. <b>Un valor 0 desactiva el mínimo heredado en esa ubicación</b> (no genera alerta). Quitar el mínimo propio
         vuelve a usar el del material. No genera reposición automática.
       </div>
       {cur && (
         <p className="small" data-testid="minimum-current">
           Mínimo efectivo actual:{' '}
-          <b>{cur.minimumSource === 'NONE' ? 'sin mínimo' : `${formatQty(cur.minimum, mat?.unit?.code)} (${MIN_SOURCE_LABEL[cur.minimumSource].label})`}</b>
+          <b>{cur.minimumSource === 'NONE' ? 'sin mínimo' : `${formatQty(cur.minimum, unitSymbol(mat?.unit))} (${MIN_SOURCE_LABEL[cur.minimumSource].label})`}</b>
         </p>
       )}
       <LocationSelect label="Ubicación" value={locationId} onChange={setLocationId} locations={locations} error={fe.locationId} />
@@ -93,7 +94,7 @@ export function MinimumModal({
         </label>
       </div>
       {mode === 'set' && (
-        <DecimalField label={`Mínimo${mat?.unit ? ` (${mat.unit.code})` : ''}`} value={value} onChange={(e) => setValue(e.target.value)} error={fe.minimum} hint="0 desactiva la alerta en esta ubicación." />
+        <DecimalField label={`Mínimo${mat?.unit ? ` (${unitSymbol(mat.unit)})` : ''}`} value={value} onChange={(e) => setValue(e.target.value)} error={fe.minimum} hint="0 desactiva la alerta en esta ubicación." />
       )}
       <ErrorBox error={m.error} />
     </Modal>

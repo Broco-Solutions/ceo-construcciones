@@ -1,5 +1,6 @@
 'use client';
 // Piezas compartidas del módulo Inventario (stock, movimientos, reservas, alertas, reportes).
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -137,7 +138,7 @@ export function MaterialSelect({
           {list.map((m) => (
             <option key={m.id} value={m.id}>
               {m.code} · {m.name}
-              {m.unit ? ` (${m.unit.code})` : ''}
+              {m.unit ? ` (${unitSymbol(m.unit)})` : ''}
             </option>
           ))}
         </select>

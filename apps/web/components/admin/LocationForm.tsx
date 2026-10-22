@@ -36,7 +36,7 @@ export function LocationForm({ open, loc, onClose, onSaved }: { open: boolean; l
         onSubmit={async (e) => {
           e.preventDefault();
           if (await save.run()) {
-            toast(loc ? 'Ubicación actualizada' : 'Ubicación creada');
+            toast.success(loc ? 'Los cambios de la ubicación se guardaron' : 'Ubicación creada correctamente');
             onSaved();
             close();
           }

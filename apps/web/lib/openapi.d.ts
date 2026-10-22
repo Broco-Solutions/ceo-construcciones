@@ -1888,6 +1888,7 @@ export interface components {
             id: string;
             code: string;
             name: string;
+            symbol: string | null;
         };
         Category: {
             id: string;
@@ -2212,6 +2213,11 @@ export interface components {
             code: string;
             name: string;
         };
+        UnitInput: {
+            code: string;
+            name: string;
+            symbol?: string | null;
+        };
         WorkInput: {
             code: string;
             name: string;
@@ -2468,6 +2474,11 @@ export interface components {
             code?: string;
             name?: string;
         };
+        UnitPatch: {
+            code?: string;
+            name?: string;
+            symbol?: string | null;
+        };
         LocationSummary: {
             id: string;
             code: string;
@@ -2616,6 +2627,8 @@ export interface components {
                 unitId: string;
                 unit: {
                     code: string;
+                    name: string;
+                    symbol: string | null;
                 };
             };
             location: {
@@ -3062,6 +3075,7 @@ export interface components {
                     id: string;
                     code: string;
                     name: string;
+                    symbol: string | null;
                 };
             }[];
             materialsByCategory: {
@@ -3079,6 +3093,7 @@ export interface components {
                     id: string;
                     code: string;
                     name: string;
+                    symbol: string | null;
                 };
                 category: {
                     id: string;
@@ -4973,7 +4988,7 @@ export interface operations {
                  *       "code": "ejemplo",
                  *       "name": "ejemplo"
                  *     } */
-                "application/json": components["schemas"]["NamedInput"];
+                "application/json": components["schemas"]["UnitInput"];
             };
         };
         responses: {
@@ -5227,7 +5242,7 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {} */
-                "application/json": components["schemas"]["NamedPatch"];
+                "application/json": components["schemas"]["UnitPatch"];
             };
         };
         responses: {

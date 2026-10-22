@@ -4,6 +4,7 @@ import { Prisma } from "../apps/api/node_modules/@prisma/client";
 import { zodToJsonSchema } from "../apps/api/node_modules/zod-to-json-schema";
 import {
   named,
+  unitSchema,
   workSchema,
   supplierSchema,
   materialSchema,
@@ -166,6 +167,7 @@ add(
 );
 for (const [name, schema] of Object.entries({
   NamedInput: named,
+  UnitInput: unitSchema,
   WorkInput: workSchema,
   SupplierInput: supplierSchema,
   MaterialInput: materialSchema,
@@ -191,6 +193,7 @@ for (const [name, schema] of Object.entries({
   SupplierPatch: supplierSchema.partial(),
   MaterialPatch: materialPatchSchema,
   NamedPatch: named.partial(),
+  UnitPatch: unitSchema.partial(),
 }))
   zod(name, schema);
 schemas.MaterialPatch.description =
@@ -328,7 +331,7 @@ add(
       code: str,
       name: str,
       unitId: id,
-      unit: obj({ code: str }),
+      unit: obj({ code: str, name: str, symbol: nullable(str) }),
     }),
     location: obj({ id, code: str, name: str, workId: nullable(id) }),
     physical: dec,
@@ -526,7 +529,7 @@ add(
         unitId: id,
         quantity: dec,
         material: obj({ id, code: str, name: str }),
-        unit: obj({ id, code: str, name: str }),
+        unit: obj({ id, code: str, name: str, symbol: nullable(str) }),
       }),
     ),
     materialsByCategory: arr(
@@ -536,7 +539,7 @@ add(
         unitId: id,
         quantity: dec,
         material: obj({ id, code: str, name: str }),
-        unit: obj({ id, code: str, name: str }),
+        unit: obj({ id, code: str, name: str, symbol: nullable(str) }),
         category: obj({ id, code: str, name: str }),
       }),
     ),
@@ -854,7 +857,7 @@ operation(
 
 const catalog = [
   ["works", "Work", "WorkInput", "WorkPatch", ["GERENCIA"]],
-  ["units", "Unit", "NamedInput", "NamedPatch", writers],
+  ["units", "Unit", "UnitInput", "UnitPatch", writers],
   ["categories", "Category", "NamedInput", "NamedPatch", writers],
   ["suppliers", "Supplier", "SupplierInput", "SupplierPatch", buyers],
   ["materials", "Material", "MaterialInput", "MaterialPatch", commercial],

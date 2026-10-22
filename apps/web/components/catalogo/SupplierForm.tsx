@@ -43,7 +43,7 @@ export function SupplierForm({ supplier, onClose, onSaved }: { supplier?: Suppli
       active: f.active,
     });
     if (r) {
-      toast(editing ? 'Proveedor actualizado' : 'Proveedor creado');
+      toast.success(editing ? 'Los cambios del proveedor se guardaron' : 'Proveedor registrado correctamente');
       onSaved(r.data);
     }
   };

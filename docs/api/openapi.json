@@ -2588,7 +2588,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NamedInput"
+                "$ref": "#/components/schemas/UnitInput"
               },
               "example": {
                 "code": "ejemplo",
@@ -2936,7 +2936,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NamedPatch"
+                "$ref": "#/components/schemas/UnitPatch"
               },
               "example": {}
             }
@@ -21731,12 +21731,23 @@
           },
           "name": {
             "type": "string"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
           "id",
           "code",
-          "name"
+          "name",
+          "symbol"
         ],
         "additionalProperties": false
       },
@@ -23252,6 +23263,38 @@
         ],
         "additionalProperties": false
       },
+      "UnitInput": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ],
+        "additionalProperties": false
+      },
       "WorkInput": {
         "type": "object",
         "properties": {
@@ -24698,6 +24741,34 @@
         },
         "additionalProperties": false
       },
+      "UnitPatch": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
       "LocationSummary": {
         "type": "object",
         "properties": {
@@ -25397,10 +25468,25 @@
                 "properties": {
                   "code": {
                     "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "symbol": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
-                  "code"
+                  "code",
+                  "name",
+                  "symbol"
                 ],
                 "additionalProperties": false
               }
@@ -27487,12 +27573,23 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "symbol": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "code",
-                    "name"
+                    "name",
+                    "symbol"
                   ],
                   "additionalProperties": false
                 }
@@ -27567,12 +27664,23 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "symbol": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "code",
-                    "name"
+                    "name",
+                    "symbol"
                   ],
                   "additionalProperties": false
                 },

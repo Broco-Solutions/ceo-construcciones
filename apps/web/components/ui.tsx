@@ -1,7 +1,7 @@
 'use client';
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { X, AlertTriangle, Inbox, RefreshCw } from 'lucide-react';
-import { ApiError, fieldErrors, type Pagination } from '@/lib/api';
+import { ApiError, fieldErrors, fieldLabel, friendlyError, issueMessage, type Pagination } from '@/lib/api';
 
 /* ---------- botones ---------- */
 type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -108,7 +108,7 @@ export function Empty({ title, children, action }: { title: string; children?: R
 export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
   if (!error) return null;
   const e = error instanceof ApiError ? error : null;
-  const msg = e?.message ?? (error as Error)?.message ?? 'Error inesperado';
+  const msg = e ? e.message : friendlyError(error);
   const rows = e && e.details && !Array.isArray(e.details) && typeof e.details === 'object' ? (e.details as Record<string, unknown>) : null;
   type Issue = { path?: unknown[]; message?: string; row?: number; errors?: string[] };
   let issues: Issue[] | null = e && Array.isArray(e.details) ? (e.details as Issue[]) : null;
@@ -135,8 +135,8 @@ export function ErrorBox({ error, onRetry }: { error: unknown; onRetry?: () => v
         <ul>
           {issues.slice(0, 20).map((i, n) => (
             <li key={n}>
-              {i.row !== undefined ? `Fila ${i.row}: ` : i.path?.length ? `${i.path.join('.')}: ` : ''}
-              {i.message ?? i.errors?.join('; ') ?? JSON.stringify(i)}
+              {i.row !== undefined ? `Fila ${i.row}: ` : i.path?.length && fieldLabel(i.path) ? `${fieldLabel(i.path)}: ` : ''}
+              {i.message ? issueMessage(i.message) : (i.errors?.join('; ') ?? 'Dato no válido')}
             </li>
           ))}
         </ul>
@@ -391,30 +391,8 @@ export function Confirm({
   );
 }
 
-/* ---------- toasts ---------- */
-type Toast = { id: number; text: string; tone: 'ok' | 'bad' | 'plain' };
-const ToastCtx = createContext<(text: string, tone?: Toast['tone']) => void>(() => {});
-export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<Toast[]>([]);
-  const push = useCallback((text: string, tone: Toast['tone'] = 'ok') => {
-    const id = Date.now() + Math.random();
-    setItems((t) => [...t, { id, text, tone }]);
-    setTimeout(() => setItems((t) => t.filter((x) => x.id !== id)), 4000);
-  }, []);
-  return (
-    <ToastCtx.Provider value={push}>
-      {children}
-      <div className="toasts" aria-live="polite" role="status">
-        {items.map((t) => (
-          <div key={t.id} className={`toast ${t.tone}`}>
-            {t.text}
-          </div>
-        ))}
-      </div>
-    </ToastCtx.Provider>
-  );
-}
-export const useToast = () => useContext(ToastCtx);
+/* ---------- notificaciones ---------- */
+export { ToastProvider, useToast, type Notify, type NoticeTone } from './notifications';
 
 /* ---------- pestañas ---------- */
 export function Tabs<K extends string>({ tabs, value, onChange }: { tabs: { key: K; label: string }[]; value: K; onChange: (k: K) => void }) {

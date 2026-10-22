@@ -172,7 +172,7 @@ export async function materialReport(actor: Actor, filter: Filter) {
         code: true,
         name: true,
         unitId: true,
-        unit: { select: { code: true } },
+        unit: { select: { code: true, name: true, symbol: true } },
       },
     });
     const details = new Map(
@@ -186,7 +186,10 @@ export async function materialReport(actor: Actor, filter: Filter) {
           code: material.code,
           name: material.name,
           unitId: material.unitId,
-          unit: material.unit.code,
+          // Abreviatura visible; el código automático UNI-### no se muestra al usuario.
+          unit:
+            material.unit.symbol ??
+            (/^UNI-\d+$/.test(material.unit.code) ? material.unit.name : material.unit.code),
           planned: version ? q.planned.toFixed() : null,
           requested: q.requested.toFixed(),
           purchased: q.purchased.toFixed(),

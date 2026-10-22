@@ -1,5 +1,6 @@
 'use client';
 // Utilidades compartidas del módulo Compras (pedidos, cotizaciones, OC, recepciones).
+import { unitSymbol } from '@/lib/units';
 import './compras.css';
 import { useMemo } from 'react';
 import { Minus, Plus } from 'lucide-react';
@@ -100,7 +101,7 @@ export function useLookups(opts: { suppliers?: boolean } = {}) {
   };
   const unitOf = (materialId: string) => {
     const m = materials.map.get(materialId);
-    return m ? units.map.get(m.unitId)?.code ?? '' : '';
+    return m ? unitSymbol(units.map.get(m.unitId)) : '';
   };
   const locationName = (id: string | null | undefined) => {
     if (!id) return '—';

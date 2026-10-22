@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { useAll, usePaged } from '@/lib/hooks';
@@ -18,7 +19,7 @@ export function PriceTable({ materialId, supplierId, unitCode, empty }: { materi
   const unitOf = (p: MaterialPrice) => {
     if (unitCode) return unitCode;
     const m = matMap.get(p.materialId);
-    return m ? (units.map.get(m.unitId)?.code ?? '') : '';
+    return m ? unitSymbol(units.map.get(m.unitId)) : '';
   };
   if (list.error) return <ErrorBox error={list.error} onRetry={list.reload} />;
   if (list.loading && !list.data) return <Loading />;

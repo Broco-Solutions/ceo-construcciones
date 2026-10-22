@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { ArrowLeftRight, Building2, PackageCheck, ShoppingCart, Warehouse } from 'lucide-react';
@@ -109,10 +110,10 @@ export default function Home() {
                 rowKey={(a) => `${a.materialId}:${a.locationId}`}
                 columns={[
                   { key: 'm', header: 'Material', render: (a) => <><b className="ink">{a.material.name}</b><div className="small muted">{a.location.name}</div></> },
-                  { key: 'd', header: 'Disponible', align: 'r', render: (a) => formatQty(a.available, a.material.unit.code) },
-                  { key: 'min', header: 'Mínimo', align: 'r', render: (a) => formatQty(a.minimum, a.material.unit.code) },
+                  { key: 'd', header: 'Disponible', align: 'r', render: (a) => formatQty(a.available, unitSymbol(a.material.unit)) },
+                  { key: 'min', header: 'Mínimo', align: 'r', render: (a) => formatQty(a.minimum, unitSymbol(a.material.unit)) },
                 ]}
-                mobile={(a) => <div><b className="ink">{a.material.name}</b><div className="small muted">{a.location.name} · disp. {formatQty(a.available, a.material.unit.code)} / mín. {formatQty(a.minimum, a.material.unit.code)}</div></div>}
+                mobile={(a) => <div><b className="ink">{a.material.name}</b><div className="small muted">{a.location.name} · disp. {formatQty(a.available, unitSymbol(a.material.unit))} / mín. {formatQty(a.minimum, unitSymbol(a.material.unit))}</div></div>}
                 empty={<Empty title="Sin alertas de stock">Ningún material está bajo su mínimo.</Empty>}
               />
             )}

@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -71,7 +72,7 @@ export function MovementForm() {
   const balanceLoc = needsSource ? f.sourceId : f.destinationId;
 
   const mat = lk.matById.get(f.materialId);
-  const unit = (picked?.id === f.materialId ? picked.unit?.code : undefined) ?? mat?.unit?.code;
+  const unit = unitSymbol((picked?.id === f.materialId ? picked.unit : undefined) ?? mat?.unit);
   const balLocKind = lk.locById.get(balanceLoc)?.kind;
   // El Jefe de Obra sólo consulta saldos de su obra; nunca de galpón/patio.
   const balAllowed = !!(f.materialId && balanceLoc) && (!isJefe || balLocKind === 'WORK');
@@ -118,7 +119,7 @@ export function MovementForm() {
     if (!confirm) return;
     const r = await m.run(confirm);
     if (r) {
-      toast(`${MOVEMENT_LABEL[confirm.type]}: movimiento registrado.`);
+      toast.success('Movimiento registrado correctamente', { description: MOVEMENT_LABEL[confirm.type] });
       if (isJefe) {
         // Replay idempotente con DTO legado (sin actorName/source/destination): refrescar por GET sin repetir el POST.
         let detail: Detail | null = 'actorName' in r.data ? (r.data as Detail) : null;

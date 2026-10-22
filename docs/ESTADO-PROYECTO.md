@@ -19,6 +19,10 @@ PR#2 actualizado con el backend `2d6942c` (merge de `codex/ceo-v1-backend`, sin 
 - CI frontend propia `.github/workflows/web.yml` ("Web V1"): instalación limpia, tipos OpenAPI sincronizados, typecheck, unitarias, build y E2E contra PostgreSQL 18 efímero. Resultado en los checks del PR#2.
 - Pendientes de CEO: redondeo/IVA/moneda (V-01), permisos/estados finales, política de múltiples OC por pedido/cotización.
 
+## Notificaciones, unidades predeterminadas y textos de ayuda (23/10/2026)
+
+Rama `claude/ux-notificaciones-unidades` desde `main`, con PR propio sin merge. Notificaciones globales con cuatro variantes accesibles, mensajes revisados en todos los módulos, 15 unidades de medida habituales cargadas por migración idempotente (`20261023000100_default_units`, agrega `Unit.symbol` opcional) y textos de ayuda sin jerga técnica. Detalle y paso de Railway en [UX-NOTIFICACIONES-UNIDADES-V1.md](UX-NOTIFICACIONES-UNIDADES-V1.md). La migración **no** se aplicó en Railway.
+
 ## Referencias de continuidad
 
 - [PRD Etapa 1 v1.0](PRD-ETAPA-1.md), sujeto a contrato/Anexo I y validaciones CEO pendientes.

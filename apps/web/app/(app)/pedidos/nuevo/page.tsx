@@ -1,4 +1,5 @@
 'use client';
+import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -41,7 +42,7 @@ function NuevoPedido() {
     const onlyPlanned = planned
       .plannedRows(categoryId)
       .filter((p) => !known.has(p.materialId))
-      .map((p) => ({ id: p.materialId, code: p.material.code, name: p.material.name, unit: p.unit.code }));
+      .map((p) => ({ id: p.materialId, code: p.material.code, name: p.material.name, unit: unitSymbol(p.unit) }));
     return [...fromCatalog, ...onlyPlanned].filter((m) => !s || m.name.toLowerCase().includes(s) || m.code.toLowerCase().includes(s));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lk.materials.rows, categoryId, search, planned.data]);
@@ -56,7 +57,7 @@ function NuevoPedido() {
   const submit = async () => {
     const r = await create.run({ workId, categoryId, requiredAt: dateInputToIso(requiredAt)!, notes: notes.trim() || undefined, lines });
     if (r) {
-      toast('Pedido enviado a Compras');
+      toast.success('Pedido enviado a Compras');
       router.push(`/pedidos/${r.data.id}`);
     }
   };
@@ -196,7 +197,7 @@ function NuevoPedido() {
                       <b>{lk.material(l.materialId)?.name ?? planned.plannedFor(l.materialId, categoryId)?.material.name ?? 'Material'}</b>
                       <span>{lk.material(l.materialId)?.code ?? planned.plannedFor(l.materialId, categoryId)?.material.code}</span>
                     </div>
-                    <b>{formatQty(l.quantity, lk.unitOf(l.materialId) || planned.plannedFor(l.materialId, categoryId)?.unit.code)}</b>
+                    <b>{formatQty(l.quantity, lk.unitOf(l.materialId) || unitSymbol(planned.plannedFor(l.materialId, categoryId)?.unit))}</b>
                   </div>
                 ))}
               </div>
@@ -245,7 +246,7 @@ function PlannedSummary({ rows, categoryName }: { rows: PlannedRow[]; categoryNa
       <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>
         {rows.map((r) => (
           <li key={`${r.categoryId}-${r.materialId}`}>
-            {r.material.code} · {r.material.name}: <b>{formatQty(r.quantity, r.unit.code)}</b>
+            {r.material.code} · {r.material.name}: <b>{formatQty(r.quantity, unitSymbol(r.unit))}</b>
           </li>
         ))}
       </ul>

@@ -77,7 +77,7 @@ function NuevaOC() {
       lines: v.out,
     });
     if (r) {
-      toast(`OC-${r.data.number} creada en borrador`);
+      toast.success(`Orden OC-${r.data.number} creada como borrador`, { description: 'Revisala y emitila cuando esté lista.' });
       router.push(`/ordenes/${r.data.id}`);
     }
   };

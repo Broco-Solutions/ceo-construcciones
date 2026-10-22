@@ -59,10 +59,12 @@ function secret(name) {
 await call('POST', '/auth/login', { email: process.env.E2E_GERENCIA_EMAIL ?? 'gerencia@demo.local', password: readFileSync(join(dir, 'admin.pw'), 'utf8').trim() });
 
 const byCode = (code) => (x) => x.code === code;
-const kg = await ensure('/units', '/units', byCode('KG'), { code: 'KG', name: 'Kilogramo' });
-const m3 = await ensure('/units', '/units', byCode('M3'), { code: 'M3', name: 'Metro cúbico' });
-await ensure('/units', '/units', byCode('M2'), { code: 'M2', name: 'Metro cuadrado' });
-await ensure('/units', '/units', byCode('U'), { code: 'U', name: 'Unidad' });
+// Las unidades habituales las carga la migración de unidades predeterminadas; se reutilizan por símbolo.
+const bySymbol = (symbol) => (x) => x.symbol === symbol;
+const kg = await ensure('/units', '/units', bySymbol('kg'), { code: 'AUTO', name: 'Kilogramo', symbol: 'kg' });
+const m3 = await ensure('/units', '/units', bySymbol('m³'), { code: 'AUTO', name: 'Metro cúbico', symbol: 'm³' });
+await ensure('/units', '/units', bySymbol('m²'), { code: 'AUTO', name: 'Metro cuadrado', symbol: 'm²' });
+await ensure('/units', '/units', bySymbol('un'), { code: 'AUTO', name: 'Unidad', symbol: 'un' });
 const rev = await ensure('/categories', '/categories', byCode('REV'), { code: 'REV', name: 'Revoques' });
 await ensure('/categories', '/categories', byCode('MAMP'), { code: 'MAMP', name: 'Mampostería' });
 const cem = await ensure('/materials', '/materials', byCode('CEM-001'), { code: 'CEM-001', name: 'Cemento portland', unitId: kg.id, categoryId: rev.id, minimum: '500' });

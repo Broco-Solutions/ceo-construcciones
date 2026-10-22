@@ -55,7 +55,11 @@ async function confirmModal(page: Page, label: string | RegExp) {
   const dlg = page.getByRole('dialog');
   await dlg.getByRole('button', { name: label }).click();
 }
-const toast = (page: Page, text: string | RegExp) => expect(page.getByText(text).locator('visible=true').first()).toBeVisible({ timeout: 15_000 });
+const toast = (page: Page, ...texts: (string | RegExp)[]) => {
+  let loc = page.locator('.toast');
+  for (const t of texts) loc = loc.filter({ hasText: t });
+  return expect(loc.first()).toBeVisible({ timeout: 15_000 });
+};
 
 test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await login(page, 'GERENCIA');
@@ -66,7 +70,7 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await dlg.getByLabel('Nombre').fill(name);
   await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
   await dlg.getByRole('button', { name: 'Crear obra' }).click();
-  await toast(page, 'Obra creada');
+  await toast(page, 'Obra creada correctamente');
   await page.waitForURL(/\/obras\/[^/]+$/);
   const id = page.url().split('/').pop()!;
   const workRes = await page.request.get(`/api/v1/works/${id}`);
@@ -90,7 +94,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.goto('/apu/nuevo');
   await pick(page.getByLabel('Rubro'), 'Revoques');
   await page.getByLabel('Nombre del ítem').fill(`Revoque E2E ${SUF}`);
-  await pick(page.getByLabel('Unidad de trabajo'), 'M2');
+  await pick(page.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
   await page.getByRole('button', { name: 'Agregar material' }).click();
   await pick(page.getByLabel('Material 1', { exact: true }), MAT.cemento);
   await page.getByLabel(/^Consumo/).nth(0).fill('4,5');
@@ -102,7 +106,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
   await snap(page, '02-apu-con-materiales');
   await page.getByRole('button', { name: 'Crear APU' }).click();
-  await toast(page, 'APU creado.');
+  await toast(page, 'APU creado correctamente');
   await page.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
   st.apuMat = page.url().split('/').pop()!;
   await expect(page.getByText('Cemento portland').first()).toBeVisible();
@@ -111,7 +115,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.goto('/apu/nuevo');
   await pick(page.getByLabel('Rubro'), 'Revoques');
   await page.getByLabel('Nombre del ítem').fill(`Mano de obra E2E ${SUF}`);
-  await pick(page.getByLabel('Unidad de trabajo'), 'M2');
+  await pick(page.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
   await expect(page.getByText('sólo de mano de obra')).toBeVisible();
   await page.getByLabel('Moneda').fill('ARS');
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
@@ -123,7 +127,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   expect(posted).toBe(0);
   await page.getByLabel('Importe de mano de obra').fill('0');
   await page.getByRole('button', { name: 'Crear APU' }).click();
-  await toast(page, 'APU creado.');
+  await toast(page, 'APU creado correctamente');
   await page.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
   st.apuLabor = page.url().split('/').pop()!;
   expect(st.apuLabor).not.toBe(st.apuMat);
@@ -140,7 +144,7 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
     await page.getByLabel(/^Cantidad/).nth(i).fill(i === 0 ? '120,5' : '30');
   }
   await page.getByRole('button', { name: 'Crear cómputo' }).click();
-  await toast(page, 'Cómputo creado.');
+  await toast(page, 'Cómputo creado correctamente');
   await page.waitForURL(/\/computos\/(?!nuevo)[^/]+$/);
 
   await page.getByRole('link', { name: 'Presupuestar' }).click();
@@ -165,11 +169,11 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
   await prices.nth(0).fill('950');
   await prices.nth(1).fill('42000');
   await dlg.getByRole('button', { name: 'Crear versión' }).click();
-  await toast(page, /Versión 1 creada/);
+  await toast(page, 'Versión 1 creada correctamente');
   await page.waitForURL(/\/presupuestos\/versiones\//);
   await page.getByRole('button', { name: 'Marcar como referencia' }).click();
   await confirmModal(page, 'Marcar como referencia');
-  await toast(page, 'Versión 1 marcada como referencia.');
+  await toast(page, 'Versión 1 marcada como referencia');
   await expect(page.getByRole('button', { name: 'Marcar como referencia' })).toHaveCount(0);
   await snap(page, '03-presupuesto-version-referencia');
   await page.getByRole('tab', { name: 'Materiales necesarios' }).or(page.getByRole('button', { name: 'Materiales necesarios' })).click();
@@ -215,7 +219,7 @@ test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({ page }
   await page.goto(`/pedidos/${st.requestId}`);
   await page.getByRole('button', { name: 'Tomar en proceso' }).click();
   await confirmModal(page, /Confirmar|Tomar en proceso/);
-  await toast(page, /Pedido: En proceso/);
+  await toast(page, 'Pedido marcado en proceso');
   await page.locator('#contenido').getByRole('link', { name: 'Cotizaciones' }).click();
   await page.waitForURL(/\/cotizaciones\//);
   for (const [supplier, prices] of [
@@ -231,7 +235,7 @@ test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({ page }
     await p.nth(0).fill(prices[0]);
     await p.nth(1).fill(prices[1]);
     await dlg.getByRole('button', { name: 'Guardar cotización' }).click();
-    await toast(page, 'Cotización cargada');
+    await toast(page, 'Cotización cargada correctamente');
     await expect(dlg).toBeHidden();
   }
   const cmp = page.locator('section.card', { has: page.getByRole('heading', { name: 'Comparación de ofertas' }) });
@@ -256,14 +260,14 @@ test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
   await page.getByLabel('Destino de entrega').selectOption(st.jefeLoc.id);
   await page.getByRole('button', { name: 'Revisar y crear' }).click();
   await confirmModal(page, /Confirmar|Crear/);
-  await toast(page, /OC-\d+ creada en borrador/);
+  await toast(page, /Orden OC-\d+ creada como borrador/);
   await page.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
   st.orderId = page.url().split('/').pop()!;
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^OC-\d+$/);
   st.orderNumber = (await page.getByRole('heading', { level: 1 }).innerText()).trim();
   await page.getByRole('button', { name: 'Emitir' }).click();
   await confirmModal(page, 'Emitir');
-  await toast(page, `${st.orderNumber} emitida`);
+  await toast(page, `Orden ${st.orderNumber} emitida`);
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'PDF' }).click()]);
   expect(dl.suggestedFilename()).toMatch(/\.pdf$/);
   const path = await dl.path();
@@ -285,7 +289,7 @@ test('(g) Jefe registra una recepción parcial', async ({ page }) => {
   await snap(page, '08-recepcion-parcial-jefe');
   await page.getByRole('button', { name: 'Revisar recepción' }).click();
   await confirmModal(page, 'Confirmar recepción');
-  await toast(page, 'Recepción registrada');
+  await toast(page, 'Recepción registrada correctamente');
   await expect(page.getByText(/Recibida parcial|Parcial/i).first()).toBeVisible();
 });
 
@@ -313,7 +317,7 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
   await pick(dlg.getByLabel('Obra destino'), JEFE_WORK);
   await dlg.getByLabel(/^Cantidad/).fill('5');
   await dlg.getByRole('button', { name: 'Reservar' }).click();
-  await toast(page, 'Reserva creada.');
+  await toast(page, 'Reserva creada correctamente');
 
   await page.goto(`/stock/movimientos/nuevo?type=TRANSFER`);
   await page.getByRole('button', { name: 'Transferencia', pressed: true }).waitFor().catch(() => page.getByRole('button', { name: 'Transferencia' }).click());
@@ -325,7 +329,7 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
   await snap(page, '09-transferencia-con-reserva');
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
-  await toast(page, 'Transferencia: movimiento registrado.');
+  await toast(page, 'Movimiento registrado correctamente', 'Transferencia');
 });
 
 test('(i) Jefe registra consumo y devolución', async ({ page }) => {
@@ -341,7 +345,7 @@ test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   await page.getByLabel('Rubro (opcional)').selectOption({ label: 'Revoques' });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
-  await toast(page, 'Consumo en obra: movimiento registrado.');
+  await toast(page, 'Movimiento registrado correctamente', 'Consumo en obra');
   await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
 
   // Devolución por el propio Jefe: ve galpones/patios activos (sólo id/código/nombre) como destino.
@@ -353,7 +357,7 @@ test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   await page.getByLabel(/^Cantidad/).fill('1');
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
-  await toast(page, 'Devolución: movimiento registrado.');
+  await toast(page, 'Movimiento registrado correctamente', 'Devolución');
   await expect(page.getByTestId('movement-created-source')).toContainText('Obra Demo Norte');
   await expect(page.getByTestId('movement-created-destination')).toContainText('Galpón Demo Central');
   await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');

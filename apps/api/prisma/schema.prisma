@@ -172,6 +172,8 @@ model Unit {
   id              String           @id @default(cuid())
   code            String           @unique
   name            String
+  /// Abreviatura visible (m², kg, jornal). Opcional: las unidades previas pueden no tenerla.
+  symbol          String?
   materials       Material[]
   apuItems        ApuItem[]
   budgetMaterials BudgetMaterial[]
