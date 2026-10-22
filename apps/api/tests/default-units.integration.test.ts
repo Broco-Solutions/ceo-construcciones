@@ -78,6 +78,80 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")("unidades predeterminadas",
     expect(await defaults()).toEqual(before);
   });
 
+  // Corre la migración real sobre copias vacías de Unit/CodeCounter en un esquema propio
+  // (search_path local a la transacción) y revierte todo al terminar.
+  async function legacyScenario(legacy: { code: string; name: string }[]) {
+    const schema = "legacy_" + randomBytes(6).toString("hex");
+    let result: { code: string; name: string; symbol: string | null }[] = [];
+    let counter = 0;
+    const rollback = new Error("rollback");
+    await db
+      .$transaction(
+        async (tx) => {
+          await tx.$executeRawUnsafe(`CREATE SCHEMA "${schema}"`);
+          await tx.$executeRawUnsafe(`CREATE TABLE "${schema}"."Unit" (LIKE public."Unit" INCLUDING ALL)`);
+          await tx.$executeRawUnsafe(`ALTER TABLE "${schema}"."Unit" DROP COLUMN "symbol"`);
+          await tx.$executeRawUnsafe(`CREATE TABLE "${schema}"."CodeCounter" (LIKE public."CodeCounter" INCLUDING ALL)`);
+          await tx.$executeRawUnsafe(`SET LOCAL search_path TO "${schema}", public`);
+          await tx.$executeRawUnsafe(`INSERT INTO "CodeCounter" ("entity", "lastValue") VALUES ('units', ${legacy.length})`);
+          for (const [i, u] of legacy.entries())
+            await tx.$executeRawUnsafe(`INSERT INTO "Unit" ("id", "code", "name") VALUES ($1, $2, $3)`, "legacy-" + i, u.code, u.name);
+          const statements = migration.split(/\n(?=ALTER TABLE|CREATE OR REPLACE FUNCTION|DO \$\$|DROP FUNCTION)/);
+          for (let run = 0; run < 2; run++) for (const sql of statements) await tx.$executeRawUnsafe(sql);
+          result = await tx.$queryRawUnsafe(`SELECT "code", "name", "symbol" FROM "Unit" ORDER BY "code"`);
+          counter = (await tx.$queryRawUnsafe<{ lastValue: number }[]>(`SELECT "lastValue" FROM "CodeCounter" WHERE "entity" = 'units'`))[0].lastValue;
+          throw rollback;
+        },
+        { timeout: 30000 },
+      )
+      .catch((e) => {
+        if (e !== rollback) throw e;
+      });
+    const created = result.filter((u) => u.symbol !== null);
+    return { legacy: result.filter((u) => u.symbol === null), created: created.map((u) => u.name), codes: created.map((u) => u.code), counter };
+  }
+
+  it("una unidad histórica «M» se toma como Metro", async () => {
+    const r = await legacyScenario([{ code: "M", name: "M" }]);
+    expect(r.legacy).toEqual([{ code: "M", name: "M", symbol: null }]);
+    expect(r.created).not.toContain("Metro");
+    expect(r.created).toContain("Mililitro");
+    expect(r.created).toHaveLength(14);
+  });
+
+  it("«ML» con nombre Metro lineal se toma como Metro y no como Mililitro", async () => {
+    const r = await legacyScenario([{ code: "ML", name: "Metro lineal" }]);
+    expect(r.legacy).toEqual([{ code: "ML", name: "Metro lineal", symbol: null }]);
+    expect(r.created).not.toContain("Metro");
+    expect(r.created).toContain("Mililitro");
+    expect(r.created).toHaveLength(14);
+  });
+
+  it("«mL» o un nombre Mililitro se toman como Mililitro y no como Metro", async () => {
+    for (const legacy of [{ code: "mL", name: "mL" }, { code: "ML", name: "Mililitros" }]) {
+      const r = await legacyScenario([legacy]);
+      expect(r.legacy).toEqual([{ ...legacy, symbol: null }]);
+      expect(r.created).not.toContain("Mililitro");
+      expect(r.created).toContain("Metro");
+      expect(r.created).toHaveLength(14);
+    }
+  });
+
+  it("«ML» ambiguo se conserva sin atribuirle significado y no bloquea Metro ni Mililitro", async () => {
+    for (const legacy of [{ code: "ML", name: "ML" }, { code: "UNI-001", name: "ml" }]) {
+      const r = await legacyScenario([legacy]);
+      expect(r.legacy).toEqual([{ ...legacy, symbol: null }]);
+      expect(r.created).toContain("Metro");
+      expect(r.created).toContain("Mililitro");
+      expect(r.created).toHaveLength(15);
+      // Códigos UNI-### del contador, salteando los ocupados y sin repetir con dos ejecuciones.
+      for (const c of r.codes) expect(c).toMatch(/^UNI-\d{3,}$/);
+      expect(new Set(r.codes).size).toBe(15);
+      expect(r.codes).not.toContain("UNI-001");
+      expect(r.counter).toBe(16);
+    }
+  });
+
   it("permite agregar unidades propias con la secuencia UNI y símbolo opcional", async () => {
     const res = await call("units", "POST", { code: "AUTO", name: "Viaje de camión " + tag, symbol: "viaje" });
     const json = await res.json();

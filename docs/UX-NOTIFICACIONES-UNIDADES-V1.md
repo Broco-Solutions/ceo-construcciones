@@ -52,7 +52,10 @@ Reglas de la carga:
   nombre, código y símbolo, sin distinguir mayúsculas, acentos, espacios ni puntos y con
   variantes habituales: «M», «mts» o «Metros» cuentan como Metro; «KG» o «kilos», como
   Kilogramo; «M2», «Metros cuadrados», como Metro cuadrado. Si ya existe, no se crea.
-  «ml» se interpreta como metro lineal (uso de obra), no como mililitro.
+- **«ML» ambiguo.** «ML»/«ml» puede ser metro lineal o mililitro, así que por sí solo no se
+  atribuye a ninguna unidad. Cuenta como Metro si el nombre dice «Metro lineal» y como
+  Mililitro si el nombre dice «Mililitro» o si figura escrito exactamente «mL». Una unidad
+  ambigua se conserva tal cual y no impide crear Metro ni Mililitro.
 - **No destructiva.** No renombra, borra ni modifica unidades existentes (tampoco les asigna
   símbolo) y no toca materiales, APU, presupuestos ni cantidades.
 - **Respeta los códigos automáticos.** Cada unidad nueva toma su código `UNI-###` del mismo
@@ -99,5 +102,8 @@ mismas reglas.
   ejecuciones adicionales sin cambios; alta de unidad propia que continúa la secuencia.
 - Base con unidades heredadas («KG», «M», «Metros cuadrados», «lts», códigos `UNI-` ya
   ocupados) más materiales y APU: sin duplicados, datos previos idénticos, códigos salteados.
+- Unidades históricas «M» (Metro), «ML» con nombre Metro lineal (Metro), «mL» o nombre
+  Mililitros (Mililitro) y «ML»/«ml» ambiguos (se conservan y se crean ambas), cada caso
+  ejecutando la migración dos veces en un esquema aislado.
 - E2E desktop y móvil: posición de la notificación, texto en una línea, cierre, error
   persistente sin detalles técnicos, selectores con nombre y símbolo y ayuda de precios.

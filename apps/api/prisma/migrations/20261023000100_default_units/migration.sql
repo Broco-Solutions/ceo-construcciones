@@ -14,7 +14,10 @@ $f$;
 -- * Los códigos salen del contador "units" (UNI-###), igual que un alta desde la aplicación,
 --   salteando valores ya ocupados; la secuencia nunca retrocede.
 -- * Puede ejecutarse más de una vez sin crear duplicados.
--- "ml" se toma como metro lineal (uso habitual en obra), no como mililitro.
+-- "ML"/"ml" es ambiguo (metro lineal o mililitro): por sí solo no se atribuye a ninguna
+-- unidad. Se reconoce como Metro si el nombre dice "metro lineal", como Mililitro si el
+-- nombre dice "mililitro" o si figura escrito exactamente "mL" (símbolo estándar, L mayúscula).
+-- Una unidad ambigua se conserva tal cual y no impide crear las predeterminadas.
 DO $$
 DECLARE
   d RECORD;
@@ -25,22 +28,22 @@ BEGIN
 
   FOR d IN
     SELECT * FROM (VALUES
-      (1,  'Unidad',         'un',     ARRAY['un', 'u', 'und', 'unid', 'unidad', 'unidades']),
-      (2,  'Metro',          'm',      ARRAY['m', 'mt', 'mts', 'metro', 'metros', 'ml', 'metrolineal', 'metroslineales']),
-      (3,  'Metro cuadrado', 'm²',     ARRAY['m2', 'mt2', 'mts2', 'metrocuadrado', 'metroscuadrados']),
-      (4,  'Metro cúbico',   'm³',     ARRAY['m3', 'mt3', 'mts3', 'metrocubico', 'metroscubicos']),
-      (5,  'Centímetro',     'cm',     ARRAY['cm', 'cms', 'centimetro', 'centimetros']),
-      (6,  'Milímetro',      'mm',     ARRAY['mm', 'milimetro', 'milimetros']),
-      (7,  'Kilogramo',      'kg',     ARRAY['kg', 'kgs', 'kilo', 'kilos', 'kilogramo', 'kilogramos']),
-      (8,  'Gramo',          'g',      ARRAY['g', 'gr', 'grs', 'gramo', 'gramos']),
-      (9,  'Tonelada',       't',      ARRAY['t', 'tn', 'tns', 'ton', 'tonelada', 'toneladas']),
-      (10, 'Litro',          'L',      ARRAY['l', 'lt', 'lts', 'litro', 'litros']),
-      (11, 'Mililitro',      'mL',     ARRAY['mililitro', 'mililitros', 'cc', 'cm3']),
-      (12, 'Hora',           'h',      ARRAY['h', 'hs', 'hr', 'hrs', 'hora', 'horas']),
-      (13, 'Jornal',         'jornal', ARRAY['jornal', 'jornales', 'jor']),
-      (14, 'Día',            'día',    ARRAY['d', 'dia', 'dias']),
-      (15, 'Global',         'gl',     ARRAY['gl', 'glb', 'gbl', 'global', 'globales'])
-    ) AS t(pos, name, symbol, aliases)
+      (1,  'Unidad',         'un',     ARRAY['un', 'u', 'und', 'unid', 'unidad', 'unidades'], ARRAY[]::TEXT[]),
+      (2,  'Metro',          'm',      ARRAY['m', 'mt', 'mts', 'metro', 'metros', 'metrolineal', 'metroslineales'], ARRAY[]::TEXT[]),
+      (3,  'Metro cuadrado', 'm²',     ARRAY['m2', 'mt2', 'mts2', 'metrocuadrado', 'metroscuadrados'], ARRAY[]::TEXT[]),
+      (4,  'Metro cúbico',   'm³',     ARRAY['m3', 'mt3', 'mts3', 'metrocubico', 'metroscubicos'], ARRAY[]::TEXT[]),
+      (5,  'Centímetro',     'cm',     ARRAY['cm', 'cms', 'centimetro', 'centimetros'], ARRAY[]::TEXT[]),
+      (6,  'Milímetro',      'mm',     ARRAY['mm', 'milimetro', 'milimetros'], ARRAY[]::TEXT[]),
+      (7,  'Kilogramo',      'kg',     ARRAY['kg', 'kgs', 'kilo', 'kilos', 'kilogramo', 'kilogramos'], ARRAY[]::TEXT[]),
+      (8,  'Gramo',          'g',      ARRAY['g', 'gr', 'grs', 'gramo', 'gramos'], ARRAY[]::TEXT[]),
+      (9,  'Tonelada',       't',      ARRAY['t', 'tn', 'tns', 'ton', 'tonelada', 'toneladas'], ARRAY[]::TEXT[]),
+      (10, 'Litro',          'L',      ARRAY['l', 'lt', 'lts', 'litro', 'litros'], ARRAY[]::TEXT[]),
+      (11, 'Mililitro',      'mL',     ARRAY['mililitro', 'mililitros', 'cc', 'cm3'], ARRAY['mL']),
+      (12, 'Hora',           'h',      ARRAY['h', 'hs', 'hr', 'hrs', 'hora', 'horas'], ARRAY[]::TEXT[]),
+      (13, 'Jornal',         'jornal', ARRAY['jornal', 'jornales', 'jor'], ARRAY[]::TEXT[]),
+      (14, 'Día',            'día',    ARRAY['d', 'dia', 'dias'], ARRAY[]::TEXT[]),
+      (15, 'Global',         'gl',     ARRAY['gl', 'glb', 'gbl', 'global', 'globales'], ARRAY[]::TEXT[])
+    ) AS t(pos, name, symbol, aliases, exact)
     ORDER BY pos
   LOOP
     IF NOT EXISTS (
@@ -48,6 +51,9 @@ BEGIN
       WHERE pg_temp.ceo_unit_key(u."name") = ANY (d.aliases)
          OR pg_temp.ceo_unit_key(u."code") = ANY (d.aliases)
          OR pg_temp.ceo_unit_key(u."symbol") = ANY (d.aliases)
+         OR btrim(u."name") = ANY (d.exact)
+         OR btrim(u."code") = ANY (d.exact)
+         OR btrim(u."symbol") = ANY (d.exact)
     ) THEN
       LOOP
         UPDATE "CodeCounter" SET "lastValue" = "lastValue" + 1
