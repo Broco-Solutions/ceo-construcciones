@@ -118,7 +118,7 @@ export function MovementForm() {
     if (!confirm) return;
     const r = await m.run(confirm);
     if (r) {
-      toast(`${MOVEMENT_LABEL[confirm.type]} registrado.`);
+      toast(`${MOVEMENT_LABEL[confirm.type]}: movimiento registrado.`);
       if (isJefe) {
         // Replay idempotente con DTO legado (sin actorName/source/destination): refrescar por GET sin repetir el POST.
         let detail: Detail | null = 'actorName' in r.data ? (r.data as Detail) : null;

@@ -124,12 +124,12 @@ export default function Home() {
                   rows={d.data}
                   rowKey={(o) => o.id}
                   columns={[
-                    { key: 'n', header: 'OC', render: (o) => <Link href={`/ordenes/${o.id}`}><Mono>#{o.number}</Mono></Link> },
+                    { key: 'n', header: 'OC', render: (o) => <Link href={`/ordenes/${o.id}`}><Mono>OC-{o.number}</Mono></Link> },
                     { key: 'o', header: 'Obra', render: (o) => (o.work?.name ?? wn(o.workId)) },
                     { key: 'f', header: 'Fecha', hideMobile: true, render: (o) => formatDate(o.createdAt) },
                     { key: 's', header: 'Estado', render: (o) => <Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill> },
                   ]}
-                  mobile={(o) => <Link href={`/ordenes/${o.id}`} className="row" style={{ color: 'inherit' }}><Mono>#{o.number}</Mono><span style={{ flex: 1 }}>{(o.work?.name ?? wn(o.workId))}</span><Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill></Link>}
+                  mobile={(o) => <Link href={`/ordenes/${o.id}`} className="row" style={{ color: 'inherit' }}><Mono>OC-{o.number}</Mono><span style={{ flex: 1 }}>{(o.work?.name ?? wn(o.workId))}</span><Pill tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Pill></Link>}
                   empty={<Empty title="Sin órdenes de compra" />}
                 />
               )}

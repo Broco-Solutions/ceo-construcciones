@@ -14,7 +14,7 @@ export const TAX_LABEL: Record<TaxBasis, string> = {
 };
 export const TAX_OPTIONS = (Object.keys(TAX_LABEL) as TaxBasis[]).map((k) => ({ value: k, label: TAX_LABEL[k] }));
 export const ROUNDING_LABEL: Record<string, string> = {
-  HALF_UP: 'Mitad hacia arriba (HALF_UP)',
+  HALF_UP: 'Mitad arriba (HALF_UP)',
   HALF_EVEN: 'Mitad al par (HALF_EVEN)',
   DOWN: 'Truncar (DOWN)',
 };

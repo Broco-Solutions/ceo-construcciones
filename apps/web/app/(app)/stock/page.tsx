@@ -82,11 +82,12 @@ function StockInner() {
               {KIND_LABEL[l.kind]} · {l.name}
             </Button>
           ))}
-          {workLocs.map((l) => (
+          {(workLocs.length > QUICK_WORKS ? workLocs.filter((l, i) => i < QUICK_WORKS || l.id === locationId) : workLocs).map((l) => (
             <Button key={l.id} size="sm" variant={locationId === l.id ? 'primary' : 'ghost'} onClick={() => setParam('locationId', l.id)}>
               Obra · {l.name}
             </Button>
           ))}
+          {workLocs.length > QUICK_WORKS && <span className="small muted">y {workLocs.length - QUICK_WORKS} obras más: elegilas en el filtro Ubicación.</span>}
           {lk.loading && <span className="small muted">Cargando ubicaciones…</span>}
         </div>
       </Card>
@@ -199,6 +200,8 @@ function StockInner() {
     </Page>
   );
 }
+
+const QUICK_WORKS = 8;
 
 export default function StockPage() {
   return (

@@ -52,7 +52,7 @@ Verificación:
 pnpm --dir apps/web typecheck
 pnpm --dir apps/web test                 # unitarias/componentes aislados (proxy con upstream simulado, formatos, permisos)
 pnpm --dir apps/web build
-E2E_SECRETS_DIR=<dir con *.pw> apps/web/scripts/e2e-local.sh   # E2E Playwright contra API y PostgreSQL reales
+DATABASE_URL=<base aislada test> apps/web/scripts/e2e-ci.sh   # E2E reproducible: build, seed y Playwright contra API y PostgreSQL reales
 ```
 
 Los datos de prueba son sintéticos (`*@demo.local`, "Obra Demo …", "Corralón Demo …"). No usar credenciales reales de CEO. Las pruebas unitarias (`tests/`) son aisladas; las de `e2e/` corren contra la API real local y se informan por separado.
@@ -65,21 +65,41 @@ Los datos de prueba son sintéticos (`*@demo.local`, "Obra Demo …", "Corralón
 4. Desplegar y validar con el dominio público real: login (dos `Set-Cookie` separados en la respuesta), `/auth/me` tras recarga, 401 al vencer, 429 con `Retry-After`, mutación con Origin correcto, descarga de PDF/Excel, logout, y `Cache-Control: no-store` en `/api/v1/*`.
 5. Crear usuarios reales desde Administración y asignar obras; recién entonces piloto.
 
-## Diferencias y pendientes de contrato (para Codex)
+## Estado de los 14 hallazgos (issue #3)
 
-Ningún punto fue ocultado con datos ficticios; la UI aplica el comportamiento conservador indicado.
+Resoluciones backend en [CIERRE-INTEGRACION-V1.md](CIERRE-INTEGRACION-V1.md) (commit `2d6942c`); adaptación frontend en este PR.
 
-1. **Devolución por Jefe sin destino visible** — `GET /locations` no devuelve galpón/patio a JEFE_OBRA, aunque `POST /movements` RETURN lo admite. La UI le indica pedirla a Compras/Gerencia. Propuesta: exponer ubicaciones WAREHOUSE/YARD activas (id, código, nombre, tipo) al Jefe.
-2. **Nombres de ubicación/usuario** — `/movements` sólo trae ids de ubicación (Jefe ve "Ubicación sin acceso"); `/users` es sólo Gerencia, por lo que otros roles ven "Usuario" en historiales/factura/recepciones. Propuesta: incluir `source/destination {code,name}` y `actorName` en los DTO.
-3. **Errores 422** — `details` llega como `{formErrors, fieldErrors}` (Zod flatten), no como el array descrito. La UI soporta ambos; documentar en OpenAPI.
-4. **Filtros faltantes** — `GET /requests` y `/purchase-orders` sin `status`; `GET /works` sin `q`; `GET /suppliers` ignora `search`; `GET /materials` sin `active`; `GET /audit` sólo `entity/entityId` (sin actor/acción/fechas; `entity` no enumerado). Los filtros afectados se aplican sobre la página cargada y así se indica en pantalla.
-5. **`pendingQuantity`** sólo en `ChiefOrder`; falta en `PurchaseOrderLine` para roles económicos (la UI no lo calcula: muestra pedido/recibido).
-6. **Importes de línea/total de OC** no vienen en `OrderDetail`; la UI no los calcula y remite al PDF. Propuesta: `lineAmount` del backend.
-7. **Referencia de presupuesto para Jefe** — no hay endpoint no económico para saber la versión de referencia de una obra; el Jefe ve lo previsto en `/requests/{id}/needs` tras crear el pedido, y el reporte sólo admite `versionId` por URL. Propuesta: `referenceVersionId` en `WorkDetail`.
-8. **`/budget-versions/{id}/materials`** sólo devuelve ids; la UI resuelve nombres con catálogos.
-9. **`POST /prices` sin presentación** exige `baseQuantity=1` (no documentado). **`MaterialPatch.unitId`** figura en el schema pero siempre responde 409. **`Material`** devuelve `unit`/`category` anidados no declarados (`additionalProperties:false`).
-10. **`ApuInput.laborCost`** es obligatorio (la UI envía "0" si se deja vacío); si debe ser opcional, aceptar `null`.
-11. **Mínimo heredado vs. propio** — `Stock.minimum` no indica su origen. Propuesta: `minimumSource`.
-12. **Recepciones** no figuran en `/purchase-orders/{id}/history` (se muestran aparte). **Comparación** de cotizaciones sin orden declarado. **`alreadyRequested`** incluye el propio pedido (aclarado en UI). No hay bloqueo de OC duplicada por pedido/cotización.
-13. **Preview de importaciones** devuelve `rowCount` y errores (fila 1 = primera fila de datos), no filas normalizadas; la vista previa usa el CSV local. Auditoría de `UPDATE Work` registra `before: null`.
-14. **`PATCH /computations`** regenera ids de línea; las sobrescrituras de versiones antiguas referencian líneas inexistentes (no rompe snapshots). `POST /budgets/{id}/versions` no declara `Idempotency-Key`.
+| Nº | Hallazgo | Estado frontend |
+| --- | --- | --- |
+| 1 | Devolución del Jefe sin destino | **Resuelto.** RETURN elige galpón/patio activos de `/locations`; flujo móvil obra → material → destino → cantidad → confirmación → tarjeta "Movimiento registrado". No consulta stock de galpón/patio para el Jefe. E2E móvil. |
+| 2 | Nombres de ubicaciones/actores | **Resuelto.** `source/destination`, `actorName`, `createdByName`, `invoiceLoadedByName` (sólo roles económicos) y `location` de recepciones. Sin `/users` fuera de Gerencia salvo `requestedById`/`selectedById` (ver abiertos). Ubicaciones ajenas: "Ubicación no visible". |
+| 3 | Errores 422 | **Resuelto.** `fieldErrors()`/`ErrorBox` aceptan issues Zod y flatten; errores sin campo visible se muestran. |
+| 4 | Filtros de servidor | **Resuelto.** Pedidos/cotizaciones/OC `status` (+OC `requestId/quotationId/destinationId/supplierId/workId`), obras `q/status`, proveedores `search/active`, materiales `search/categoryId/active`, auditoría `entity/entityId/actorId/action/from/to`. Sin filtros locales sobre la página; totales del servidor. |
+| 5 | `pendingQuantity` OC | **Resuelto.** Para todos los roles; "Recibir todo lo pendiente" usa el valor del servidor. |
+| 6 | Importes OC | **Resuelto.** `lineAmount`/`totalAmount` del servidor; con `ROUNDING_POLICY_REQUIRED` o null: "Importe no calculado: falta definir política de redondeo (validación CEO pendiente)". Sin cálculo ni IVA en JS. **Política de redondeo/IVA: depende de CEO (V-01).** |
+| 7 | Referencia para Jefe | **Resuelto.** `WorkDetail.referenceVersionId` en obra, pedido nuevo (previstos antes de crear), reportes y presupuestos. |
+| 8 | Materiales de versión | **Resuelto.** Usa `material/unit/category` incluidos. |
+| 9 | Precios/unidad/Material | **Resuelto.** Edición nunca envía `unitId`; sin presentación `baseQuantity` "1"; 409 de equivalencia visible; relaciones `unit/category` del DTO. |
+| 10 | Mano de obra vacía | **Resuelto.** Obligatoria y explícita: vacío bloquea ("Ingresá el importe de mano de obra (puede ser 0)."), 0 aceptado. |
+| 11 | Origen del mínimo | **Resuelto.** `minimumSource`: propio de la ubicación / heredado del material / sin mínimo. |
+| 12 | Recepciones en historia, comparación, OC duplicada | **Resuelto.** Eventos RECEIVE en historial OC; orden cronológico sin ranking; advertencia con enlaces y confirmación explícita si ya hay OC no anuladas para el pedido/cotización (no bloquea). **Prohibición funcional de varias OC: depende de CEO.** |
+| 13 | Preview importación y auditoría de obra | **Resuelto.** UI explica que la vista previa es el CSV local y el servidor valida (fila 1 = primera de datos); estado/resultado del commit; auditoría con antes/después. |
+| 14 | IDs de líneas e idempotencia de versión | **Resuelto.** PATCH de cómputo envía `lines[].id`; `POST /budgets/{id}/versions` con `Idempotency-Key` estable por intención (misma clave ante error de red, nueva si cambia el cuerpo o tras éxito). Pruebas unitarias y E2E. |
+
+Replays idempotentes con DTO legado (OC/recepción/movimiento): la UI sólo usa id/número de la respuesta y refresca con GET, sin repetir el POST.
+
+### Abiertos
+
+- **Dependen de CEO:** política de redondeo/IVA/moneda (V-01), matriz final de permisos/estados (V-02/V-03), prohibición o no de múltiples OC por pedido/cotización.
+- **Backend (menores, sin bloqueo):** `RequestDetail` no trae nombre de obra ni de solicitante, y `Quotation` no trae nombre de quien seleccionó: Inicio carga obras para nombrarlas y esos nombres sólo se resuelven para Gerencia (otros roles ven "Usuario"). Propuesta: `work {id,code,name}`, `requestedByName`, `selectedByName`.
+
+## CI del frontend
+
+Workflow `.github/workflows/web.yml` ("Web V1"), independiente de "API V1". Se ejecuta en PR y en push a `main`/`claude/ceo-v1-frontend` cuando cambian `apps/web`, `apps/api`, `docs/api`, `scripts`, manifiestos pnpm o el propio workflow:
+
+1. `pnpm install --frozen-lockfile`.
+2. Regenera `lib/openapi.d.ts` y falla si difiere (`git diff --exit-code`).
+3. Typecheck, pruebas unitarias (vitest) y build de API y web.
+4. E2E con `apps/web/scripts/e2e-ci.sh`: PostgreSQL 18 efímero del job, migraciones versionadas, bootstrap con contraseña aleatoria, API standalone en modo producción (cookies Secure) y web `next start` con el proxy, seed sintético `scripts/e2e-seed.mjs` y Playwright (desktop + Pixel 7). El script rechaza bases que no sean loopback o no contengan `test` en el nombre; el seed sólo acepta una web en loopback. Sin secretos del repositorio ni acceso a Railway.
+
+Local: `DATABASE_URL=postgresql://...@127.0.0.1:<puerto>/<base_test> apps/web/scripts/e2e-ci.sh` (con los puertos 3000/3001 libres).

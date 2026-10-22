@@ -2,7 +2,7 @@
 // Cada caso crea datos con sufijo único. La API directa (page.request + Origin) se usa SÓLO para
 // preparar datos que no son el objeto del caso y está marcada con "PREPARACIÓN".
 import { expect, test, type Browser, type Locator, type Page } from '@playwright/test';
-import { login, ORIGIN, uid, type RoleKey } from './helpers';
+import { login, ORIGIN, pickMaterial, uid, type RoleKey } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -94,7 +94,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.getByRole('button', { name: 'Agregar material' }).click();
   await pick(page.getByLabel('Material 2', { exact: true }), MAT.arena);
   await page.getByLabel(/^Consumo/).nth(1).fill('0,07');
-  await page.getByLabel('Importe unitario (opcional)').fill('1200,50');
+  await page.getByLabel('Importe de mano de obra').fill('1200,50');
   await page.getByLabel('Moneda').fill('ARS');
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
   await snap(page, '02-apu-con-materiales');
@@ -110,9 +110,15 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.getByLabel('Nombre del ítem').fill(`Mano de obra E2E ${SUF}`);
   await pick(page.getByLabel('Unidad de trabajo'), 'M2');
   await expect(page.getByText('sólo de mano de obra')).toBeVisible();
-  await page.getByLabel('Importe unitario (opcional)').fill('800');
   await page.getByLabel('Moneda').fill('ARS');
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
+  // Mano de obra explícita: vacío bloquea (no se envía nada), 0 se acepta.
+  let posted = 0;
+  page.on('request', (r) => r.method() === 'POST' && r.url().includes('/api/v1/apu-items') && posted++);
+  await page.getByRole('button', { name: 'Crear APU' }).click();
+  await expect(page.getByText('Ingresá el importe de mano de obra (puede ser 0).')).toBeVisible();
+  expect(posted).toBe(0);
+  await page.getByLabel('Importe de mano de obra').fill('0');
   await page.getByRole('button', { name: 'Crear APU' }).click();
   await toast(page, 'APU creado.');
   await page.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
@@ -308,7 +314,7 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
 
   await page.goto(`/stock/movimientos/nuevo?type=TRANSFER`);
   await page.getByRole('button', { name: 'Transferencia', pressed: true }).waitFor().catch(() => page.getByRole('button', { name: 'Transferencia' }).click());
-  await pick(page.getByLabel('Material', { exact: true }), MAT.cemento);
+  await pickMaterial(page, MAT.cemento);
   await page.getByLabel('Origen', { exact: true }).selectOption(wh.id);
   await page.getByLabel('Destino', { exact: true }).selectOption(st.jefeLoc!.id);
   await page.getByLabel(/^Cantidad/).fill('5');
@@ -316,15 +322,15 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
   await snap(page, '09-transferencia-con-reserva');
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
-  await toast(page, 'Transferencia registrado.');
+  await toast(page, 'Transferencia: movimiento registrado.');
 });
 
-test('(i) Jefe registra consumo; la devolución la registra Compras', async ({ page, browser }) => {
+test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   test.skip(!st.jefeLoc, 'requiere (f)');
   await login(page, 'JEFE_OBRA');
   await page.goto('/stock/movimientos/nuevo');
   await page.getByRole('button', { name: 'Consumo en obra' }).click();
-  await pick(page.getByLabel('Material', { exact: true }), MAT.cemento);
+  await pickMaterial(page, MAT.cemento);
   const src = page.getByLabel('Obra (origen)');
   if (!(await src.inputValue())) await src.selectOption(st.jefeLoc!.id);
   await expect(page.getByText(/Saldo actual en/)).toBeVisible();
@@ -332,23 +338,22 @@ test('(i) Jefe registra consumo; la devolución la registra Compras', async ({ p
   await page.getByLabel('Rubro (opcional)').selectOption({ label: 'Revoques' });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
-  await toast(page, 'Consumo en obra registrado.');
-  // El Jefe no ve galpones/patios en /locations: la UI lo avisa y no puede elegir destino de devolución.
-  await page.getByRole('button', { name: 'Devolución' }).click();
-  await expect(page.getByText('Tu usuario no tiene galpones/patios visibles.')).toBeVisible();
+  await toast(page, 'Consumo en obra: movimiento registrado.');
+  await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
 
-  // Devolución registrada por Compras (limitación documentada del rol Jefe).
-  await asRole(browser, 'COMPRAS', async (c) => {
-    await c.goto('/stock/movimientos/nuevo');
-    await c.getByRole('button', { name: 'Devolución' }).click();
-    await pick(c.getByLabel('Material', { exact: true }), MAT.cemento);
-    await c.getByLabel('Obra (origen)').selectOption(st.jefeLoc!.id);
-    await c.getByLabel('Devolver a (galpón o patio)').selectOption(st.warehouse?.id ?? { index: 1 });
-    await c.getByLabel(/^Cantidad/).fill('1');
-    await c.getByRole('button', { name: 'Revisar y confirmar' }).click();
-    await confirmModal(c, 'Confirmar movimiento');
-    await toast(c, 'Devolución registrado.');
-  });
+  // Devolución por el propio Jefe: ve galpones/patios activos (sólo id/código/nombre) como destino.
+  await page.getByRole('button', { name: 'Devolución' }).click();
+  await pickMaterial(page, MAT.cemento);
+  const rsrc = page.getByLabel('Obra (origen)');
+  if (!(await rsrc.inputValue())) await rsrc.selectOption(st.jefeLoc!.id);
+  await page.getByLabel('Devolver a (galpón o patio)').selectOption(st.warehouse?.id ?? { index: 1 });
+  await page.getByLabel(/^Cantidad/).fill('1');
+  await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
+  await confirmModal(page, 'Confirmar movimiento');
+  await toast(page, 'Devolución: movimiento registrado.');
+  await expect(page.getByTestId('movement-created-source')).toContainText('Obra Demo Norte');
+  await expect(page.getByTestId('movement-created-destination')).toContainText('Galpón Demo Central');
+  await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
 });
 
 test('(j) Gerencia consulta el seguimiento de materiales y descarga Excel', async ({ page }) => {
@@ -364,7 +369,7 @@ test('(j) Gerencia consulta el seguimiento de materiales y descarga Excel', asyn
 });
 
 test('(k) Jefe de Obra no ve ni solicita información económica', async ({ page }) => {
-  const forbidden = [/\/api\/v1\/prices/, /\/api\/v1\/suppliers/, /\/api\/v1\/quotations/, /\/api\/v1\/apu-items/, /\/api\/v1\/budgets/, /\/api\/v1\/purchase-orders\/[^/]+\/pdf/];
+  const forbidden = [/\/api\/v1\/users/, /\/api\/v1\/prices/, /\/api\/v1\/suppliers/, /\/api\/v1\/quotations/, /\/api\/v1\/apu-items/, /\/api\/v1\/budgets/, /\/api\/v1\/purchase-orders\/[^/]+\/pdf/];
   const hits: string[] = [];
   page.on('request', (r) => {
     if (forbidden.some((f) => f.test(r.url()))) hits.push(r.url());

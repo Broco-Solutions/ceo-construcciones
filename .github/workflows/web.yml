@@ -30,7 +30,7 @@ jobs:
   verify:
     name: Frontend (tipos, typecheck, unit, build, E2E)
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 60
     services:
       postgres:
         image: postgres:18

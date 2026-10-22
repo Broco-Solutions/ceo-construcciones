@@ -11,6 +11,14 @@ Rama `claude/ceo-v1-frontend` basada en `codex/ceo-v1-backend`; PR de frontend a
 - Datos usados: sintéticos `*@demo.local` / "Demo"; sin credenciales reales de CEO.
 - Pendiente: validar el proxy en el dominio público de Vercel cuando Railway esté disponible y se autorice el despliegue; resolver las diferencias de contrato listadas (en particular, ubicaciones de destino para devoluciones del Jefe).
 
+## Cierre de integración frontend — issue #3 (22/10/2026)
+
+PR#2 actualizado con el backend `2d6942c` (merge de `codex/ceo-v1-backend`, sin conflictos; `apps/api`, Prisma, migraciones y OpenAPI idénticos a esa rama). Tipos regenerados. Los 14 hallazgos quedaron atendidos en el frontend según [CIERRE-INTEGRACION-V1.md](CIERRE-INTEGRACION-V1.md); detalle y abiertos en [FRONTEND-V1.md](FRONTEND-V1.md). Sin merge, despliegue, Railway ni Vercel.
+
+- Verificación local: typecheck, 27/27 unitarias (vitest), build, y **36/36 E2E Playwright** con `apps/web/scripts/e2e-ci.sh` sobre PostgreSQL 18.6 aislado y base nueva, API standalone producción (cookies Secure), web `next start` y seed sintético (`e2e-seed.mjs`). Incluye recorrido completo obra→APU→cómputo→presupuesto→pedido→cotización→OC→recepción→reserva→transferencia→consumo→devolución→reporte, devolución móvil del Jefe y versiones sin duplicación.
+- CI frontend propia `.github/workflows/web.yml` ("Web V1"): instalación limpia, tipos OpenAPI sincronizados, typecheck, unitarias, build y E2E contra PostgreSQL 18 efímero. Resultado en los checks del PR#2.
+- Pendientes de CEO: redondeo/IVA/moneda (V-01), permisos/estados finales, política de múltiples OC por pedido/cotización.
+
 ## Referencias de continuidad
 
 - [PRD Etapa 1 v1.0](PRD-ETAPA-1.md), sujeto a contrato/Anexo I y validaciones CEO pendientes.

@@ -35,7 +35,7 @@ function Ordenes() {
   const rows = list.rows;
 
   const cols: Column<VisibleOrder>[] = [
-    { key: 'n', header: 'N.º', render: (o) => <Mono>OC-{o.number}</Mono> },
+    { key: 'n', header: 'N.º', render: (o) => <span className="mono" style={{ whiteSpace: 'nowrap' }}>OC-{o.number}</span> },
     { key: 'w', header: 'Obra', render: (o) => lk.workName(o.workId) },
     ...(eco ? [{ key: 'p', header: 'Proveedor', render: (o: VisibleOrder) => ('supplierId' in o ? lk.supplierName(o.supplierId) : '—') }] : []),
     { key: 'd', header: 'Destino', render: (o) => lk.locationName(o.destinationId), hideMobile: true },

@@ -100,7 +100,7 @@ export function CommercialLines({
                   <input id={`${uid}-u-${i}`} className="input" inputMode="decimal" value={l.unitPrice} onChange={(e) => set(i, { unitPrice: e.target.value })} />
                 </div>
                 <div className="field">
-                  <label htmlFor={`${uid}-b-${i}`}>Precio por cantidad base ({unit})</label>
+                  <label htmlFor={`${uid}-b-${i}`}>Precio por cantidad base{unit ? ` (${unit})` : ''}</label>
                   <input id={`${uid}-b-${i}`} className="input" inputMode="decimal" value={l.baseQuantity} disabled={!!l.presentationId} onChange={(e) => set(i, { baseQuantity: e.target.value })} />
                   <span className="hint">Ej.: precio por bolsa de 50 kg → 50.</span>
                 </div>

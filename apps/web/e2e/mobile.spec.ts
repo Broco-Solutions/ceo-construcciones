@@ -1,7 +1,7 @@
 // Jefe de Obra en celular (Pixel 7) contra la API real: accesos rápidos, pedido táctil, recepción y consumo.
 // La API directa se usa SÓLO para PREPARACIÓN (OC emitida por Compras para poder recibir).
 import { expect, test, type Page } from '@playwright/test';
-import { login, ORIGIN, uid } from './helpers';
+import { apiAs, byCode, login, ORIGIN, pickMaterial, uid } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -15,6 +15,10 @@ async function noHorizontalScroll(page: Page, label: string) {
   expect(sw, `scroll horizontal en ${label}`).toBeLessThanOrEqual(iw);
 }
 const toast = (page: Page, text: string | RegExp) => expect(page.getByText(text).locator('visible=true').first()).toBeVisible({ timeout: 15_000 });
+async function selectByText(sel: import('@playwright/test').Locator, text: string) {
+  const o = sel.locator('option').filter({ hasText: text }).first();
+  await sel.selectOption((await o.getAttribute('value'))!);
+}
 const tomorrow = (d = 7) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
 
 test('inicio con accesos rápidos y pantallas principales sin scroll horizontal', async ({ page }) => {
@@ -93,7 +97,7 @@ test('recepción desde el celular', async ({ page, browser }) => {
   await page.waitForURL(`**/recepciones/${st.orderId}`);
   await page.getByLabel('N.º de remito').fill(`RM-${SUF}`);
   const loc = page.getByLabel('Ubicación que recibe');
-  if (!(await loc.inputValue())) await loc.selectOption({ index: 1 });
+  if (!(await loc.inputValue())) await selectByText(loc, 'Obra Demo Norte');
   await page.getByRole('button', { name: /^Sumar 1 a Cantidad recibida de Cemento portland/ }).tap();
   await noHorizontalScroll(page, 'recepción');
   await page.screenshot({ path: `${EVID}/14-movil-recepcion.png`, fullPage: true });
@@ -107,16 +111,51 @@ test('consumo desde el celular', async ({ page }) => {
   await page.locator('#contenido').getByRole('link', { name: /Consumo/ }).first().tap();
   await page.waitForURL(/\/stock\/movimientos\/nuevo/);
   await page.getByRole('button', { name: 'Consumo en obra' }).tap();
-  const mat = page.getByLabel('Material', { exact: true });
-  const opt = mat.locator('option').filter({ hasText: 'CEM-001' }).first();
-  await mat.selectOption((await opt.getAttribute('value'))!);
-  const src = page.getByLabel('Obra (origen)');
-  if (!(await src.inputValue())) await src.selectOption({ index: 1 });
+  await pickMaterial(page, 'CEM-001');
+  await selectByText(page.getByLabel('Obra (origen)'), 'OBRA-OBR-DEMO-01');
   await expect(page.getByText(/Saldo actual en/)).toBeVisible();
   await page.getByLabel(/^Cantidad/).fill('1');
   await noHorizontalScroll(page, 'consumo');
   await page.screenshot({ path: `${EVID}/15-movil-consumo.png`, fullPage: true });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).tap();
   await page.getByRole('dialog').getByRole('button', { name: 'Confirmar movimiento' }).tap();
-  await toast(page, 'Consumo en obra registrado.');
+  await toast(page, 'Consumo en obra: movimiento registrado.');
+});
+
+test('devolución desde el celular: obra → material → galpón → cantidad → confirmar', async ({ page }) => {
+  // PREPARACIÓN: saldo conocido en la obra del Jefe (ajuste de Gerencia por API).
+  const admin = await apiAs('GERENCIA');
+  const loc = await byCode<{ id: string; code: string }>(admin, '/locations', 'OBRA-OBR-DEMO-01');
+  const cem = await byCode<{ id: string; code: string }>(admin, '/materials', 'CEM-001');
+  await admin.send('POST', '/movements', { type: 'ADJUSTMENT', direction: 'IN', reason: `Preparación devolución ${SUF}`, materialId: cem.id, destinationId: loc.id, quantity: '3' }, `e2e-dev-${SUF}`);
+  await admin.dispose();
+  const econ: string[] = [];
+  page.on('request', (r) => /\/api\/v1\/(users|prices|suppliers|budgets|apu-items)/.test(r.url()) && econ.push(r.url()));
+
+  await login(page, 'JEFE_OBRA');
+  await page.goto('/stock/movimientos/nuevo');
+  await page.getByRole('button', { name: 'Devolución' }).tap();
+  await pickMaterial(page, 'CEM-001');
+  await page.getByLabel('Obra (origen)').selectOption(loc.id);
+  await expect(page.getByText(/Saldo actual en/)).toBeVisible();
+  const dest = page.getByLabel('Devolver a (galpón o patio)');
+  const opt = dest.locator('option').filter({ hasText: 'GAL-01' });
+  await dest.selectOption((await opt.getAttribute('value'))!);
+  await page.getByLabel(/^Cantidad/).fill('2');
+  await noHorizontalScroll(page, 'devolución');
+  await page.screenshot({ path: `${EVID}/20-movil-devolucion-jefe.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Revisar y confirmar' }).tap();
+  await page.getByRole('dialog').getByRole('button', { name: 'Confirmar movimiento' }).tap();
+  await toast(page, 'Devolución: movimiento registrado.');
+  await expect(page.getByTestId('movement-created-source')).toContainText('Obra Demo Norte');
+  await expect(page.getByTestId('movement-created-destination')).toContainText('Galpón Demo Central');
+  await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
+  await page.getByTestId('movement-created').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${EVID}/21-movil-devolucion-registrada.png` });
+  // Historial con nombres (sin /users).
+  await page.goto('/stock/movimientos');
+  await expect(page.getByText('Galpón Demo Central').locator('visible=true').first()).toBeVisible();
+  await expect(page.getByText('Jefe Demo').locator('visible=true').first()).toBeVisible();
+  await noHorizontalScroll(page, 'movimientos');
+  expect(econ).toEqual([]);
 });
