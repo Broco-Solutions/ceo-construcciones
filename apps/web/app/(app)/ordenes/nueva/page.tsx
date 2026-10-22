@@ -62,7 +62,7 @@ function NuevaOC() {
 
   const review = () => {
     setLineErr(v.errors);
-    if (v.ok && supplierId && destinationId && /^[A-Z]{3}$/.test(currency) && !needsAck) setConfirm(true);
+    if (v.ok && supplierId && destinationId && (currency === 'ARS' || currency === 'USD') && !needsAck) setConfirm(true);
   };
   const submit = async () => {
     const r = await create.run({
@@ -113,9 +113,14 @@ function NuevaOC() {
                     hint={mode === 'general' ? 'Obligatorio: galpón o patio.' : undefined}
                     error={errs.destinationId}
                   />
-                  <TextField label="Moneda (ISO)" value={currency} disabled={mode === 'quotation'} maxLength={3} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={errs.currency} />
+                  <SelectField label="Moneda" value={currency} disabled={mode === 'quotation'} onChange={(e) => setCurrency(e.target.value)} options={[{ value: 'ARS', label: 'ARS — Peso argentino' }, { value: 'USD', label: 'USD — Dólar estadounidense' }]} error={errs.currency} />
                   <SelectField label="Base impositiva" value={taxBasis} disabled={mode === 'quotation'} onChange={(e) => setTaxBasis(e.target.value as TaxBasis)} options={Object.entries(TAX_BASIS).map(([k, l]) => ({ value: k, label: l }))} />
                 </div>
+                {currency !== 'ARS' && currency !== 'USD' && (
+                  <div className="alert bad" role="alert">
+                    La cotización usa la moneda {currency}, que todavía no se admite para crear órdenes de compra. Sólo se permiten ARS y USD.
+                  </div>
+                )}
                 <TextArea label="Observaciones" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </Card>
@@ -142,7 +147,7 @@ function NuevaOC() {
             <ErrorBox error={create.error} />
             <div className="cmp-bar">
               <Link className="btn sec lg" href="/ordenes">Cancelar</Link>
-              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId || existing.loading || needsAck}>Revisar y crear</Button>
+              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId || existing.loading || needsAck || (currency !== 'ARS' && currency !== 'USD')}>Revisar y crear</Button>
             </div>
           </>
         )}
