@@ -4,6 +4,7 @@ import { Prisma } from "../apps/api/node_modules/@prisma/client";
 import { zodToJsonSchema } from "../apps/api/node_modules/zod-to-json-schema";
 import {
   named,
+  generatedNamed,
   workSchema,
   supplierSchema,
   materialSchema,
@@ -166,6 +167,7 @@ add(
 );
 for (const [name, schema] of Object.entries({
   NamedInput: named,
+  GeneratedNamedInput: generatedNamed,
   WorkInput: workSchema,
   SupplierInput: supplierSchema,
   MaterialInput: materialSchema,
@@ -855,7 +857,7 @@ operation(
 const catalog = [
   ["works", "Work", "WorkInput", "WorkPatch", ["GERENCIA"]],
   ["units", "Unit", "NamedInput", "NamedPatch", writers],
-  ["categories", "Category", "NamedInput", "NamedPatch", writers],
+  ["categories", "Category", "GeneratedNamedInput", "NamedPatch", writers],
   ["suppliers", "Supplier", "SupplierInput", "SupplierPatch", buyers],
   ["materials", "Material", "MaterialInput", "MaterialPatch", commercial],
   ["presentations", "Presentation", "PresentationInput", null, commercial],
@@ -938,7 +940,7 @@ operation("/locations", "post", "Crear galpón o patio", ref("Location"), {
       kind: { type: "string", enum: ["WAREHOUSE", "YARD"] },
       active: bool,
     },
-    ["code", "name", "kind"],
+    ["name", "kind"],
   ),
   status: 201,
 });
