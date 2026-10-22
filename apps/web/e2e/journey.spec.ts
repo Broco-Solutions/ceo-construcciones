@@ -10,7 +10,7 @@ test.describe.configure({ mode: 'serial' });
 test.setTimeout(300_000);
 
 const SUF = SUFFIX();
-const W = { code: `JRN-${SUF}`, name: `Obra Recorrido ${SUF}` };
+const W = { code: '', name: `Obra Recorrido ${SUF}` };
 const APU = `Revoque recorrido ${SUF}`;
 const COMP = `Cómputo recorrido ${SUF}`;
 const day = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
@@ -44,13 +44,14 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto('/obras');
     await p.getByRole('button', { name: 'Nueva obra' }).click();
     const dlg = p.getByRole('dialog');
-    await dlg.getByLabel('Código').fill(W.code);
     await dlg.getByLabel('Nombre').fill(W.name);
     await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
     await dlg.getByRole('button', { name: 'Crear obra' }).click();
     await toast(p, 'Obra creada');
     await p.waitForURL(/\/obras\/[^/]+$/);
     st.workId = p.url().split('/').pop()!;
+    W.code = (await admin.get<{ code: string }>(`/works/${st.workId}`)).code;
+    expect(W.code).toMatch(/^OBR-\d{3,}$/);
   });
   // PREPARACIÓN: asignar la obra al Jefe (conserva sus obras actuales) y leer ubicaciones.
   await assignJefe(admin, st.workId!);
