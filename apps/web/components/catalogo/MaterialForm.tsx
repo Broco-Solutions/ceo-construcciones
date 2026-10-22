@@ -5,6 +5,7 @@ import { useMutation } from '@/lib/hooks';
 import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { Button, DecimalField, ErrorBox, Modal, SelectField, TextField, useToast } from '@/components/ui';
 import { useCategories, useUnits, type Material } from './common';
+import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
 const SHOWN = new Set(['code', 'name', 'unitId', 'categoryId', 'minimum']);
 
@@ -13,7 +14,7 @@ const SHOWN = new Set(['code', 'name', 'unitId', 'categoryId', 'minimum']);
  * (la unidad base es inmutable, incluso si coincide).
  */
 export function materialBody(editing: boolean, f: { code: string; name: string; unitId: string; categoryId: string; active: boolean }, minimum: string | undefined) {
-  const body: Record<string, unknown> = { code: f.code.trim(), name: f.name.trim(), categoryId: f.categoryId || null, active: f.active };
+  const body: Record<string, unknown> = { code: !editing && !f.code.trim() ? AUTO_CODE : f.code.trim(), name: f.name.trim(), categoryId: f.categoryId || null, active: f.active };
   if (minimum !== undefined) body.minimum = minimum;
   if (!editing) body.unitId = f.unitId;
   return body;
@@ -43,7 +44,6 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const le: Record<string, string> = {};
-    if (!f.code.trim()) le.code = 'Ingresá un código';
     if (!f.name.trim()) le.name = 'Ingresá un nombre';
     if (!editing && !f.unitId) le.unitId = 'Elegí la unidad base';
     let minimum: string | undefined;
@@ -85,7 +85,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
       }
     >
       <form id="material-form" className="stack" onSubmit={submit} noValidate>
-        <TextField label="Código" value={f.code} onChange={set('code')} error={errs.code} maxLength={500} required />
+        <AutoCodeField prefix="MAT" value={editing ? f.code : undefined} />
         <TextField label="Nombre" value={f.name} onChange={set('name')} error={errs.name} maxLength={500} required />
         {editing ? (
           <div className="field">
