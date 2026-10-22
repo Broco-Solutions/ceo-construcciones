@@ -66,16 +66,37 @@ test('429: se respeta Retry-After y se bloquea el botón', async ({ page }) => {
   await expect(page.getByRole('button', { name: /Esperá \d+ s/ })).toBeDisabled();
 });
 
+const NAV_SECTION: Record<string, string> = {
+  'Usuarios': 'Administración',
+  'APU': 'Presupuesto',
+  'Cotizaciones': 'Compras',
+  'Proveedores y precios': 'Catálogo',
+  'Cómputos': 'Presupuesto',
+  'Presupuestos': 'Presupuesto',
+  'Pedidos': 'Compras',
+  'Stock': 'Inventario',
+  'Recepciones': 'Compras',
+};
+
 for (const [role, visible, hidden] of [
   ['GERENCIA', ['Usuarios', 'APU', 'Cotizaciones'], []],
   ['COMPRAS', ['Cotizaciones', 'Proveedores y precios'], ['Usuarios']],
   ['COMPUTO', ['APU', 'Cómputos', 'Presupuestos'], ['Usuarios', 'Recepciones']],
   ['JEFE_OBRA', ['Pedidos', 'Stock', 'Recepciones'], ['APU', 'Cotizaciones', 'Proveedores y precios', 'Usuarios', 'Presupuestos']],
 ] as const) {
-  test(`navegación por rol: ${role}`, async ({ page }) => {
+  test('navegación por rol: ' + role, async ({ page }) => {
     await login(page, role);
     const nav = page.getByRole('navigation', { name: 'Navegación principal' });
-    for (const v of visible) await expect(nav.getByRole('link', { name: v, exact: true })).toBeVisible();
-    for (const h of hidden) await expect(nav.getByRole('link', { name: h, exact: true })).toHaveCount(0);
+    for (const label of visible) {
+      const section = nav.getByRole('button', { name: NAV_SECTION[label], exact: true });
+      await expect(section).toBeVisible();
+      if (await section.getAttribute('aria-expanded') !== 'true') await section.click();
+      await expect(nav.getByRole('link', { name: label, exact: true })).toBeVisible();
+    }
+    for (const label of hidden) {
+      const section = nav.getByRole('button', { name: NAV_SECTION[label], exact: true });
+      if (await section.count() && await section.getAttribute('aria-expanded') !== 'true') await section.click();
+      await expect(nav.getByRole('link', { name: label, exact: true })).toHaveCount(0);
+    }
   });
 }

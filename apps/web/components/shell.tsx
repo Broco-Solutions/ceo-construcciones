@@ -1,8 +1,8 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
-import { LogOut, Menu, X } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
+import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import { NAV, type NavItem } from '@/lib/nav';
 import { useSession } from '@/lib/session';
 import { ROLE_LABEL } from '@/lib/permissions';
@@ -26,18 +26,42 @@ function initials(name: string) {
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const groups = useNavItems();
+  const activeGroup = groups.find((g) => g.items.some((i) => isActive(pathname, i.href)))?.label;
+  const [expanded, setExpanded] = useState<string | null>(() => activeGroup ?? groups[0]?.label ?? null);
+  const groupId = useId();
+
+  // Al navegar, mostrar la sección que contiene la ruta activa.
+  useEffect(() => {
+    if (activeGroup) setExpanded(activeGroup);
+  }, [activeGroup]);
+
   return (
     <>
-      {groups.map((g) => (
-        <div key={g.label}>
-          <div className="grp">{g.label}</div>
-          {g.items.map((i) => (
-            <Link key={i.href} href={i.href} className="nav" aria-current={isActive(pathname, i.href) ? 'page' : undefined} onClick={onNavigate}>
-              <i.icon aria-hidden /> {i.label}
-            </Link>
-          ))}
-        </div>
-      ))}
+      {groups.map((g, index) => {
+        const open = expanded === g.label;
+        const panelId = groupId + '-section-' + index;
+        return (
+          <div key={g.label} className="nav-group">
+            <button
+              type="button"
+              className={'grp grp-button' + (activeGroup === g.label ? ' active-group' : '')}
+              aria-expanded={open}
+              aria-controls={panelId}
+              onClick={() => setExpanded((old) => old === g.label ? null : g.label)}
+            >
+              <span>{g.label}</span>
+              <ChevronDown aria-hidden className={'grp-chevron' + (open ? ' expanded' : '')} />
+            </button>
+            <div id={panelId} className="nav-subnav" hidden={!open}>
+              {g.items.map((i) => (
+                <Link key={i.href} href={i.href} className="nav nav-child" aria-current={isActive(pathname, i.href) ? 'page' : undefined} onClick={onNavigate}>
+                  <i.icon aria-hidden /> {i.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </>
   );
 }
@@ -65,7 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="logo" style={{ color: '#fff', fontWeight: 800, fontSize: 18, letterSpacing: '-.01em' }}>
           CEO <span style={{ fontWeight: 600, opacity: 0.7 }}>Construcciones</span>
         </div>
-        <nav style={{ overflowY: 'auto', flex: 1 }} aria-label="Navegación principal">
+        <nav className="side-nav" aria-label="Navegación principal">
           <NavLinks />
         </nav>
         <div className="foot">

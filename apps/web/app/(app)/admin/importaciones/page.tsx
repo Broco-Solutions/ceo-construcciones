@@ -7,6 +7,7 @@ import { api, ApiError } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { parseCsv } from '@/components/admin/csv';
+import { exportFilename, templateFilename } from '@/lib/download-names';
 
 type Kind = 'works' | 'suppliers' | 'materials' | 'prices' | 'purchase-orders' | 'initial-stock';
 const KINDS: { key: Kind; label: string; dep: string }[] = [
@@ -46,7 +47,7 @@ function Importaciones() {
     setBusy(path);
     setDlErr(null);
     try {
-      await api.download(path, undefined, name);
+      await api.download(path, undefined, name, true);
     } catch (e) {
       setDlErr(e);
     } finally {
@@ -65,13 +66,13 @@ function Importaciones() {
       <Card bodyClass="">
         <Tabs tabs={KINDS.map((k) => ({ key: k.key, label: k.label }))} value={kind} onChange={setKind} />
         <div className="bd">
-          <ImportKind key={kind} kind={kind} onTemplate={() => download(`/imports/${kind}/template`, `plantilla-${kind}.csv`)} templateBusy={busy === `/imports/${kind}/template`} onDone={(n) => toast(`${n} filas importadas`)} />
+          <ImportKind key={kind} kind={kind} onTemplate={() => download(`/imports/${kind}/template`, templateFilename(kind))} templateBusy={busy === `/imports/${kind}/template`} onDone={(n) => toast(`${n} filas importadas`)} />
         </div>
       </Card>
       <Card title="Exportaciones">
         <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
           {EXPORTS.map((e) => (
-            <Button key={e.path} variant="sec" loading={busy === e.path} disabled={!!busy && busy !== e.path} onClick={() => download(e.path, `${e.path.split('/').pop()}.xlsx`)}>
+            <Button key={e.path} variant="sec" loading={busy === e.path} disabled={!!busy && busy !== e.path} onClick={() => download(e.path, exportFilename(e.path))}>
               <Download /> {e.label}
             </Button>
           ))}
