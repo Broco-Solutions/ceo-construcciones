@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { api, type Schemas } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { Button, ErrorBox, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
+import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
 type Loc = Schemas['Location'];
 
@@ -21,7 +22,7 @@ export function LocationForm({ open, loc, onClose, onSaved }: { open: boolean; l
     setActive(loc?.active ?? true);
   }, [open, loc]);
   const save = useMutation((_k: string) =>
-    loc ? api.patch(`/locations/${loc.id}`, { code: code.trim(), name: name.trim(), active }) : api.post('/locations', { code: code.trim(), name: name.trim(), kind }),
+    loc ? api.patch(`/locations/${loc.id}`, { code: code.trim(), name: name.trim(), active }) : api.post('/locations', { code: AUTO_CODE, name: name.trim(), kind }),
   );
   const fe = fieldErrors(save.error);
   const close = () => {
@@ -41,7 +42,7 @@ export function LocationForm({ open, loc, onClose, onSaved }: { open: boolean; l
           }
         }}
       >
-        <TextField label="Código" value={code} onChange={(e) => setCode(e.target.value)} required error={fe.code} />
+        <AutoCodeField prefix="UBI" value={loc ? code : undefined} />
         <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required error={fe.name} />
         {!loc && (
           <SelectField label="Tipo" value={kind} onChange={(e) => setKind(e.target.value as 'WAREHOUSE' | 'YARD')} options={[{ value: 'WAREHOUSE', label: 'Galpón' }, { value: 'YARD', label: 'Patio' }]} error={fe.kind} />
