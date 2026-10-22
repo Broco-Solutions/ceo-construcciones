@@ -217,6 +217,7 @@ textarea.input{min-height:72px;resize:vertical}
 .formgrid>.field>.input{flex:none;min-height:44px}
 .formgrid>.field>.hint,.formgrid>.field>.err{flex:none}
 .formgrid>.field:has(>.btn):not(:has(>label)){align-self:end}
+.input.autocode-field{background:var(--surface2);color:var(--ceo);font-family:var(--mono);font-weight:700;cursor:text}
 
 .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;padding:12px 18px;border-bottom:1px solid var(--line2)}
 .filters .input{width:auto;min-width:160px}
