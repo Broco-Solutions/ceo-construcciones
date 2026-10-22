@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { api, fieldErrors } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, Modal, TextField, useToast } from '@/components/ui';
+import { Button, Card, DataTable, Empty, ErrorBox, GeneratedCode, Loading, Modal, TextField, useToast } from '@/components/ui';
 
 type Named = { id: string; code: string; name: string };
 
@@ -91,18 +91,19 @@ export function NamedCatalog({ path, title, singular, canEdit, hint, fem }: { pa
 
 function NamedForm({ path, singular, fem, item, onClose, onSaved }: { path: string; singular: string; fem?: boolean; item: Named | null; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
+  const technicalUnit = path === "/units";
   const [f, setF] = useState({ code: item?.code ?? '', name: item?.name ?? '' });
   const [local, setLocal] = useState<Record<string, string>>({});
-  const m = useMutation(async (_k, body: { code: string; name: string }) => (item ? api.patch(`${path}/${item.id}`, body) : api.post(path, body)));
+  const m = useMutation(async (_k, body: { code?: string; name: string }) => (item ? api.patch(`${path}/${item.id}`, body) : api.post(path, body)));
   const errs = { ...fieldErrors(m.error), ...local };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const le: Record<string, string> = {};
-    if (!f.code.trim()) le.code = 'Ingresá un código';
+    if (technicalUnit && !f.code.trim()) le.code = 'Ingresá la abreviatura de la unidad (kg, m², m³, etc.).';
     if (!f.name.trim()) le.name = 'Ingresá un nombre';
     setLocal(le);
     if (Object.keys(le).length) return;
-    const r = await m.run({ code: f.code.trim(), name: f.name.trim() });
+    const r = await m.run({ ...(technicalUnit ? { code: f.code.trim() } : {}), name: f.name.trim() });
     if (r) {
       const S = `${singular[0].toUpperCase()}${singular.slice(1)}`;
       toast(`${S} ${item ? 'actualizad' : 'cread'}${fem ? 'a' : 'o'}`);
@@ -126,7 +127,11 @@ function NamedForm({ path, singular, fem, item, onClose, onSaved }: { path: stri
       }
     >
       <form id="named-form" className="stack" onSubmit={submit} noValidate>
-        <TextField label="Código" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} error={errs.code} maxLength={500} />
+        {technicalUnit ? (
+          <TextField label="Símbolo / código de unidad" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} error={errs.code} maxLength={500} hint="Ej.: kg, m, m², m³ o u. Es una abreviatura de medición, no un correlativo." />
+        ) : (
+          <GeneratedCode current={item?.code} example="RUB-001" />
+        )}
         <TextField label="Nombre" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} error={errs.name} maxLength={500} />
         <ErrorBox error={m.error && Object.keys(fieldErrors(m.error)).length === 0 ? m.error : null} />
       </form>
