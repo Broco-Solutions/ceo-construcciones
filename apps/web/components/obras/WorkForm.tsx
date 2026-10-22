@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, type Schemas } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
-import { Button, ErrorBox, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
+import { Button, ErrorBox, GeneratedCode, Modal, SelectField, TextField, fieldErrors, useToast } from '@/components/ui';
 import { WORK_STATUS_OPTIONS } from './labels';
 
 type Work = Schemas['WorkList'];
@@ -10,20 +10,18 @@ type Work = Schemas['WorkList'];
 /** Alta/edición de obra (sólo Gerencia). `work` undefined = alta. */
 export function WorkForm({ open, work, onClose, onSaved }: { open: boolean; work?: Work; onClose: () => void; onSaved: (w: Schemas['Work']) => void }) {
   const toast = useToast();
-  const [code, setCode] = useState('');
   const [name, setName] = useState('');
   const [status, setStatus] = useState<Schemas['WorkStatus']>('ACTIVE');
   const [managerId, setManagerId] = useState('');
   const users = useAll<Schemas['User']>(open ? '/users' : null);
   useEffect(() => {
     if (!open) return;
-    setCode(work?.code ?? '');
     setName(work?.name ?? '');
     setStatus(work?.status ?? 'ACTIVE');
     setManagerId(work?.managerId ?? '');
   }, [open, work]);
   const save = useMutation(async (_key: string) => {
-    const body = { code: code.trim(), name: name.trim(), status, managerId: managerId || null };
+    const body = { name: name.trim(), status, managerId: managerId || null };
     const r = work
       ? await api.patch<{ data: Schemas['Work'] }>(`/works/${work.id}`, body)
       : await api.post<{ data: Schemas['Work'] }>('/works', body);
@@ -47,7 +45,7 @@ export function WorkForm({ open, work, onClose, onSaved }: { open: boolean; work
   return (
     <Modal open={open} onClose={close} side title={work ? `Editar obra ${work.code}` : 'Nueva obra'}>
       <form className="stack" onSubmit={submit}>
-        <TextField label="Código" value={code} onChange={(e) => setCode(e.target.value)} required maxLength={500} error={fe.code} />
+        <GeneratedCode current={work?.code} example="OBR-001" />
         <TextField label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required maxLength={500} error={fe.name} />
         <SelectField label="Estado" value={status} onChange={(e) => setStatus(e.target.value as Schemas['WorkStatus'])} options={WORK_STATUS_OPTIONS} error={fe.status} />
         <SelectField
