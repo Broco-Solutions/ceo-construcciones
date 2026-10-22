@@ -24,6 +24,7 @@ function NuevaOC() {
 
   const [supplierId, setSupplierId] = useState('');
   const [currency, setCurrency] = useState('ARS');
+  const allowedCurrency = currency === 'ARS' || currency === 'USD';
   const [taxBasis, setTaxBasis] = useState<TaxBasis>('UNSPECIFIED');
   const [destinationId, setDestinationId] = useState('');
   const [notes, setNotes] = useState('');
@@ -62,7 +63,7 @@ function NuevaOC() {
 
   const review = () => {
     setLineErr(v.errors);
-    if (v.ok && supplierId && destinationId && /^[A-Z]{3}$/.test(currency) && !needsAck) setConfirm(true);
+    if (v.ok && supplierId && destinationId && allowedCurrency && !needsAck) setConfirm(true);
   };
   const submit = async () => {
     const r = await create.run({
@@ -113,9 +114,10 @@ function NuevaOC() {
                     hint={mode === 'general' ? 'Obligatorio: galpón o patio.' : undefined}
                     error={errs.destinationId}
                   />
-                  <TextField label="Moneda (ISO)" value={currency} disabled={mode === 'quotation'} maxLength={3} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={errs.currency} />
+                  <SelectField label="Moneda" value={currency} disabled={mode === 'quotation'} onChange={(e) => setCurrency(e.target.value)} options={[{ value: 'ARS', label: 'ARS — Pesos argentinos' }, { value: 'USD', label: 'USD — Dólares estadounidenses' }]} error={errs.currency} />
                   <SelectField label="Base impositiva" value={taxBasis} disabled={mode === 'quotation'} onChange={(e) => setTaxBasis(e.target.value as TaxBasis)} options={Object.entries(TAX_BASIS).map(([k, l]) => ({ value: k, label: l }))} />
                 </div>
+                {!allowedCurrency && <div className="alert warn" role="alert">La cotización seleccionada utiliza una moneda no habilitada ({currency}). Para crear una OC, necesitás una cotización en ARS o USD.</div>}
                 <TextArea label="Observaciones" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </Card>
@@ -142,7 +144,7 @@ function NuevaOC() {
             <ErrorBox error={create.error} />
             <div className="cmp-bar">
               <Link className="btn sec lg" href="/ordenes">Cancelar</Link>
-              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId || existing.loading || needsAck}>Revisar y crear</Button>
+              <Button size="lg" onClick={review} disabled={!supplierId || !destinationId || !allowedCurrency || existing.loading || needsAck}>Revisar y crear</Button>
             </div>
           </>
         )}
