@@ -2212,15 +2212,19 @@ export interface components {
             code: string;
             name: string;
         };
+        GeneratedNamedInput: {
+            code?: string;
+            name: string;
+        };
         WorkInput: {
-            code: string;
+            code?: string;
             name: string;
             /** @enum {string} */
             status?: "ACTIVE" | "PAUSED" | "COMPLETED";
             managerId?: string | null;
         };
         SupplierInput: {
-            code: string;
+            code?: string;
             name: string;
             taxId?: string | null;
             email?: string | null;
@@ -2230,7 +2234,7 @@ export interface components {
             active?: boolean;
         };
         MaterialInput: {
-            code: string;
+            code?: string;
             name: string;
             unitId: string;
             categoryId?: string | null;
@@ -4459,7 +4463,6 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
-                 *       "code": "ejemplo",
                  *       "name": "ejemplo"
                  *     } */
                 "application/json": components["schemas"]["WorkInput"];
@@ -5481,10 +5484,9 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
-                 *       "code": "ejemplo",
                  *       "name": "ejemplo"
                  *     } */
-                "application/json": components["schemas"]["NamedInput"];
+                "application/json": components["schemas"]["GeneratedNamedInput"];
             };
         };
         responses: {
@@ -5995,7 +5997,6 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
-                 *       "code": "ejemplo",
                  *       "name": "ejemplo"
                  *     } */
                 "application/json": components["schemas"]["SupplierInput"];
@@ -6510,7 +6511,6 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
-                 *       "code": "ejemplo",
                  *       "name": "ejemplo",
                  *       "unitId": "ejemplo"
                  *     } */
@@ -7924,12 +7924,11 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
-                 *       "code": "ejemplo",
                  *       "name": "ejemplo",
                  *       "kind": "WAREHOUSE"
                  *     } */
                 "application/json": {
-                    code: string;
+                    code?: string;
                     name: string;
                     /** @enum {string} */
                     kind: "WAREHOUSE" | "YARD";
