@@ -1,6 +1,10 @@
 # Integración frontend — backend V1
 
-Backend en rama de misión; no mergeado ni desplegado por esta tarea. El frontend sigue siendo responsabilidad de Claude Code. Esta guía no modifica `apps/web`.
+Guía histórica de integración V1. Para el cierre de Etapa 1, `CEO_PLAN_MAESTRO_CODEX.md` prevalece y Codex trabaja full stack, incluido `apps/web`. El contrato vigente es `docs/api/openapi.json`. No interpretar la división original entre agentes como restricción actual.
+
+Las decisiones actuales agregan clientes/obras, Actividades de obra, plantillas, borradores y revisiones comerciales/PDF, recargo, revisión/importación de precios, cobertura neta, recepción delegada, Administración restringida e indicadores. Las reglas y permisos detallados son los del plan §5; las rutas V1 se mantienen para compatibilidad.
+
+Las OC nuevas usan HALF_UP por renglón a dos decimales; las históricas sin política conservan sus advertencias. Cero explícito es un precio válido y se distingue de faltante. Número/importe de factura y Pagado/Pendiente son datos informativos con auditoría, sin ejecución de pagos. Cómputo puede seleccionar referencia de abastecimiento. Los apartados siguientes describen la implementación original y deben leerse con estas actualizaciones.
 
 ## Contrato y entorno
 

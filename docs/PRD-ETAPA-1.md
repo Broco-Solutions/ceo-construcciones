@@ -5,6 +5,8 @@
 **Plazo de referencia:** 10 semanas desde los hitos contractuales de pago, entrega de archivos y accesos.
 **No es una ampliación comercial:** prevalece el contrato y Anexo I; los detalles internos sirven para materializar su alcance.
 
+> Actualización de ejecución (02/11/2026): para la misión autorizada en `CEO_PLAN_MAESTRO_CODEX.md`, las decisiones posteriores del usuario prevalecen sobre las exclusiones históricas de este PRD: experiencia de Actividades de obra, clientes con varias obras, costos directos/VARIOS, recargo comercial, borradores/revisiones/PDF comercial, importación Excel, necesidades netas, Administración restringida e indicadores. Se mantienen los límites de seguridad, privacidad, integridad y la prohibición de configurar infraestructura o ejecutar cambios productivos.
+
 ## 1. Fuentes y jerarquía
 1. **Contrato y Anexo I — Etapa 1:** https://docs.google.com/document/d/1KAc0AJrNjK-miwRIr6Bc8NmOCUB0As1E/edit
 2. **Definiciones funcionales actualizadas de Renzo (21/10):** https://docs.google.com/document/d/1HiAvffV5hO2iDBPbzCpnfI6B7R491SbCbQqcetoQ6nk/edit
@@ -30,12 +32,12 @@ El presupuesto contiene costos previstos, NO indicadores de rentabilidad total n
 
 ### RF-02 · Identidad, roles y trazabilidad
 - Autenticación individual por usuario/contraseña, sesiones seguras y cierre de sesión.
-- **Tres niveles, cuatro roles funcionales:** nivel 1 Gerencia; nivel 2 Compras y Cómputo/Presupuestos como roles distintos; nivel 3 Jefe de obra.
+- **Cinco perfiles funcionales:** Gerencia, Compras, Cómputo/Presupuestos, Jefe de obra y Administración restringida. Permisos cerrados por el plan maestro §5.2.
 - Gerencia: visibilidad y capacidad de administración total en los módulos contratados. Referentes relevados: Marcelo, Franco, Alejo y Raquel; confirmar cuentas concretas al alta.
 - Compras: materiales/proveedores, solicitudes, cotizaciones, OC, recepciones y operación de stock que se le autorice.
 - Cómputo/Presupuestos: APU, catálogos, listas de precios, cómputos y presupuestos. Referente relevado: Elías.
 - Jefe de obra: obras asignadas; consultar materiales, cargar pedidos, confirmar recepciones en sus ubicaciones y registrar consumos/devoluciones autorizados, **sin datos de precios/costos**.
-- No existe rol operativo Contabilidad, Administración ni RR. HH. en la Etapa 1. No crear un rol para cargar facturas.
+- Administración restringida consulta identificadores mínimos de OC y factura informativa, y cambia Pagado/Pendiente con auditoría. Puede recibir sólo por delegación específica de destino. Sin acceso económico global, clientes, presupuestos, stock ni usuarios.
 - Registrar actor, fecha/hora, operación, entidad y referencias relevantes en modificaciones de presupuesto, OC, recepciones y movimientos de inventario.
 - La matriz detallada de botones/acciones para roles operativos queda como validación por tarea con CEO. Los controles del backend son obligatorios.
 
@@ -49,18 +51,18 @@ El presupuesto contiene costos previstos, NO indicadores de rentabilidad total n
 - Reportar filas inválidas, duplicadas o sin unidades/precios durante la importación, sin inventar equivalencias.
 - Carga inicial acordada de hasta 250 artículos; el catálogo no tendrá un tope de base de datos de 250.
 
-### RF-04 · Ítems y análisis de precios unitarios (APU)
+### RF-04 · Actividades de obra y composición del costo
 - Rubros → ítems de trabajo, cada ítem con descripción y unidad de ejecución (m², m³, ml, unidad, etc.).
 - Definir para cada unidad ejecutada una lista de materiales y coeficientes de consumo ingresados/editados por el responsable de Cómputo. **El sistema no calcula cómo se obtienen técnicamente esos coeficientes**.
 - Costo unitario de materiales = suma de (coeficiente × precio normalizado en la unidad de consumo).
 - Mano de obra se incorpora como **importe unitario editable**, no como horas efectivas, asistencia ni cálculo de jornales.
-- Total unitario del ítem = materiales + importe de mano de obra.
+- Costo por unidad = materiales + mano de obra + otros costos directos explícitos cuando correspondan, sin crear materiales ni salarios ficticios.
 - Usar IDs internos inmutables; el código de ítem visible en Excel no garantiza unicidad.
-- El Excel de referencia NO se trasladará hoja por hoja ni se replicarán macros, coeficientes de venta, rentabilidad o fórmulas extra.
+- La plantilla BASE y las composiciones se reutilizan como datos, sin macros ni un motor general de Excel. El recargo comercial general y sus excepciones acotadas están confirmados por el plan maestro §5.4.
 - Ejemplo de validación: hoja 10-Ciel, ítem Aplicado a la cal completo, por 1 m²: 4,5 kg cemento, 6,6 kg cal, 0,07 m³ arena; valores fijos de consumo provistos por CEO.
 
 ### RF-05 · Cómputo y presupuestos por obra
-- **Primero cómputo:** cargar cantidades de ejecución por obra/rubro/ítem.
+- **Flujo principal:** empezar desde BASE/plantilla/revisión o en blanco, cargar cantidades por rubro/actividad, revisar costos, definir recargo al final y emitir PDF. Los recorridos V1 se conservan para compatibilidad.
 - **Luego presupuesto:** aplicar APU, precios de referencia y valor de mano de obra por ítem, permitiendo excepciones de precio dentro de la versión.
 - Calcular subtotales por ítem y rubro, costo total del presupuesto y desglose de materiales/mano de obra.
 - Generar automáticamente lista consolidada de materiales = suma(consumo unitario de cada ítem × cantidad de trabajo), normalizada por unidad.
@@ -94,7 +96,7 @@ El presupuesto contiene costos previstos, NO indicadores de rentabilidad total n
 - OC con numeración única, proveedor, renglones, cantidades, precios de compra y PDF exportable.
 - La OC puede vincularse a obra/pedido **o ser una compra general destinada a galpón/patio sin obra**. La ubicación de destino debe estar identificada.
 - Estados operativos mínimos propuestos: borrador, emitida, recepción parcial, recibida y anulada; términos y transiciones sujetos a validación operativa, preservando historial.
-- **Dato de factura limitado:** después del pago realizado fuera del sistema, Compras o Gerencia puede registrar el número de factura en la OC. Guardar automáticamente la fecha/hora de esa carga y el usuario que la realizó. No editar manualmente una fecha de pago ni gestionar facturas como entidad contable.
+- **Factura informativa:** Compras/Gerencia registran número e importe/moneda; Administración restringida puede marcar Pagado/Pendiente. Cada modificación guarda actor y timestamp, sin ejecutar pagos ni inventar su fecha real.
 - No adjuntar factura, procesar pagos, calcular saldos, registrar bancos, programar vencimientos ni incorporar rol contable.
 - La referencia a factura no modifica el stock y es independiente del registro de recepción.
 - Permitir edición/corrección autorizada de la referencia dejando registro de modificaciones.
@@ -174,8 +176,8 @@ Se permite simplificar tablas sin perder integridad, trazabilidad y separación 
 
 ## 6. Fuera de alcance
 - Integraciones automáticas con CEO Obras, Hollistor u otros sistemas.
-- Facturación y carga de documentos de factura, procesamiento de pagos, tesorería y conciliaciones. **Excepción puntual aprobada: únicamente número de factura y timestamp de carga en OC.**
-- Certificaciones de avance, CAC automático, presupuestación con coeficientes de venta, rentabilidad, mano de obra por jornales u horas realmente trabajadas.
+- Facturación fiscal, adjuntos de facturas, procesamiento de pagos, tesorería y conciliaciones. **Se incluyen número, importe/moneda y estado informativo de pago en OC, con actor/fecha automáticos.**
+- Certificaciones de avance, CAC automático, rentabilidad contable realizada, mano de obra por jornales u horas realmente trabajadas. El recargo comercial sobre costo sí está incluido; no se presenta como margen sobre ventas.
 - RR. HH., asistencia, vehículos, subcontratistas, herramientas serializadas.
 - IA integrada, automatizaciones de WhatsApp/email, app nativa, offline, códigos de barras/RFID, valoración contable del inventario.
 - Migración histórica completa y recuento físico de existencias por Broco.
@@ -192,7 +194,7 @@ Se permite simplificar tablas sin perder integridad, trazabilidad y separación 
 - Backups automáticos **al menos semanales con 30 días de retención**, monitoreo básico y objetivo contractual de 99,5 % de disponibilidad mensual según exclusiones del contrato.
 - Datos exportables en formato abierto/utilizable; documentación y código transferibles según contrato.
 - Migraciones Prisma versionadas, jamás aplicar cambios destructivos automáticamente en producción sin revisión y backup.
-- Codex: apps/api, schema y migraciones, API, infraestructura, tests. Claude Code: apps/web y UX. PRs independientes coordinados a través de OpenAPI y revisión del orquestador.
+- Para esta misión Codex trabaja full stack: apps/api, apps/web, schema, migraciones de aplicación, OpenAPI, pruebas y documentación. Infraestructura y datos productivos fuera de autorización; el usuario autorizó integrar el candidato que cumpla el plan y los checks, respetando protecciones.
 - Ninguna funcionalidad de negocio se implementa por inferencia a partir de PDFs o demo; trabajar por tickets/módulos aprobados.
 
 ## 8. Piloto y entrega comprometidos
