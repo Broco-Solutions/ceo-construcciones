@@ -35,7 +35,10 @@ async function audit(page: Page, path: string) {
       )
         return true;
       if (h.labels && h.labels.length) return true;
-      return !!el.textContent?.trim();
+      return (
+        !!el.textContent?.trim() ||
+        !!el.querySelector('img[alt]')?.getAttribute('alt')?.trim()
+      );
     };
     const unlabeled = [
       ...document.querySelectorAll(

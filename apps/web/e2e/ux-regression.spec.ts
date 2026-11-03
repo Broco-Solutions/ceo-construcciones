@@ -64,6 +64,34 @@ test('la sidebar permite expandir y colapsar grupos y marca la ruta activa', asy
   await expect(nav.getByRole('link', { name: 'Materiales', exact: true })).toHaveAttribute('aria-current', 'page');
 });
 
+for (const width of [1440, 360]) {
+  test(`Compras conserva la barra activa con Catálogo abierto (${width}px)`, async ({ page }, testInfo) => {
+    await login(page, 'GERENCIA');
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/pedidos');
+    if (width < 820) {
+      await page.getByRole('button', { name: 'Abrir menú' }).click();
+    }
+
+    const nav = page.getByRole('navigation', {
+      name: width < 820 ? 'Menú completo' : 'Navegación principal',
+    });
+    const compras = nav.getByRole('button', { name: 'Compras', exact: true });
+    const catalogo = nav.getByRole('button', { name: 'Catálogo', exact: true });
+    await expect(compras).toHaveClass(/active-group/);
+    await catalogo.click();
+    await expect(catalogo).toHaveAttribute('aria-expanded', 'true');
+    await expect(compras).toHaveAttribute('aria-expanded', 'false');
+    await expect(compras).toHaveClass(/active-group/);
+    const bar = await compras.evaluate((button) => {
+      const style = getComputedStyle(button, '::before');
+      return { width: style.width, color: style.backgroundColor };
+    });
+    expect(bar).toEqual({ width: '3px', color: 'rgb(255, 255, 255)' });
+    await page.screenshot({ path: testInfo.outputPath(`pedidos-${width}.png`) });
+  });
+}
+
 test('la exportación Excel usa nombre traducido y fecha sin hora, aun con Content-Disposition del backend', async ({ page }) => {
   await login(page, 'GERENCIA');
   await page.goto('/admin/importaciones');

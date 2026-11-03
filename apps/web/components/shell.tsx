@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
@@ -37,6 +38,35 @@ function initials(name: string) {
     .join('');
 }
 
+function SidebarUser({
+  name,
+  role,
+  logout,
+}: {
+  name: string;
+  role: string;
+  logout: () => void;
+}) {
+  return (
+    <div className="foot">
+      <span className="av" aria-hidden>{initials(name)}</span>
+      <div className="user-details">
+        <b title={name}>{name}</b>
+        <span>{role}</span>
+      </div>
+      <button
+        type="button"
+        className="logout"
+        onClick={logout}
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
+        <LogOut aria-hidden />
+      </button>
+    </div>
+  );
+}
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const groups = useNavItems();
@@ -72,7 +102,8 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
                 setExpanded((old) => (old === g.label ? null : g.label))
               }
             >
-              <span>{g.label}</span>
+              <g.icon aria-hidden className="grp-icon" />
+              <span className="grp-label">{g.label}</span>
               <ChevronDown
                 aria-hidden
                 className={'grp-chevron' + (open ? ' expanded' : '')}
@@ -125,30 +156,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         Saltar al contenido
       </a>
       <aside className="side">
-        <div
-          className="logo"
-          style={{
-            color: '#fff',
-            fontWeight: 800,
-            fontSize: 18,
-            letterSpacing: '-.01em',
-          }}
-        >
-          CEO{' '}
-          <span style={{ fontWeight: 600, opacity: 0.7 }}>Construcciones</span>
-        </div>
+        <Link href="/" className="logo">
+          <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
+        </Link>
         <nav className="side-nav" aria-label="Navegación principal">
           <NavLinks />
         </nav>
-        <div className="foot">
-          <div className="who">
-            <b>{user.name}</b>
-            {ROLE_LABEL[user.role]}
-          </div>
-          <button className="nav" onClick={logout}>
-            <LogOut aria-hidden /> Cerrar sesión
-          </button>
-        </div>
+        <SidebarUser name={user.name} role={ROLE_LABEL[user.role]} logout={logout} />
       </aside>
       <div className="main" id="contenido">
         {children}
@@ -176,29 +190,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         >
           <nav
             className="side"
-            style={{ display: 'flex', position: 'static', height: '100%' }}
             aria-label="Menú completo"
           >
-            <div
-              className="row"
-              style={{ color: '#fff', padding: '0 8px 8px' }}
-            >
-              <b style={{ flex: 1 }}>{user.name}</b>
+            <div className="mobile-head">
+              <Link href="/" className="logo" onClick={() => setMenu(false)}>
+                <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
+              </Link>
               <button
-                className="x"
+                type="button"
+                className="mobile-close"
                 onClick={() => setMenu(false)}
                 aria-label="Cerrar menú"
               >
-                <X size={16} />
+                <X aria-hidden size={18} />
               </button>
             </div>
-            <div className="who" style={{ paddingTop: 0 }}>
-              {ROLE_LABEL[user.role]}
+            <div className="side-nav">
+              <NavLinks onNavigate={() => setMenu(false)} />
             </div>
-            <NavLinks onNavigate={() => setMenu(false)} />
-            <button className="nav" onClick={logout} style={{ marginTop: 12 }}>
-              <LogOut aria-hidden /> Cerrar sesión
-            </button>
+            <SidebarUser name={user.name} role={ROLE_LABEL[user.role]} logout={logout} />
           </nav>
         </div>
       )}
@@ -218,7 +228,6 @@ export function Page({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const { user } = useSession();
   return (
     <>
       <header className="top">
@@ -228,17 +237,6 @@ export function Page({
         </div>
         <span className="sp" />
         {actions && <div className="row">{actions}</div>}
-        {user && (
-          <div className="me hide-m">
-            <span className="av" aria-hidden>
-              {initials(user.name)}
-            </span>
-            <div>
-              <b>{user.name}</b>
-              <span className="muted">{ROLE_LABEL[user.role]}</span>
-            </div>
-          </div>
-        )}
       </header>
       <main className="content">{children}</main>
     </>
