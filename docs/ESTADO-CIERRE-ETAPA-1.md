@@ -15,7 +15,7 @@ Actualizado: **03/11/2026**. Base: `main` `a9a075dc159c8c59d075aa5894534e3dbaae9
 | F6 | Necesidades sin doble conteo, reservas/recepción/traslado trazados, pedidos manuales y OC sin aprobación, recepción delegada y factura/pago informativos |
 | F7 | Reportes cuantitativos e indicadores cliente/obra/proveedor, totales servidor y Excel, monedas/IVA separados, legado sin importe inventado |
 | F8 | Seis migraciones sobre base vacía y V1 poblada, adaptador dry-run/ejecución/repetición aislados, BASE real y DG real contra PostgreSQL; revisión UI/PDF ejecutada. Límites de datos históricos documentados |
-| F9 | Revisión, pruebas locales y compatibilidad binaria/navegador aprobadas. Preparación del PR; sin merge todavía; no se afirma integración ni habilitación productiva |
+| F9 | Revisión, pruebas locales y compatibilidad binaria/navegador aprobadas. [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8) abierto; ver su estado/checks/SHA de integración, sin anticipar merge ni habilitación productiva |
 
 ## Evidencia del candidato
 
@@ -37,3 +37,9 @@ DG conserva 57 agregados de suministros sin composición física verificable; 28
 El usuario autorizó integrar cuando pasen calidad y compatibilidad. La metadata de GitHub muestra autodespliegue existente de main mediante `railway-app[bot]`; se valida que el código nuevo preserve V1 sin necesitar la migración productiva. Se respetarán protecciones/checks, sin force-push ni despliegue manual.
 
 **No hubo migraciones/importaciones productivas ni cambios de infraestructura.** La incorporación del código no implica que las funciones nuevas estén habilitadas sobre el esquema productivo. Ver [release](RELEASE-CIERRE-ETAPA-1.md), [migraciones](MIGRACION-CIERRE-ETAPA-1.md), [aceptación](ACEPTACION-CIERRE-ETAPA-1.md), [matriz R01–R30](REQUISITOS-ETAPA-1-CIERRE.md) y [conciliación DG](DG-1153-RECONCILIACION.md).
+
+## Checkpoint de integración — PR #8
+
+Tres commits iniciales publicados: `a8f816e` (aplicación, contratos y migraciones), `a6b0a1b` (pruebas, fuentes aisladas y evidencia) y `538941d` (documentación). El [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8) es la fuente verificable de checks del candidato y del estado de merge; allí se registra el SHA final sin anticiparlo en este commit. `main` seguía en la base original al abrirlo. GitHub no devolvió reglas de rama aplicables en la consulta previa; aun así se esperan todos los checks y se verifica de nuevo antes del merge.
+
+No hay preguntas funcionales pendientes. Permanecen datos de puesta en marcha: composición física completa de los agregados históricos y export definitivo para transición. No impiden revisar/integrar la capacidad funcional implementada con sus advertencias, ni autorizan una carga productiva.

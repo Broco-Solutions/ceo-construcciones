@@ -4,7 +4,7 @@
 
 El plan rector es [CEO_PLAN_MAESTRO_CODEX.md](../CEO_PLAN_MAESTRO_CODEX.md). Codex tiene autorización full stack, incluidos frontend, contratos y migraciones de aplicación. Las asignaciones exclusivas a Claude y restricciones funcionales de los registros de octubre que siguen son antecedentes históricos, superados por las decisiones del plan para esta misión.
 
-Estado verificable y resultados por hito: [ESTADO-CIERRE-ETAPA-1.md](ESTADO-CIERRE-ETAPA-1.md). Matriz requisito → código → prueba → evidencia: [REQUISITOS-ETAPA-1-CIERRE.md](REQUISITOS-ETAPA-1-CIERRE.md). Continúa en la rama `codex/cierre-etapa1-20261102-234511-12781`; main base `a9a075dc159c8c59d075aa5894534e3dbaae961e`. F1–F8 implementadas y verificadas: API163 + runtime3, web47, E2E53; BASE/DG reales y compatibilidad binaria/navegador V1→ampliada aprobadas. F9 en preparación de PR/checks/merge. Habilitación productiva pendiente de migración de aplicación autorizada; infraestructura sin modificaciones.
+Estado verificable y resultados por hito: [ESTADO-CIERRE-ETAPA-1.md](ESTADO-CIERRE-ETAPA-1.md). Matriz requisito → código → prueba → evidencia: [REQUISITOS-ETAPA-1-CIERRE.md](REQUISITOS-ETAPA-1-CIERRE.md). Continúa en la rama `codex/cierre-etapa1-20261102-234511-12781`; main base `a9a075dc159c8c59d075aa5894534e3dbaae961e`. F1–F8 implementadas y verificadas: API163 + runtime3, web47, E2E53; BASE/DG reales y compatibilidad binaria/navegador V1→ampliada aprobadas. F9 en [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8); consultar checks, estado de merge y SHA final en ese registro. Habilitación productiva pendiente de migración de aplicación autorizada; infraestructura sin modificaciones.
 
 ## Registro histórico de V1 (octubre)
 

@@ -24,3 +24,5 @@ La disponibilidad condicional demuestra que el código puede integrarse antes de
 La comprobación local final terminó con salida0 y `No difference detected`; aprobó HTTP y alta web real antes y después de migrar. Evidencia privada: `logs/release-compatibility-binary-browser.log`, base conservada `ceo_release_test_9b1620c3631c47aa9b1838f50d771a02`.
 
 El PR y el resultado final registran commits, checks y SHA leído de `origin/main`. Antes de merge se revisa nuevamente el estado remoto y las protecciones; no se omiten checks, no se autoaprueban revisiones exigidas y no se usa force-push. Después se comprueba CI de main y se observa únicamente la metadata permitida del autodespliegue.
+
+Registro de integración: [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8). Su estado y checks distinguen el candidato de código integrado; el comentario de cierre registra SHA remoto y observación del autodespliegue, sin afirmar habilitación de las funciones nuevas.
