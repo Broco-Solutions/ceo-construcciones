@@ -1,7 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -37,7 +37,7 @@ export default function ApuListPage() {
 
 function ApuList() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const cat = useCatalogs();
   const [categoryId, setCategoryId] = useState('');
   const list = usePaged<Schemas['ApuDetail']>('/apu-items', {

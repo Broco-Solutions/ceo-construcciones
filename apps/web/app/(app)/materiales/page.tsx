@@ -1,7 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Page } from '@/components/shell';
 import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill } from '@/components/ui';
@@ -13,7 +13,7 @@ import { MaterialForm } from '@/components/catalogo/MaterialForm';
 
 export default function MaterialesPage() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const units = useUnits();
   const cats = useCategories();
   const [q, setQ] = useState('');

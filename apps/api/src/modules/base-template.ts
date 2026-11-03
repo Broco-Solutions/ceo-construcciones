@@ -24,6 +24,14 @@ const sourceSchema = z
           quantity: nonnegative,
           laborUnitCost: nonnegative.nullable(),
           directUnitCost: nonnegative.nullable(),
+          materialsIncludedInDirect: z.boolean().optional(),
+          materialReview: z
+            .object({
+              status: z.enum(["DIRECT", "VERIFIED", "UNRESOLVED"]),
+              detail: z.string(),
+              evidence: z.string(),
+            })
+            .optional(),
           materials: z.array(
             z.object({
               sourceKey: z.string(),
@@ -47,6 +55,10 @@ const code = (kind: string, key: string) =>
 const sourceUnits: Record<string, { symbol: string; name: string }> = {
   gl: { symbol: "gl", name: "Global" },
   ml: { symbol: "m", name: "Metro" },
+  m: { symbol: "m", name: "Metro" },
+  "m²": { symbol: "m²", name: "Metro cuadrado" },
+  "m³": { symbol: "m³", name: "Metro cúbico" },
+  l: { symbol: "L", name: "Litro" },
   m2: { symbol: "m²", name: "Metro cuadrado" },
   m3: { symbol: "m³", name: "Metro cúbico" },
   kg: { symbol: "kg", name: "Kilogramo" },
@@ -62,7 +74,7 @@ const sourceUnits: Record<string, { symbol: string; name: string }> = {
 /** Explicit user action, atomic and idempotent. No startup/data migration or
  * fuzzy matching. New reference materials get their own stable BASE codes. */
 export async function installBase(tx: Tx, actor: Actor) {
-  const name = `BASE · ${baseSource.sourceSha256.slice(0, 12)}`;
+  const name = `BASE · ${baseSource.sourceSha256.slice(0, 12)}${source.extractionVersion ? ` · extracción ${source.extractionVersion}` : ""}`;
   const existing = await tx.budgetTemplate.findFirst({ where: { name } });
   if (existing) return existing;
   const units = new Map<string, { id: string; symbol: string }>(),
@@ -132,15 +144,15 @@ export async function installBase(tx: Tx, actor: Actor) {
       }
       const repeated = components.find((c) => c.materialId === material!.id);
       if (repeated) {
-        const coefficient = new Prisma.Decimal(repeated.coefficient).add(
+        const coefficient = new Prisma.Decimal(repeated.coefficient!).add(
           m.coefficient,
         );
         repeated.unitPrice =
           repeated.unitPrice === null || m.unitPrice === null
             ? null
-            : new Prisma.Decimal(repeated.coefficient)
+            : new Prisma.Decimal(repeated.coefficient!)
                 .mul(repeated.unitPrice)
-                .add(new Prisma.Decimal(m.coefficient).mul(m.unitPrice))
+                .add(new Prisma.Decimal(m.coefficient!).mul(m.unitPrice))
                 .div(coefficient)
                 .toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP)
                 .toFixed();
@@ -168,6 +180,8 @@ export async function installBase(tx: Tx, actor: Actor) {
       quantity: "0",
       laborUnitCost: line.laborUnitCost,
       directUnitCost: line.directUnitCost,
+      materialsIncludedInDirect: line.materialsIncludedInDirect,
+      materialReview: line.materialReview,
       status: "ACTIVE",
       materials: components,
     });

@@ -131,7 +131,7 @@ export function VersionCompare({ a, b }: { a: V; b: V }) {
               const la = sa.lines.find((l) => l.itemId === id);
               const lb = sb.lines.find((l) => l.itemId === id);
               const cell = (
-                l: Schemas['SnapshotLine'] | undefined,
+                l: Pick<Schemas['SnapshotLine'],'quantity'|'unit'|'totalUnitCost'|'totalCost'> | undefined,
                 cur: string,
               ) =>
                 l ? (

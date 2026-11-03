@@ -287,17 +287,31 @@ export function Modal({
   const tid = useId();
   // El callback del padre cambia al actualizar cada campo. No debe rearmar el focus trap.
   const onCloseRef = useRef(onClose);
-  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     const el = ref.current;
-    const first = el?.querySelector<HTMLElement>('input,select,textarea,button:not(.x)');
+    const first = el?.querySelector<HTMLElement>(
+      'input,select,textarea,button:not(.x)',
+    );
     (first ?? el)?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
+      if (e.defaultPrevented) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onCloseRef.current();
+      }
       if (e.key === 'Tab' && el) {
-        const f = Array.from(el.querySelectorAll<HTMLElement>('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter((x) => !x.hasAttribute('disabled'));
+        const f = Array.from(
+          el.querySelectorAll<HTMLElement>(
+            'a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])',
+          ),
+        ).filter(
+          (x) => !x.hasAttribute('disabled') && x.getClientRects().length > 0,
+        );
         if (!f.length) return;
         if (e.shiftKey && document.activeElement === f[0]) {
           e.preventDefault();
@@ -316,7 +330,10 @@ export function Modal({
   }, [open]);
   if (!open) return null;
   return (
-    <div className="scrim center" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="scrim center"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div
         ref={ref}
         className="modal"
@@ -326,7 +343,13 @@ export function Modal({
         aria-labelledby={tid}
         tabIndex={-1}
       >
-        <div className="row" style={{ padding: '16px 20px', borderBottom: '1px solid var(--line2)' }}>
+        <div
+          className="row"
+          style={{
+            padding: '16px 20px',
+            borderBottom: '1px solid var(--line2)',
+          }}
+        >
           <h2 id={tid} style={{ fontSize: 17, flex: 1 }}>
             {title}
           </h2>
@@ -338,7 +361,10 @@ export function Modal({
           {children}
         </div>
         {footer && (
-          <div className="row" style={{ justifyContent: 'flex-end', padding: '0 20px 20px' }}>
+          <div
+            className="row"
+            style={{ justifyContent: 'flex-end', padding: '0 20px 20px' }}
+          >
             {footer}
           </div>
         )}

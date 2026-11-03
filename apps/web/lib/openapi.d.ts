@@ -3878,15 +3878,22 @@ export interface components {
                 directUnitCost: string | null;
                 /** @enum {string} */
                 status: "ACTIVE" | "INCLUDED" | "EXCLUDED";
+                materialsIncludedInDirect?: boolean;
                 materials: {
                     materialId: string;
                     name: string;
                     unitId: string;
                     unit: string;
-                    coefficient: string;
+                    coefficient: string | null;
                     unitPrice: string | null;
                     sourcePriceId: string | null;
                 }[];
+                materialReview?: {
+                    /** @enum {string} */
+                    status: "DIRECT" | "VERIFIED" | "UNRESOLVED";
+                    detail: string;
+                    evidence: string;
+                };
                 markup?: string;
                 materialMarkup?: string;
                 laborMarkup?: string;
@@ -3919,15 +3926,22 @@ export interface components {
                     directUnitCost: string | null;
                     /** @enum {string} */
                     status: "ACTIVE" | "INCLUDED" | "EXCLUDED";
+                    materialsIncludedInDirect?: boolean;
                     materials: {
                         materialId: string;
                         name: string;
                         unitId: string;
                         unit: string;
-                        coefficient: string;
+                        coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
                     }[];
+                    materialReview?: {
+                        /** @enum {string} */
+                        status: "DIRECT" | "VERIFIED" | "UNRESOLVED";
+                        detail: string;
+                        evidence: string;
+                    };
                     markup?: string;
                     materialMarkup?: string;
                     laborMarkup?: string;
@@ -3970,15 +3984,22 @@ export interface components {
                     directUnitCost: string | null;
                     /** @enum {string} */
                     status: "ACTIVE" | "INCLUDED" | "EXCLUDED";
+                    materialsIncludedInDirect?: boolean;
                     materials: {
                         materialId: string;
                         name: string;
                         unitId: string;
                         unit: string;
-                        coefficient: string;
+                        coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
                     }[];
+                    materialReview?: {
+                        /** @enum {string} */
+                        status: "DIRECT" | "VERIFIED" | "UNRESOLVED";
+                        detail: string;
+                        evidence: string;
+                    };
                     markup?: string;
                     materialMarkup?: string;
                     laborMarkup?: string;
@@ -3999,7 +4020,18 @@ export interface components {
             quantity: string;
             /** @description Decimal serializado como texto, nunca float. */
             laborUnitCost: string;
-            materials: components["schemas"]["SnapshotMaterial"][];
+            materials: {
+                materialId: string;
+                name: string;
+                unitId: string;
+                unit: string;
+                coefficient: string | null;
+                unitPrice: string | null;
+                sourcePriceId: string | null;
+                /** @description Decimal serializado como texto, nunca float. */
+                quantity?: string;
+                unitCost?: string | null;
+            }[];
             /** @description Decimal serializado como texto, nunca float. */
             materialUnitCost: string;
             /** @description Decimal serializado como texto, nunca float. */
@@ -4014,6 +4046,7 @@ export interface components {
             directUnitCost: string;
             /** @description Decimal serializado como texto, nunca float. */
             directCost: string;
+            materialsIncludedInDirect?: boolean;
             /** @description Decimal serializado como texto, nunca float. */
             sellingUnitPrice: string;
             /** @description Decimal serializado como texto, nunca float. */
@@ -4070,9 +4103,21 @@ export interface components {
             directCost: string;
             /** @constant */
             formatVersion: 2;
+            unitCosts?: {
+                lineKey: string;
+                totalUnitCost: string | null;
+                missingCosts: string[];
+                quantityPending: boolean;
+                zeroQuantity: boolean;
+            }[];
             /** @description Decimal serializado como texto, nunca float. */
             commercialTotal: string;
             materialDemandIncomplete: boolean;
+            materialReviewIssues?: {
+                lineKey: string;
+                name: string;
+                detail: string;
+            }[];
             materialQuantityPolicy: {
                 /** @constant */
                 precision: 8;
@@ -4149,9 +4194,21 @@ export interface components {
             directCost: string;
             /** @constant */
             formatVersion: 2;
+            unitCosts?: {
+                lineKey: string;
+                totalUnitCost: string | null;
+                missingCosts: string[];
+                quantityPending: boolean;
+                zeroQuantity: boolean;
+            }[];
             /** @description Decimal serializado como texto, nunca float. */
             commercialTotal: string;
             materialDemandIncomplete: boolean;
+            materialReviewIssues?: {
+                lineKey: string;
+                name: string;
+                detail: string;
+            }[];
             materialQuantityPolicy: {
                 /** @constant */
                 precision: 8;

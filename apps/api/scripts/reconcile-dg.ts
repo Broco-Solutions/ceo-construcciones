@@ -8,6 +8,7 @@ import {
   editorContentSchema,
   type EditorContent,
 } from "../src/modules/commercial-domain";
+import { extractComposition } from "./historical-composition";
 import { commercialPdf } from "../src/modules/commercial-pdf";
 
 type Sheet = {
@@ -51,67 +52,6 @@ async function main() {
     throw Error("Fuente BIFF normalizada inválida");
   const sheet = source.sheets.find((s) => s.name === "PRESUPUESTO REV C");
   if (!sheet) throw Error("Falta revisión C");
-  const recipes: {
-    name: string;
-    unit: string;
-    sheet: string;
-    row: number;
-    subtotalRow: number;
-    materials: {
-      name: string;
-      unit: string;
-      coefficient: string;
-      unitPrice: string;
-    }[];
-  }[] = [];
-  for (const s of source.sheets.filter((s) => /^\d\d-/.test(s.name)))
-    for (let i = 0; i < s.rows.length; i++) {
-      const row = s.rows[i];
-      if (
-        row[0] === "" ||
-        row[0] == null ||
-        !text(row[1]) ||
-        !text(row[10]) ||
-        numeric(row[9]) === null
-      )
-        continue;
-      const components: (typeof recipes)[number]["materials"] = [];
-      let complete = true,
-        subtotal = false,
-        subtotalRow = 0;
-      for (let n = i + 1; n < s.rows.length; n++) {
-        const r = s.rows[n];
-        if (r[0] !== "" && r[0] != null) break;
-        if (/material/i.test(text(r[8]))) {
-          subtotal = true;
-          subtotalRow = n + 1;
-          break;
-        }
-        if (canonical(text(r[5])) !== "X") continue;
-        const coefficient = numeric(r[3]),
-          price = numeric(r[6]);
-        if (!coefficient || price === null || !text(r[1]) || !text(r[4])) {
-          complete = false;
-          continue;
-        }
-        if (coefficient !== "0")
-          components.push({
-            name: text(r[1]),
-            unit: unit(text(r[4])),
-            coefficient,
-            unitPrice: price,
-          });
-      }
-      if (complete && subtotal && components.length)
-        recipes.push({
-          name: canonical(text(row[1])),
-          unit: unit(text(row[10])),
-          sheet: s.name,
-          row: i + 1,
-          subtotalRow,
-          materials: components,
-        });
-    }
   const content: EditorContent = {
     currency: "ARS",
     taxBasis: "EXCLUDED",
@@ -131,7 +71,8 @@ async function main() {
     sourceSale = new D(0),
     sourceCategoryTotal = new D(0);
   const details: Record<string, unknown>[] = [],
-    unresolved: Record<string, unknown>[] = [];
+    unresolved: Record<string, unknown>[] = [],
+    classifications: Record<string, unknown>[] = [];
   const percent = (cost: string, sale: string) =>
     new D(cost).isZero()
       ? "0"
@@ -226,87 +167,56 @@ async function main() {
     sourceSale = sourceSale.add(
       new D(materialSale).add(laborSale).mul(quantity),
     );
-    const formula: string | null | undefined = sheet.formulas?.find(
-      (f) => f.row === index + 1 && f.column === 5,
-    )?.text;
-    const reference: RegExpMatchArray | null | undefined = formula?.match(
-      /^'?([^'!]+)'?!\$?J\$?(\d+)(?::\$?J\$?\2)?(?:\/(\d+(?:\.\d+)?))?$/,
+    const formula =
+      sheet.formulas?.find((f) => f.row === index + 1 && f.column === 5)
+        ?.text ?? null;
+    const extracted = extractComposition(source.sheets, sheet.name, index + 1);
+    // Explicit rental/transport services are direct costs, not guessed supplies.
+    const legitimateDirect = /^(OBRADOR Y MOVILIDAD|BAÑO QUIMICO)$/.test(
+      canonical(name),
     );
-    const linked: (typeof recipes)[number] | null | undefined = reference
-      ? recipes.find(
-          (p) =>
-            p.sheet === reference[1] && p.subtotalRow === Number(reference[2]),
-        )
-      : null;
-    const matches = recipes.filter(
-        (p) => p.name === canonical(name) && p.unit === u,
-      ),
-      selected: (typeof recipes)[number] | null =
-        linked ?? (matches.length === 1 ? matches[0] : null),
-      recipe: (typeof recipes)[number] | null = selected
-        ? {
-            ...selected,
-            materials: selected.materials.map((m) => ({
-              ...m,
-              coefficient: reference?.[3]
-                ? new D(m.coefficient)
-                    .div(reference[3])
-                    .toDecimalPlaces(8, D.ROUND_HALF_UP)
-                    .toFixed()
-                : m.coefficient,
-            })),
-          }
-        : null;
-    const recipeCost = recipe
-      ? recipe.materials.reduce(
-          (sum, m) => sum.add(new D(m.coefficient).mul(m.unitPrice)),
-          new D(0),
-        )
-      : null;
-    const usable: boolean = Boolean(
-      recipe &&
-        recipeCost &&
-        new D(materialCost).gt(0) &&
-        recipeCost
-          .sub(materialCost)
-          .abs()
-          .lte(new D(materialCost).mul("0.001")),
-    );
-    const materials: EditorContent["lines"][number]["materials"] = usable
-      ? recipe!.materials.map((m) => ({
-          materialId: `source:${createHash("sha256")
-            .update(JSON.stringify([m.name, m.unit]))
-            .digest("hex")}`,
-          name: m.name,
-          unitId: `unit:${m.unit}`,
-          unit: m.unit,
-          coefficient: m.coefficient,
-          unitPrice: m.unitPrice,
-          sourcePriceId: null,
-        }))
-      : [];
-    const grouped: EditorContent["lines"][number]["materials"] = [];
-    for (const m of materials) {
-      const old = grouped.find((x) => x.materialId === m.materialId);
-      if (!old) {
-        grouped.push(m);
-        continue;
-      }
-      const coefficient = new D(old.coefficient).add(m.coefficient);
-      old.unitPrice = new D(old.coefficient)
-        .mul(old.unitPrice!)
-        .add(new D(m.coefficient).mul(m.unitPrice!))
-        .div(coefficient)
-        .toDecimalPlaces(8, D.ROUND_HALF_UP)
-        .toFixed();
-      old.coefficient = coefficient.toFixed();
-    }
+    const physicalWarnings = extracted.warnings;
+    const classification = legitimateDirect
+      ? "A"
+      : extracted.materials.length && !physicalWarnings.length
+        ? "B"
+        : "C";
+    const grouped: EditorContent["lines"][number]["materials"] =
+      legitimateDirect
+        ? []
+        : extracted.materials.map((m) => ({
+            materialId: `source:${createHash("sha256")
+              .update(JSON.stringify([m.name, m.unit]))
+              .digest("hex")}`,
+            name: m.name,
+            unitId: `unit:${m.unit}`,
+            unit: m.unit,
+            coefficient: m.coefficient,
+            unitPrice: m.unitPrice,
+            sourcePriceId: null,
+          }));
+    if (new D(materialCost).gt(0))
+      classifications.push({
+        row: index + 1,
+        name,
+        classification,
+        sourceCell: `${sheet.name}!E${index + 1}`,
+        formula,
+        materials: legitimateDirect ? [] : extracted.materials,
+        warnings: legitimateDirect ? [] : physicalWarnings,
+        missingPrices: legitimateDirect ? [] : extracted.missingPrices,
+        cells: extracted.cells,
+        reason: legitimateDirect
+          ? "Servicio de alquiler/limpieza o movilidad explícito; sin cantidades de suministro que deducir"
+          : classification === "B"
+            ? "Composición física recuperada de referencias y consumos explícitos, sin depender de importe agregado"
+            : physicalWarnings.join("; ") ||
+              "Importe agregado sin cantidades/unidades verificables",
+      });
     const direct =
       categoryNo === 16
         ? new D(materialCost).add(laborCost).toFixed()
-        : usable
-          ? "0"
-          : materialCost;
+        : materialCost;
     const line: EditorContent["lines"][number] = {
       key: `DG:C:${index + 1}`,
       itemId: null,
@@ -321,6 +231,23 @@ async function main() {
       directUnitCost: direct,
       status: "ACTIVE",
       materials: grouped,
+      materialsIncludedInDirect: grouped.length > 0,
+      materialReview: {
+        status:
+          classification === "A" || new D(materialCost).isZero()
+            ? "DIRECT"
+            : classification === "B"
+              ? "VERIFIED"
+              : "UNRESOLVED",
+        detail:
+          classification === "C"
+            ? physicalWarnings.join("; ") ||
+              "Importe agregado sin composición física verificable"
+            : classification === "A"
+              ? "Servicio directo sin materiales previstos"
+              : "Consumos físicos recuperados; costo histórico agregado independiente de sus precios de referencia",
+        evidence: `${sheet.name}!E${index + 1}; ${extracted.cells.slice(0, 15).join(", ")}`,
+      },
     };
     if (categoryNo === 16)
       line.directMarkup = sourceMarkup(
@@ -331,20 +258,12 @@ async function main() {
       );
     else {
       line.laborMarkup = sourceMarkup(index + 1, 13, laborCost, laborSale);
-      if (usable)
-        line.materialMarkup = sourceMarkup(
-          index + 1,
-          12,
-          materialCost,
-          materialSale,
-        );
-      else
-        line.directMarkup = sourceMarkup(
-          index + 1,
-          12,
-          materialCost,
-          materialSale,
-        );
+      line.directMarkup = sourceMarkup(
+        index + 1,
+        12,
+        materialCost,
+        materialSale,
+      );
     }
     if (
       new D(materialCost).isZero() &&
@@ -360,14 +279,11 @@ async function main() {
           "Cantidad sin costo/precio independiente en la fuente; tratada como incluida, no como precio cero inventado.",
       });
     }
-    if (!usable && new D(materialCost).gt(0))
+    if (classification === "C" && new D(materialCost).gt(0))
       unresolved.push({
         row: index + 1,
         name,
-        message:
-          matches.length > 1
-            ? "Composición ambigua: suministro agregado conservado como directo, sin inventar materiales."
-            : "Sin composición exacta verificable: suministro agregado conservado como directo, sin inventar materiales.",
+        message: line.materialReview!.detail,
       });
     content.lines.push(line);
     details.push({
@@ -378,14 +294,9 @@ async function main() {
       laborCost,
       materialSale,
       laborSale,
-      recipe: usable
-        ? {
-            sheet: recipe!.sheet,
-            row: recipe!.row,
-            unitCost: recipeCost!.toFixed(),
-            formula: formula ?? null,
-          }
-        : null,
+      physicalComposition: classification,
+      sourceCells: extracted.cells,
+      missingPrices: extracted.missingPrices,
     });
   }
   content.materialDemandIncomplete = unresolved.length > 0;
@@ -395,6 +306,28 @@ async function main() {
   const totalRow = sheet.rows.find((r) => text(r[3]) === "TOTAL");
   if (!totalRow) throw Error("Falta fila TOTAL de la fuente");
   const sourcePublished = numeric(totalRow[15]) ?? numeric(totalRow[16]);
+  const rowDifferences = calculation.lines.map((l) => {
+    const row = Number(l.sourceLineId.split(":").pop()),
+      r = sheet.rows[row - 1];
+    const sourceUnit = new D(numeric(r[11]) ?? "0").add(numeric(r[12]) ?? "0"),
+      unroundedApplication = new D(l.sellingUnitPrice).mul(l.quantity);
+    return {
+      row,
+      sourceCell: `${sheet.name}!L${row}:M${row}`,
+      quantity: l.quantity,
+      sourceUnit: sourceUnit.toFixed(),
+      applicationUnit: l.sellingUnitPrice,
+      sourceExtended: sourceUnit.mul(l.quantity).toFixed(),
+      applicationExtended: l.sellingAmount,
+      unitPolicyDifference: new D(l.sellingUnitPrice)
+        .sub(sourceUnit)
+        .mul(l.quantity)
+        .toFixed(),
+      lineRoundingDifference: new D(l.sellingAmount)
+        .sub(unroundedApplication)
+        .toFixed(),
+    };
+  });
   const report = {
     sourceSha256: source.sha256,
     revision: sheet.name,
@@ -410,10 +343,39 @@ async function main() {
     saleDifference: new D(calculation.commercialTotal)
       .sub(sourceSale)
       .toFixed(8),
-    materialsFromVerifiedRecipes: calculation.materials.length,
+    identifiedMaterialRows: calculation.materials.length,
+    verifiedCompositions: parsed.lines.filter(
+      (l) => l.materialReview?.status === "VERIFIED",
+    ).length,
     unresolved,
+    classifications,
+    rowDifferences,
+    classificationCounts: Object.fromEntries(
+      ["A", "B", "C"].map((c) => [
+        c,
+        classifications.filter((x) => x.classification === c).length,
+      ]),
+    ),
+    previousReview: process.argv[4]
+      ? await (async () => {
+          const previous = JSON.parse(await readFile(process.argv[4], "utf8"));
+          const rows = new Set(
+            previous.unresolved.map((x: { row: number }) => x.row),
+          );
+          const reviewed = classifications.filter((x) => rows.has(x.row));
+          return {
+            cases: reviewed,
+            counts: Object.fromEntries(
+              ["A", "B", "C"].map((c) => [
+                c,
+                reviewed.filter((x) => x.classification === c).length,
+              ]),
+            ),
+          };
+        })()
+      : null,
     explanation:
-      "Se conservan entradas de REV C y factores comerciales explícitos recuperados del texto BIFF (sin ejecutarlo); sólo si no hay factor verificable se deriva del precio unitario. El motor redondea importes extendidos a 2 decimales; la planilla redondea componentes/precios unitarios antes de extenderlos. Se vinculan referencias explícitas a subtotales J, con división numérica si consta; como alternativa, nombre/unidad exactos. Se exige subtotal coherente con tolerancia 0,1%. Sin composición verificable se conserva suministro directo y demanda incompleta visible. No se ajusta ninguna entrada para forzar el total.",
+      "Se conservan costos agregados históricos E/F de REV C y factores comerciales recuperados de las fórmulas BIFF, sin ejecutarlas. La composición física se recupera mediante referencias explícitas, sumas y conversiones documentadas; la ausencia de código en encabezados o marcador x no descarta un material. Reutilización de encofrado y factores de subtotal sin regla física se señalan como ambiguos, no se inventan rendimientos. Los materiales quedan expresamente incluidos en el costo directo agregado, sin doble suma ni precios cero ficticios. No se usa tolerancia de coincidencia ni ajuste para forzar totales.",
   };
   const withoutMarkup = calculateCommercial({
     ...parsed,

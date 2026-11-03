@@ -473,4 +473,193 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
         .status,
     ).toBe(422);
   });
+  it("revisión técnica: un reconocimiento no convierte demanda incompleta en exacta; evidencia y cambios quedan auditados", async () => {
+    const c = structuredClone(content);
+    c.materialDemandIncomplete = true;
+    c.lines[0].materialReview = {
+      status: "UNRESOLVED",
+      detail: "Falta identificar cantidades físicas de la fuente",
+      evidence: "Fuente de prueba E10",
+    };
+    const t = await data("budget-templates", "POST", {
+      name: `Revisión física ${tag}`,
+      content: c,
+    });
+    const b = await data("budget-editor", "POST", {
+      workId,
+      name: "Demanda incompleta",
+      templateId: t.id,
+    });
+    const acknowledgement = structuredClone(
+      (await data(`budget-editor/${b.id}`)).draft.content,
+    );
+    acknowledgement.materialDemandIncomplete = false;
+    delete acknowledgement.lines[0].materialReview;
+    const saved = await data(`budget-editor/${b.id}`, "PUT", {
+      revision: 1,
+      content: acknowledgement,
+    });
+    expect(saved.content.materialDemandIncomplete).toBe(true);
+    expect(saved.content.lines[0].materialReview.detail).toBe(
+      "Falta identificar cantidades físicas de la fuente",
+    );
+    expect(
+      (await data(`budget-editor/${b.id}/calculate`, "POST", saved.content))
+        .materialDemandIncomplete,
+    ).toBe(true);
+    const resolved = structuredClone(saved.content);
+    resolved.lines[0].materialReview = {
+      status: "DIRECT",
+      detail: "Servicio sin composición material",
+      evidence: "Documento sintético de servicio, sección 2",
+    };
+    const next = await data(`budget-editor/${b.id}`, "PUT", {
+      revision: 2,
+      content: resolved,
+    });
+    expect(
+      (await data(`budget-editor/${b.id}/calculate`, "POST", next.content))
+        .materialDemandIncomplete,
+    ).toBe(false);
+    const audit = await db.auditLog.findFirst({
+      where: { entityId: b.id, action: "SAVE_DRAFT" },
+      orderBy: { createdAt: "desc" },
+    });
+    expect(JSON.stringify(audit?.after)).toContain("Documento sintético");
+  });
+
+  it("agregado directo y composición física: conserva precio faltante, demanda y revisión anterior sin doble costo", async () => {
+    const m = await db.material.create({
+      data: {
+        code: `aggregate-${tag}`,
+        name: "Material físico documentado",
+        unitId,
+      },
+    });
+    const c = structuredClone(content);
+    c.lines[0].materialsIncludedInDirect = true;
+    c.lines[0].materials = [
+      {
+        materialId: m.id,
+        name: m.name,
+        unitId,
+        unit: "m²",
+        coefficient: "2",
+        unitPrice: null,
+        sourcePriceId: null,
+      },
+    ];
+    c.lines[0].materialReview = {
+      status: "VERIFIED",
+      detail: "Cantidad de fuente comprobada",
+      evidence: "Documento sintético D2",
+    };
+    const t = await data("budget-templates", "POST", {
+      name: `Agregado documentado ${tag}`,
+      content: c,
+    });
+    const b = await data("budget-editor", "POST", {
+      workId,
+      name: "Agregado y cantidades",
+      templateId: t.id,
+    });
+    const r1 = await data(`budget-editor/${b.id}/issue`, "POST", {
+      revision: 1,
+    });
+    expect(r1.snapshot.totalCost).toBe("3000000.00");
+    expect(r1.snapshot.materials[0].quantity).toBe("6");
+    expect(r1.snapshot.lines[0].materials[0].unitPrice).toBeNull();
+    const invalid = structuredClone(
+      (await data(`budget-editor/${b.id}`)).draft.content,
+    );
+    delete invalid.lines[0].materialReview;
+    invalid.lines[0].materials = [];
+    expect(
+      (
+        await call(`budget-editor/${b.id}`, "PUT", {
+          revision: 1,
+          content: invalid,
+        })
+      ).status,
+    ).toBe(422);
+    expect((await data(`budget-editor/${b.id}`)).draft.revision).toBe(1);
+
+    c.lines[0].materials[0].unitPrice = "20";
+    c.lines[0].directUnitCost = "0";
+    c.lines[0].materialsIncludedInDirect = false;
+    await data(`budget-editor/${b.id}`, "PUT", { revision: 1, content: c });
+    const r2 = await data(`budget-editor/${b.id}/issue`, "POST", {
+      revision: 2,
+    });
+    expect(r2.snapshot.totalCost).toBe("300120.00");
+    expect(r2.snapshot.materials).toEqual(r1.snapshot.materials);
+    expect(
+      (await db.budgetVersion.findUniqueOrThrow({ where: { id: r1.id } }))
+        .snapshot,
+    ).toEqual(r1.snapshot);
+  });
+
+  it("PDF extenso conserva nombres, condiciones, incluidos/excluidos y R1 tras cambiar el borrador", async () => {
+    const c = structuredClone(content);
+    c.conditions =
+      "Condición de ejecución, coordinación y alcance en m² y m³. ".repeat(50);
+    c.lines = Array.from({ length: 28 }, (_, i) => ({
+      ...c.lines[0],
+      key: `stress-${i}`,
+      name: `Partida ${i + 1}: hormigón, terminaciones y protección de superficies m²/m³ con descripción extensa y alcances detallados. `.repeat(
+        3,
+      ),
+      quantity: "1",
+    }));
+    c.lines.push({
+      ...c.lines[0],
+      key: "stress-included",
+      name: "Partida incluida de prueba",
+      status: "INCLUDED",
+      quantity: null,
+    });
+    c.lines.push({
+      ...c.lines[0],
+      key: "stress-excluded",
+      name: "Partida excluida de prueba",
+      status: "EXCLUDED",
+      quantity: null,
+    });
+    const t = await data("budget-templates", "POST", {
+      name: `PDF extenso ${tag}`,
+      content: c,
+    });
+    const b = await data("budget-editor", "POST", {
+      workId,
+      name: "PDF extenso de aceptación",
+      templateId: t.id,
+    });
+    const r = await data(`budget-editor/${b.id}/issue`, "POST", {
+      revision: 1,
+    });
+    const pdf = Buffer.from(
+      await (await call(`budget-issues/${r.id}/pdf`)).arrayBuffer(),
+    );
+    expect((await PDFDocument.load(pdf)).getPageCount()).toBeGreaterThan(5);
+    c.conditions = "Cambio del borrador posterior a R1";
+    await data(`budget-editor/${b.id}`, "PUT", { revision: 1, content: c });
+    expect(
+      Buffer.from(
+        await (await call(`budget-issues/${r.id}/pdf`)).arrayBuffer(),
+      ),
+    ).toEqual(pdf);
+    if (process.env.CEO_PDF_EVIDENCE_DIR) {
+      const { mkdir, writeFile } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      await mkdir(process.env.CEO_PDF_EVIDENCE_DIR, {
+        recursive: true,
+        mode: 0o700,
+      });
+      await writeFile(
+        join(process.env.CEO_PDF_EVIDENCE_DIR, "comercial-extenso-R1.pdf"),
+        pdf,
+        { mode: 0o600 },
+      );
+    }
+  });
 });

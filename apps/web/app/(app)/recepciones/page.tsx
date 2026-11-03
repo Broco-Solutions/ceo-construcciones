@@ -1,5 +1,5 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useAppRouter } from '@/lib/navigation';
 import { Page, RequirePerm } from '@/components/shell';
 import { Card, DataTable, Empty, ErrorBox, Loading, Mono, PagerBar } from '@/components/ui';
 import { usePaged } from '@/lib/hooks';
@@ -14,7 +14,7 @@ const PENDING: { status: OrderStatus; title: string }[] = [
 ];
 
 function Group({ status, title, lk }: { status: OrderStatus; title: string; lk: ReturnType<typeof useLookups> }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const list = usePaged<VisibleOrder>('/purchase-orders', { status });
   const dest = (o: VisibleOrder) => (o.destination ? `${o.destination.name} (${LOCATION_KIND[o.destination.kind]})` : lk.locationName(o.destinationId));
   const mats = (o: VisibleOrder) => o.lines.map((l) => lk.material(l.materialId)?.name ?? 'Material').join(', ');

@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { Page, RequirePerm } from '@/components/shell';
 import { Loading } from '@/components/ui';
@@ -20,7 +21,7 @@ export default function NewComputationPage() {
   );
 }
 function Inner() {
-  const router = useRouter();
+  const router = useAppRouter();
   const workId = useSearchParams().get('workId') ?? undefined;
   return <ComputationForm defaultWorkId={workId} onSaved={(id) => router.push(`/computos/${id}`)} onCancel={() => router.push('/computos')} />;
 }

@@ -1,4 +1,5 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 
 import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
@@ -14,7 +15,6 @@ import {
   PagerBar,
 } from '@/components/ui';
 import { usePaged } from '@/lib/hooks';
-import { useRouter } from 'next/navigation';
 import { useDebounced } from '@/components/catalogo/common';
 import { ClientForm } from '@/components/clientes/ClientForm';
 import type { Schemas } from '@/lib/api';
@@ -30,7 +30,7 @@ export default function ClientesPage() {
 }
 function Clients() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
   const search = useDebounced(q.trim());

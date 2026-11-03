@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { Columns2, Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -48,7 +49,7 @@ export default function BudgetDetailPage() {
 function Detail() {
   const { id } = useParams<{ id: string }>();
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const { can } = useSession();
   const q = useApi<{ data: Schemas['BudgetDetail'] }>(`/budgets/${id}`);
   const editor = useApi<{ data: Schemas['BudgetEditor'] }>(

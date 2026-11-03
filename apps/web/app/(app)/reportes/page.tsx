@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Download, Info } from 'lucide-react';
 import { api, type Pagination, type Schemas } from '@/lib/api';
 import { useAll, useApi } from '@/lib/hooks';
@@ -38,7 +39,7 @@ function Variance({ v, unit }: { v: string | null; unit: string }) {
 
 function ReportInner() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const lk = useInvLookups();
   const workId = sp.get('workId') ?? '';

@@ -1,7 +1,8 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
 import { Suspense, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Page } from '@/components/shell';
 import { Card, DataTable, Empty, ErrorBox, Loading, PagerBar, SelectField } from '@/components/ui';
@@ -12,7 +13,7 @@ import { LookupGate, REQUEST_STATUS, StatusPill, useLookups, type RequestDetail,
 
 function Pedidos() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const { can } = useSession();
   const lk = useLookups();
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');

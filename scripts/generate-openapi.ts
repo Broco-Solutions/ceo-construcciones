@@ -570,9 +570,12 @@ schemas.BudgetTemplate.properties.content = ref("EditorContent");
 extend("CommercialLine", "SnapshotLine", {
   directUnitCost: dec,
   directCost: dec,
+  materials:arr(obj({...schemas.EditorContent.properties.lines.items.properties.materials.items.properties,quantity:dec,unitCost:nullable(dec)}, schemas.EditorContent.properties.lines.items.properties.materials.items.required)),
+  materialsIncludedInDirect:bool,
   sellingUnitPrice: dec,
   sellingAmount: dec,
 });
+schemas.CommercialLine.required=schemas.CommercialLine.required.filter((k:string)=>k!=="materialsIncludedInDirect");
 extend("CommercialCategory", "BudgetCalculation", {});
 schemas.CommercialCategory = obj({
   ...schemas.BudgetCalculation.properties.categories.items.properties,
@@ -581,11 +584,13 @@ schemas.CommercialCategory = obj({
 });
 extend("CommercialCalculation", "BudgetCalculation", {
   formatVersion: { const: 2 },
+  unitCosts: arr(obj({lineKey:id,totalUnitCost:nullable(dec),missingCosts:arr(str),quantityPending:bool,zeroQuantity:bool})),
   lines: arr(ref("CommercialLine")),
   categories: arr(ref("CommercialCategory")),
   directCost: dec,
   commercialTotal: dec,
   materialDemandIncomplete:bool,
+  materialReviewIssues:arr(obj({lineKey:id,name:str,detail:str})),
   materialQuantityPolicy: obj({
     precision: { const: 8 },
     roundingMode: { const: "HALF_UP" },
@@ -594,6 +599,7 @@ extend("CommercialCalculation", "BudgetCalculation", {
   issues: arr(obj({ lineKey: id, message: str })),
   complete: bool,
 });
+schemas.CommercialCalculation.required=schemas.CommercialCalculation.required.filter((k:string)=>!["unitCosts","materialReviewIssues"].includes(k));
 add(
   "CommercialHeader",
   obj({

@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -24,7 +25,7 @@ export default function BudgetsPage() {
 
 function BudgetList() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const workId = useSearchParams().get('workId') ?? '';
   const works = useWorks();
   const list = usePaged<Schemas['Budget']>('/budgets', { workId: workId || undefined });

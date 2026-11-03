@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useId, useState } from 'react';
 import { ChevronDown, LogOut, Menu, X } from 'lucide-react';
 import { NAV, type NavItem } from '@/lib/nav';
+import { useNavigation } from '@/lib/navigation';
 import { useSession } from '@/lib/session';
 import { ROLE_LABEL } from '@/lib/permissions';
 import { Loading, ErrorBox, Button } from './ui';
@@ -100,6 +101,10 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, error, refresh, logout } = useSession();
   const [menu, setMenu] = useState(false);
+  const { blocking } = useNavigation();
+  useEffect(() => {
+    if (blocking) setMenu(false);
+  }, [blocking]);
   const pathname = usePathname();
   const mobileItems: NavItem[] = useNavItems()
     .flatMap((g) => g.items)

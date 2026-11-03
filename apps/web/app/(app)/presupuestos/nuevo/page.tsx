@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { Page, RequirePerm } from '@/components/shell';
 import {
@@ -36,7 +37,7 @@ export default function NewBudgetPage() {
 
 function Form() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const works = useWorks();
   const computationId = sp.get('computationId');

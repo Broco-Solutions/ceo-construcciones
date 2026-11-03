@@ -1,8 +1,9 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AlertTriangle, Download, Plus, SlidersHorizontal } from 'lucide-react';
 import { api, type Schemas } from '@/lib/api';
 import { usePaged } from '@/lib/hooks';
@@ -17,7 +18,7 @@ type Stock = Schemas['Stock'];
 
 function StockInner() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const { can } = useSession();
   const locationId = sp.get('locationId') ?? '';
