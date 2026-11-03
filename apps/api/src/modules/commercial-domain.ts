@@ -16,7 +16,7 @@ export const editorMaterialSchema = z
     name: label,
     unitId: id,
     unit: label,
-    coefficient: nonnegative,
+    coefficient: nonnegative.nullable(),
     unitPrice: nonnegative.nullable(),
     sourcePriceId: id.nullable(),
   })
@@ -35,7 +35,16 @@ export const editorLineSchema = z
     laborUnitCost: nonnegative.nullable(),
     directUnitCost: nonnegative.nullable(),
     status: z.enum(["ACTIVE", "INCLUDED", "EXCLUDED"]),
+    materialsIncludedInDirect: z.boolean().optional(),
     materials: z.array(editorMaterialSchema).max(500),
+    materialReview: z
+      .object({
+        status: z.enum(["DIRECT", "VERIFIED", "UNRESOLVED"]),
+        detail: z.string().trim().min(1).max(2000),
+        evidence: z.string().trim().max(2000),
+      })
+      .strict()
+      .optional(),
     markup: percent.optional(),
     materialMarkup: percent.optional(),
     laborMarkup: percent.optional(),
@@ -43,6 +52,34 @@ export const editorLineSchema = z
   })
   .strict()
   .superRefine((v, c) => {
+    if (
+      v.materialReview &&
+      v.materialReview.status !== "UNRESOLVED" &&
+      !v.materialReview.evidence
+    )
+      c.addIssue({
+        code: "custom",
+        path: ["materialReview", "evidence"],
+        message:
+          "Registrá la fuente que sustenta la composición o el costo directo.",
+      });
+    if (v.materialReview?.status === "DIRECT" && v.materials.length)
+      c.addIssue({
+        code: "custom",
+        path: ["materialReview"],
+        message:
+          "Un concepto exclusivamente directo no produce materiales; documentá la composición física o retiralos explícitamente.",
+      });
+    if (
+      v.materialReview?.status === "VERIFIED" &&
+      (!v.materials.length || v.materials.some((m) => m.coefficient === null))
+    )
+      c.addIssue({
+        code: "custom",
+        path: ["materialReview"],
+        message:
+          "Una composición verificada requiere materiales y consumos explícitos.",
+      });
     if (
       v.markup !== undefined &&
       [v.materialMarkup, v.laborMarkup, v.directMarkup].some(
@@ -161,19 +198,43 @@ export function quantityExpression(input: string): string {
 
 export function calculateCommercial(content: EditorContent) {
   const issues: { lineKey: string; message: string }[] = [];
-  const ready = content.lines.filter((l) => {
+  // Unit valuation is independent from whether a row participates in totals.
+  const unitCosts = content.lines.map((l) => {
+    const missingCosts: string[] = [];
+    if (l.laborUnitCost === null) missingCosts.push("Mano de obra");
+    if (l.directUnitCost === null) missingCosts.push("Otros costos directos");
+    let materialUnitCost = new D(0);
+    for (const m of l.materials) {
+      if (m.coefficient === null) missingCosts.push(`${m.name}: consumo`);
+      else if (!new D(m.coefficient).isZero()) {
+        if (m.unitPrice === null && !l.materialsIncludedInDirect)
+          missingCosts.push(`${m.name}: precio`);
+        else if (!l.materialsIncludedInDirect)
+          materialUnitCost = materialUnitCost.add(
+            new D(m.coefficient).mul(m.unitPrice!),
+          );
+      }
+    }
+    return {
+      lineKey: l.key,
+      totalUnitCost: missingCosts.length
+        ? null
+        : materialUnitCost
+            .add(l.laborUnitCost!)
+            .add(l.directUnitCost!)
+            .toFixed(),
+      missingCosts,
+      quantityPending: l.quantity === null,
+      zeroQuantity: l.quantity !== null && new D(l.quantity).isZero(),
+    };
+  });
+  const ready = content.lines.filter((l, i) => {
     if (l.status !== "ACTIVE") return false;
-    // A template's unselected zero-quantity lines neither cost nor demand.
     if (l.quantity !== null && new D(l.quantity).isZero()) return false;
-    if (
-      l.quantity === null ||
-      l.laborUnitCost === null ||
-      l.directUnitCost === null ||
-      l.materials.some((m) => m.unitPrice === null)
-    ) {
+    if (l.quantity === null || unitCosts[i].missingCosts.length) {
       issues.push({
         lineKey: l.key,
-        message: `${l.name}: completá cantidades y costos; cero debe ser informado explícitamente.`,
+        message: `${l.name}: ${[...(l.quantity === null ? ["Cantidad pendiente"] : []), ...unitCosts[i].missingCosts].join("; ")}. Cero debe ser informado explícitamente.`,
       });
       return false;
     }
@@ -195,7 +256,12 @@ export function calculateCommercial(content: EditorContent) {
       unit: l.unit,
       quantity: l.quantity!,
       laborUnitCost: l.laborUnitCost!,
-      materials: l.materials as SnapshotLine["materials"],
+      materials: l.materials
+        .filter((m) => m.coefficient !== null && !new D(m.coefficient).isZero())
+        .map((m) => ({
+          ...m,
+          unitPrice: l.materialsIncludedInDirect ? "0" : m.unitPrice!,
+        })) as SnapshotLine["materials"],
     })),
   });
   const factor = (p: string) => new D(1).add(new D(p).div(100));
@@ -223,6 +289,10 @@ export function calculateCommercial(content: EditorContent) {
             );
     return {
       ...l,
+      materials: source.materials.filter(
+        (m) => m.coefficient !== null && !new D(m.coefficient).isZero(),
+      ),
+      materialsIncludedInDirect: source.materialsIncludedInDirect ?? false,
       directUnitCost: source.directUnitCost!,
       directCost: money(directCost),
       totalUnitCost: totalUnitCost.toFixed(),
@@ -291,6 +361,7 @@ export function calculateCommercial(content: EditorContent) {
   return {
     ...base,
     formatVersion: 2 as const,
+    unitCosts,
     lines,
     categories,
     materialsByCategory,
@@ -300,7 +371,26 @@ export function calculateCommercial(content: EditorContent) {
       roundingMode: "HALF_UP" as const,
       boundary: "CATEGORY_MATERIAL" as const,
     },
-    materialDemandIncomplete: content.materialDemandIncomplete === true,
+    materialReviewIssues: content.lines
+      .filter(
+        (l) =>
+          l.status === "ACTIVE" &&
+          (l.materialReview?.status === "UNRESOLVED" ||
+            (content.materialDemandIncomplete && !l.materialReview)),
+      )
+      .map((l) => ({
+        lineKey: l.key,
+        name: l.name,
+        detail:
+          l.materialReview?.detail ??
+          "Fuente anterior sin evidencia de composición verificada.",
+      })),
+    materialDemandIncomplete: content.lines.some(
+      (l) =>
+        l.status === "ACTIVE" &&
+        (l.materialReview?.status === "UNRESOLVED" ||
+          (content.materialDemandIncomplete && !l.materialReview)),
+    ),
     directCost: total("directCost"),
     totalCost: total("totalCost"),
     commercialTotal: total("sellingAmount"),

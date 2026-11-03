@@ -1,7 +1,8 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -35,7 +36,7 @@ function ClientDetailInner() {
   const { can } = useSession();
   const [newWork, setNewWork] = useState(false);
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
+  const router = useAppRouter();
   const [edit, setEdit] = useState(false);
   const query = useApi<{ data: ClientDetail }>(`/clients/${id}`);
   const client = query.data?.data;

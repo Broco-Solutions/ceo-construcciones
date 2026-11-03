@@ -1,7 +1,8 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Page, RequirePerm } from '@/components/shell';
 import { Button, Card, Confirm, DefList, ErrorBox, Loading, SelectField, TextArea, TextField, useToast } from '@/components/ui';
 import { api, fieldErrors, type Schemas } from '@/lib/api';
@@ -13,7 +14,7 @@ import { CommercialLines, emptyLine, lineFrom, toCommercial, type LineDraft } fr
 
 function NuevaOC() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const requestId = sp.get('requestId');
   const quotationId = sp.get('quotationId');

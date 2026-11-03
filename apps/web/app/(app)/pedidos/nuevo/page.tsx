@@ -1,8 +1,9 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { Suspense, useMemo, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRight,
@@ -40,7 +41,7 @@ const STEPS = ['Obra', 'Rubro', 'Materiales', 'Fecha', 'Confirmar'] as const;
 
 function NuevoPedido() {
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const lk = useLookups();
   const [step, setStep] = useState(sp.get('workId') ? 1 : 0);

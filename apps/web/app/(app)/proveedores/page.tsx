@@ -1,7 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus, Tag } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
 import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill } from '@/components/ui';
@@ -20,7 +20,7 @@ export default function ProveedoresPage() {
 }
 
 function Inner({ canEdit }: { canEdit: boolean }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const [q, setQ] = useState('');
   const [active, setActive] = useState<'yes' | 'no' | 'all'>('yes');
   const [creating, setCreating] = useState(false);

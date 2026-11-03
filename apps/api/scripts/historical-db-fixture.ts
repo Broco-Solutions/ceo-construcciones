@@ -244,7 +244,10 @@ async function main() {
     activities: content.lines.length,
     cost: calculation.totalCost,
     commercialTotal: calculation.commercialTotal,
-    verifiedMaterialRows: calculation.materials.length,
+    identifiedMaterialRows: calculation.materials.length,
+    verifiedCompositions: input.lines.filter(
+      (l) => l.materialReview?.status === "VERIFIED",
+    ).length,
     templateCopied: true,
     retryIdempotent: true,
     materialsUnaffectedByMarkup: true,

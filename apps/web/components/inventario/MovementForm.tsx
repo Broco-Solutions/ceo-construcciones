@@ -1,8 +1,9 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeftRight,
   HardHat,
@@ -77,7 +78,7 @@ const HELP: Record<FormType, string> = {
 export function MovementForm() {
   const { user } = useSession();
   const sp = useSearchParams();
-  const router = useRouter();
+  const router = useAppRouter();
   const toast = useToast();
   const lk = useInvLookups();
   const allowed = user ? BY_ROLE[user.role] : [];

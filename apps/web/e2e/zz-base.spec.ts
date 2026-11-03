@@ -30,6 +30,16 @@ test('T08/T48: BASE real con 146 actividades, emisión y demanda orientativa vis
   await page.waitForURL(/\/presupuestos\/editor\//);
   await expect(page.locator('.budget-line')).toHaveCount(146);
   await expect(page.locator('.budget-category')).toHaveCount(17);
+  await expect(page.locator('.budget-line').first()).toContainText('16.288,');
+  await page
+    .getByLabel('Cantidad · OBRADOR Y MOVILIDAD', { exact: true })
+    .fill('');
+  await expect(
+    page.locator('.budget-line').filter({ hasText: 'OBRADOR Y MOVILIDAD' }),
+  ).toContainText('Cantidad pendiente');
+  await page
+    .getByLabel('Cantidad · OBRADOR Y MOVILIDAD', { exact: true })
+    .fill('0');
   await page.getByLabel('Cantidad · CERCO DE OBRA', { exact: true }).fill('10');
   await expect(page.locator('.budget-summary')).toContainText('162.884,22');
   await expect(
@@ -37,31 +47,35 @@ test('T08/T48: BASE real con 146 actividades, emisión y demanda orientativa vis
       exact: false,
     }),
   ).toBeVisible();
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 2,
-      ),
-    )
-    .toBe(true);
-  await page.screenshot({ path: 'docs/evidencia/cierre/base-real-1440.png' });
-  await page.setViewportSize({ width: 360, height: 800 });
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth + 2,
-      ),
-    )
-    .toBe(true);
-  await page.screenshot({ path: 'docs/evidencia/cierre/base-real-360.png' });
+  for (const width of [1440, 1280, 768, 390, 360]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page
+      .getByLabel('Cantidad · CERCO DE OBRA', { exact: true })
+      .scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth + 2,
+        ),
+      )
+      .toBe(true);
+    await page.screenshot({
+      path: test.info().outputPath(`base-revision-${width}.png`),
+    });
+  }
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page
     .getByRole('button', { name: 'Revisar materiales', exact: true })
     .click();
   await expect(
     page.getByLabel('Materiales revisados para abastecimiento'),
-  ).not.toBeChecked();
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(
+      'La exactitud se determina por los faltantes y la evidencia de cada partida.',
+      { exact: false },
+    ),
+  ).toBeVisible();
   await page
     .getByRole('tab', { name: 'Presentación y PDF', exact: true })
     .click();

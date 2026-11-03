@@ -1,6 +1,7 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -32,7 +33,7 @@ export default function ComputosPage() {
 
 function ComputosList() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const sp = useSearchParams();
   const workId = sp.get('workId') ?? '';
   const works = useWorks();

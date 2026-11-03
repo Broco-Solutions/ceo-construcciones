@@ -21,6 +21,11 @@ import { useSession } from '@/lib/session';
 import { formatMoney } from '@/lib/format';
 import { unitSymbol } from '@/lib/units';
 import { PriceComparison } from '@/components/catalogo/PriceComparison';
+import { useNavigationBlocker } from '@/lib/navigation';
+import {
+  MaterialPicker,
+  type PickedMaterial,
+} from '@/components/catalogo/MaterialPicker';
 import { ReferenceButton } from './ReferenceButton';
 
 type Content = Schemas['EditorContent'];
@@ -42,6 +47,20 @@ export function BudgetEditor({ id }: { id: string }) {
     [pick, setPick] = useState(false),
     [search, setSearch] = useState(''),
     [preview, setPreview] = useState<string | null>(null);
+  const contentRef = useRef(content),
+    savedRef = useRef(saved),
+    revisionRef = useRef(revision);
+  contentRef.current = content;
+  savedRef.current = saved;
+  revisionRef.current = revision;
+  const comparisonTrigger = useRef<HTMLElement | null>(null);
+  const [materialPicker, setMaterialPicker] = useState<string | null>(null);
+  const [materialError, setMaterialError] = useState('');
+  const [valuation, setValuation] = useState<{
+    previous: Content;
+    patch: Partial<Pick<Content, 'currency' | 'taxBasis'>>;
+    reviewing: boolean;
+  } | null>(null);
   const initialized = useRef(false),
     sequence = useRef(0),
     previewRef = useRef<string | null>(null);
@@ -66,6 +85,20 @@ export function BudgetEditor({ id }: { id: string }) {
   );
   const dirty = content !== null && JSON.stringify(content) !== saved;
   useEffect(() => {
+    setMaterialPicker(null);
+    setMaterialError('');
+    setExpression('');
+    setExpressionError(undefined);
+  }, [context]);
+  useEffect(() => {
+    if (comparisonMaterial)
+      requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLElement>('[role="dialog"] button:not(.x)')
+          ?.focus(),
+      );
+  }, [comparisonMaterial]);
+  useEffect(() => {
     if (query.data && !initialized.current) {
       initialized.current = true;
       const draft = query.data.data.draft;
@@ -77,16 +110,6 @@ export function BudgetEditor({ id }: { id: string }) {
       }
     }
   }, [query.data]);
-  useEffect(() => {
-    const leave = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', leave);
-    return () => window.removeEventListener('beforeunload', leave);
-  }, [dirty]);
   useEffect(() => {
     if (!content) return;
     const current = ++sequence.current,
@@ -120,13 +143,12 @@ export function BudgetEditor({ id }: { id: string }) {
     },
     [],
   );
-  const save = useMutation(async () => {
-    if (!content) return;
+  const save = useMutation(async (_key: string, body: Content, rev: number) => {
     const r = await api.put<{ data: Schemas['BudgetDraft'] }>(
       `/budget-editor/${id}`,
-      { revision, content },
+      { revision: rev, content: body },
     );
-    return { draft: r.data, body: JSON.stringify(content) };
+    return { draft: r.data, body: JSON.stringify(body) };
   });
   const issue = useMutation((key: string, rev: number) =>
     api.post<{ data: Schemas['IssuedVersion'] }>(
@@ -185,17 +207,40 @@ export function BudgetEditor({ id }: { id: string }) {
   }
   const [previewBusy, setPreviewBusy] = useState(false);
   async function persist() {
-    const r = await save.run();
+    if (!contentRef.current) return;
+    if (valuation?.reviewing) {
+      toast.warning(
+        'Confirmá la revisión de costos o restaurá el borrador previo antes de guardar.',
+      );
+      return;
+    }
+    const r = await save.run(contentRef.current, revisionRef.current);
     if (r) {
+      revisionRef.current = r.draft.revision;
+      savedRef.current = r.body;
       setRevision(r.draft.revision);
       setSaved(r.body);
       toast.success('Borrador guardado');
       return r.draft.revision;
     }
   }
+  useNavigationBlocker({
+    dirty,
+    save: async () => {
+      if ((await persist()) === undefined) return false;
+      return JSON.stringify(contentRef.current) === savedRef.current;
+    },
+    onPrompt: () => {
+      setContext(null);
+      setComparisonMaterial(null);
+      setPick(false);
+      setPriceChanges(undefined);
+      setPreview(null);
+    },
+  });
   async function emit() {
     const rev = dirty ? await persist() : revision;
-    if (!rev) return;
+    if (!rev || JSON.stringify(contentRef.current) !== savedRef.current) return;
     const r = await issue.run(rev);
     if (r) {
       toast.success(`Revisión R${r.data.number} emitida`, {
@@ -252,9 +297,23 @@ export function BudgetEditor({ id }: { id: string }) {
     patch: Partial<Pick<Content, 'currency' | 'taxBasis'>>,
   ) {
     if (!content) return;
+    if (
+      Object.entries(patch).every(
+        ([k, v]) => content[k as 'currency' | 'taxBasis'] === v,
+      )
+    )
+      return;
+    setValuation({
+      previous: structuredClone(content),
+      patch,
+      reviewing: false,
+    });
+  }
+  function confirmValuation() {
+    if (!valuation) return;
     set({
-      ...patch,
-      lines: content.lines.map((l) => ({
+      ...valuation.patch,
+      lines: valuation.previous.lines.map((l) => ({
         ...l,
         laborUnitCost: null,
         directUnitCost: null,
@@ -265,10 +324,51 @@ export function BudgetEditor({ id }: { id: string }) {
         })),
       })),
     });
-    toast.warning('Revisá los costos en la nueva moneda y tratamiento de IVA', {
-      description:
-        'Se conservaron cantidades y composiciones. No se convirtieron importes ni se supuso una tasa.',
+    setValuation({ ...valuation, reviewing: true });
+  }
+  function closeComparison() {
+    const materialId = comparisonMaterial;
+    setComparisonMaterial(null);
+    requestAnimationFrame(() => {
+      const trigger = materialId
+        ? document.querySelector<HTMLElement>(
+            `[data-compare-material="${CSS.escape(materialId)}"]`,
+          )
+        : comparisonTrigger.current;
+      trigger?.focus();
     });
+  }
+  function chooseMaterial(m: PickedMaterial | null) {
+    if (!m || !selected || !materialPicker) return;
+    if (
+      selected.materials.some(
+        (x) => x.materialId === m.id && x.materialId !== materialPicker,
+      )
+    ) {
+      setMaterialError(
+        'Este material ya está en la composición. Modificá su consumo en el renglón existente.',
+      );
+      return;
+    }
+    const next: Line['materials'][number] = {
+      materialId: m.id,
+      name: m.name,
+      unitId: m.unitId,
+      unit: unitSymbol(m.unit),
+      coefficient: null,
+      unitPrice: null,
+      sourcePriceId: null,
+    };
+    setLine(selected.key, {
+      materials:
+        materialPicker === 'new'
+          ? [...selected.materials, next]
+          : selected.materials.map((x) =>
+              x.materialId === materialPicker ? next : x,
+            ),
+    });
+    setMaterialPicker(null);
+    setMaterialError('');
   }
   function addActivity(a: Schemas['ApuDetail']) {
     if (!content) return;
@@ -413,7 +513,71 @@ export function BudgetEditor({ id }: { id: string }) {
           </Pill>
         </div>
       </Card>
-      {content?.materialDemandIncomplete && (
+      {content && (
+        <Card title="Moneda y tratamiento de IVA">
+          {' '}
+          <div className="formgrid">
+            <SelectField
+              label="Moneda"
+              value={content.currency}
+              options={[
+                { value: 'ARS', label: 'ARS' },
+                { value: 'USD', label: 'USD' },
+              ]}
+              onChange={(e) => changeValuation({ currency: e.target.value })}
+              disabled={!editable || !!valuation}
+            />
+            <SelectField
+              label="Tratamiento de IVA"
+              value={content.taxBasis}
+              options={[
+                {
+                  value: 'EXCLUDED',
+                  label: '+ IVA (sin calcular alícuota)',
+                },
+                { value: 'INCLUDED', label: 'IVA incluido' },
+                { value: 'UNSPECIFIED', label: 'No especificado' },
+              ]}
+              onChange={(e) =>
+                changeValuation({
+                  taxBasis: e.target.value as Content['taxBasis'],
+                })
+              }
+              disabled={!editable || !!valuation}
+            />
+          </div>
+          <p className="small muted">
+            Los importes corresponden a esta valoración. No se realizan
+            conversiones automáticas.
+          </p>
+          {valuation?.reviewing && (
+            <div className="alert warn stack">
+              <b>Revisión de costos en curso</b>
+              <p>
+                Los importes anteriores se conservaron temporalmente para volver
+                atrás. Completá y revisá los valores en la nueva moneda/IVA
+                antes de confirmar.
+              </p>
+              <div className="row" style={{ flexWrap: 'wrap' }}>
+                <Button
+                  variant="sec"
+                  onClick={() => {
+                    setContent(valuation.previous);
+                    setValuation(null);
+                  }}
+                >
+                  Restaurar borrador previo al cambio
+                </Button>
+                <Button onClick={() => setValuation(null)}>
+                  Confirmar revisión de costos
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
+      {(calculation?.materialDemandIncomplete ??
+        content?.materialDemandIncomplete) && (
         <div className="alert warn">
           La composición de materiales requiere revisión. Podés completar el
           presupuesto comercial; las necesidades de compra se mostrarán como
@@ -505,6 +669,9 @@ export function BudgetEditor({ id }: { id: string }) {
                         const result = calculation?.lines.find(
                           (c) => c.sourceLineId === l.key,
                         );
+                        const unitCost = calculation?.unitCosts?.find(
+                          (c) => c.lineKey === l.key,
+                        );
                         return (
                           <div key={l.key} className="budget-line">
                             <div>
@@ -541,19 +708,32 @@ export function BudgetEditor({ id }: { id: string }) {
                               </span>
                               <b>
                                 {formatMoney(
-                                  result?.totalUnitCost,
+                                  unitCost?.totalUnitCost ??
+                                    result?.totalUnitCost,
                                   content.currency,
                                 )}
                               </b>
                             </div>
                             <div>
+                              {unitCost?.missingCosts.map((m) => (
+                                <span className="small err" key={m}>
+                                  {m} pendiente
+                                </span>
+                              ))}
                               <span className="small muted">Subtotal</span>
                               <b>
                                 {formatMoney(
-                                  result?.totalCost,
+                                  unitCost?.zeroQuantity
+                                    ? '0'
+                                    : result?.totalCost,
                                   content.currency,
                                 )}
                               </b>
+                              {l.quantity === null && (
+                                <span className="small muted">
+                                  Cantidad pendiente
+                                </span>
+                              )}
                             </div>
                           </div>
                         );
@@ -613,38 +793,6 @@ export function BudgetEditor({ id }: { id: string }) {
           )}
           {step === 2 && (
             <Card title="Presentación y PDF">
-              <div className="formgrid">
-                <SelectField
-                  label="Moneda"
-                  value={content.currency}
-                  options={[
-                    { value: 'ARS', label: 'ARS' },
-                    { value: 'USD', label: 'USD' },
-                  ]}
-                  onChange={(e) =>
-                    changeValuation({ currency: e.target.value })
-                  }
-                  disabled={!editable}
-                />
-                <SelectField
-                  label="Tratamiento de IVA"
-                  value={content.taxBasis}
-                  options={[
-                    {
-                      value: 'EXCLUDED',
-                      label: '+ IVA (sin calcular alícuota)',
-                    },
-                    { value: 'INCLUDED', label: 'IVA incluido' },
-                    { value: 'UNSPECIFIED', label: 'No especificado' },
-                  ]}
-                  onChange={(e) =>
-                    changeValuation({
-                      taxBasis: e.target.value as Content['taxBasis'],
-                    })
-                  }
-                  disabled={!editable}
-                />
-              </div>
               <TextField
                 label="Plazo"
                 value={content.deadline}
@@ -693,26 +841,33 @@ export function BudgetEditor({ id }: { id: string }) {
           )}
           {step === 3 && (
             <Card title="Materiales previstos">
-              {content.materialDemandIncomplete && (
+              {(calculation?.materialDemandIncomplete ??
+                content.materialDemandIncomplete) && (
                 <p className="alert warn">
                   La fuente contiene suministros sin composición verificada.
                   Esta lista es parcial y sus faltantes son orientativos hasta
                   revisar los materiales de esas partidas.
                 </p>
               )}
-              {content.materialDemandIncomplete !== undefined && (
-                <label className="row">
-                  <input
-                    type="checkbox"
-                    checked={!content.materialDemandIncomplete}
-                    disabled={!editable}
-                    onChange={(e) =>
-                      set({ materialDemandIncomplete: !e.target.checked })
-                    }
-                  />{' '}
-                  Materiales revisados para abastecimiento
-                </label>
-              )}
+              {calculation?.materialReviewIssues?.map((issue) => (
+                <div className="note stack" key={issue.lineKey}>
+                  <b>{issue.name}</b>
+                  <span>{issue.detail}</span>
+                  {editable && (
+                    <Button
+                      variant="sec"
+                      size="sm"
+                      onClick={() => setContext(issue.lineKey)}
+                    >
+                      Revisar composición · {issue.name}
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <p className="small muted">
+                La exactitud se determina por los faltantes y la evidencia de
+                cada partida. Reconocer un aviso no completa su composición.
+              </p>
               <p className="small muted">
                 Los recargos comerciales no modifican estas cantidades.
               </p>
@@ -812,224 +967,446 @@ export function BudgetEditor({ id }: { id: string }) {
       </Modal>
       <Modal
         open={!!selected}
-        onClose={() => setContext(null)}
-        title="Composición del costo"
+        onClose={() =>
+          comparisonMaterial ? closeComparison() : setContext(null)
+        }
+        title={
+          comparisonMaterial ? 'Comparar corralones' : 'Composición del costo'
+        }
         wide
       >
-        {selected && (
+        {selected && comparisonMaterial ? (
           <div className="stack">
-            <TextField
-              label="Actividad / concepto"
-              value={selected.name}
-              onChange={(e) => setLine(selected.key, { name: e.target.value })}
-              disabled={!editable}
-            />
-            <div className="formgrid">
-              <SelectField
-                label="Rubro"
-                value={selected.categoryId}
-                options={categories.rows.map((c) => ({
-                  value: c.id,
-                  label: c.name,
-                }))}
-                onChange={(e) => {
-                  const c = categories.rows.find(
-                    (c) => c.id === e.target.value,
+            <Button variant="sec" onClick={closeComparison}>
+              Volver a la composición
+            </Button>
+            <PriceComparison
+              materialId={comparisonMaterial}
+              onSelect={(price, normalized) => {
+                if (
+                  price.currency !== content?.currency ||
+                  price.taxBasis !== content?.taxBasis
+                ) {
+                  toast.failure(
+                    'Precio no comparable',
+                    new Error(
+                      'La moneda y el IVA deben coincidir con el presupuesto.',
+                    ),
                   );
-                  if (c)
-                    setLine(selected.key, {
-                      categoryId: c.id,
-                      category: c.name,
-                    });
-                }}
-                disabled={!editable}
-              />
-              <SelectField
-                label="Unidad"
-                value={selected.unitId}
-                options={units.rows.map((u) => ({
-                  value: u.id,
-                  label: u.name,
-                }))}
-                onChange={(e) => {
-                  const u = units.rows.find((u) => u.id === e.target.value);
-                  if (u)
-                    setLine(selected.key, {
-                      unitId: u.id,
-                      unit: unitSymbol(u),
-                    });
-                }}
-                disabled={!editable}
-              />
-            </div>
-            <SelectField
-              label="Participación"
-              value={selected.status}
-              options={[
-                { value: 'ACTIVE', label: 'Con costo independiente' },
-                { value: 'INCLUDED', label: 'Incluida en otra partida' },
-                { value: 'EXCLUDED', label: 'Excluida' },
-              ]}
-              onChange={(e) =>
+                  return;
+                }
                 setLine(selected.key, {
-                  status: e.target.value as Line['status'],
-                })
-              }
-              disabled={!editable}
+                  materials: selected.materials.map((m) =>
+                    m.materialId === comparisonMaterial
+                      ? { ...m, unitPrice: normalized, sourcePriceId: price.id }
+                      : m,
+                  ),
+                });
+                closeComparison();
+              }}
             />
-            <div className="formgrid">
+          </div>
+        ) : (
+          selected && (
+            <div className="stack">
               <TextField
-                label="Mano de obra por unidad"
-                value={selected.laborUnitCost ?? ''}
-                inputMode="decimal"
+                label="Actividad / concepto"
+                value={selected.name}
                 onChange={(e) =>
-                  setLine(selected.key, {
-                    laborUnitCost: input(e.target.value),
-                  })
+                  setLine(selected.key, { name: e.target.value })
                 }
                 disabled={!editable}
               />
-              <TextField
-                label="Otros costos directos por unidad"
-                value={selected.directUnitCost ?? ''}
-                inputMode="decimal"
-                onChange={(e) =>
-                  setLine(selected.key, {
-                    directUnitCost: input(e.target.value),
-                  })
-                }
-                disabled={!editable}
-              />
-            </div>
-            {editable && (
-              <details>
-                <summary>Ayuda para calcular cantidad</summary>
-                <TextField
-                  label="Operación aritmética"
-                  hint="Por ejemplo: (4 + 2) * 3."
-                  value={expression}
+              <div className="formgrid">
+                <SelectField
+                  label="Rubro"
+                  value={selected.categoryId}
+                  options={categories.rows.map((c) => ({
+                    value: c.id,
+                    label: c.name,
+                  }))}
                   onChange={(e) => {
-                    setExpression(e.target.value);
-                    setExpressionError(undefined);
+                    const c = categories.rows.find(
+                      (c) => c.id === e.target.value,
+                    );
+                    if (c)
+                      setLine(selected.key, {
+                        categoryId: c.id,
+                        category: c.name,
+                      });
                   }}
+                  disabled={!editable}
                 />
-                <Button
-                  variant="sec"
-                  onClick={async () => {
-                    try {
-                      const r = await api.post<{ data: { quantity: string } }>(
-                        '/quantity-expression',
-                        { expression },
-                      );
-                      setLine(selected.key, { quantity: r.data.quantity });
-                      setExpression('');
-                    } catch (e) {
-                      setExpressionError(e);
-                    }
+                <SelectField
+                  label="Unidad"
+                  value={selected.unitId}
+                  options={units.rows.map((u) => ({
+                    value: u.id,
+                    label: u.name,
+                  }))}
+                  onChange={(e) => {
+                    const u = units.rows.find((u) => u.id === e.target.value);
+                    if (u)
+                      setLine(selected.key, {
+                        unitId: u.id,
+                        unit: unitSymbol(u),
+                      });
                   }}
-                >
-                  Usar resultado como cantidad
-                </Button>
-                <ErrorBox error={expressionError} />
-              </details>
-            )}
-            {selected.materials.map((m, i) => (
-              <div className="stack" key={m.materialId}>
-                <div className="formgrid">
-                  <TextField
-                    label={`${m.name} · consumo por unidad (${m.unit})`}
-                    value={m.coefficient}
-                    onChange={(e) =>
-                      setLine(selected.key, {
-                        materials: selected.materials.map((x, n) =>
-                          n === i
-                            ? {
-                                ...x,
-                                coefficient: e.target.value.replace(',', '.'),
-                              }
-                            : x,
-                        ),
-                      })
-                    }
-                    disabled={!editable}
-                  />
-                  <TextField
-                    label={`${m.name} · precio por ${m.unit}`}
-                    value={m.unitPrice ?? ''}
-                    onChange={(e) =>
-                      setLine(selected.key, {
-                        materials: selected.materials.map((x, n) =>
-                          n === i
-                            ? {
-                                ...x,
-                                unitPrice: input(e.target.value),
-                                sourcePriceId: null,
-                              }
-                            : x,
-                        ),
-                      })
-                    }
-                    disabled={!editable}
-                  />
-                </div>
-                {editable && (
-                  <Button
-                    size="sm"
-                    variant="sec"
-                    onClick={() => setComparisonMaterial(m.materialId)}
-                  >
-                    Comparar corralones · {m.name}
-                  </Button>
-                )}
+                  disabled={!editable}
+                />
               </div>
-            ))}
-            <details>
-              <summary>Ajustes particulares</summary>
-              <TextField
-                label="Recargo de esta partida (%)"
-                hint="Reemplaza los recargos de esta partida. Vacío conserva el general o excepciones por componente."
-                value={selected.markup ?? ''}
+              <SelectField
+                label="Participación"
+                value={selected.status}
+                options={[
+                  { value: 'ACTIVE', label: 'Con costo independiente' },
+                  { value: 'INCLUDED', label: 'Incluida en otra partida' },
+                  { value: 'EXCLUDED', label: 'Excluida' },
+                ]}
                 onChange={(e) =>
                   setLine(selected.key, {
-                    markup: input(e.target.value) ?? undefined,
-                    materialMarkup: undefined,
-                    laborMarkup: undefined,
-                    directMarkup: undefined,
+                    status: e.target.value as Line['status'],
                   })
                 }
                 disabled={!editable}
               />
-              {selected.markup === undefined && (
-                <div className="formgrid">
-                  {(
-                    [
-                      ['materialMarkup', 'Recargo de materiales (%)'],
-                      ['laborMarkup', 'Recargo de mano de obra (%)'],
-                      ['directMarkup', 'Recargo de otros directos (%)'],
-                    ] as const
-                  ).map(([field, label]) => (
+              <div className="formgrid">
+                <TextField
+                  label="Mano de obra por unidad"
+                  value={selected.laborUnitCost ?? ''}
+                  inputMode="decimal"
+                  onChange={(e) =>
+                    setLine(selected.key, {
+                      laborUnitCost: input(e.target.value),
+                    })
+                  }
+                  disabled={!editable}
+                />
+                <TextField
+                  label="Otros costos directos por unidad"
+                  value={selected.directUnitCost ?? ''}
+                  inputMode="decimal"
+                  onChange={(e) =>
+                    setLine(selected.key, {
+                      directUnitCost: input(e.target.value),
+                    })
+                  }
+                  disabled={!editable}
+                />
+              </div>
+              {editable && (
+                <details>
+                  <summary>Ayuda para calcular cantidad</summary>
+                  <TextField
+                    label="Operación aritmética"
+                    hint="Por ejemplo: (4 + 2) * 3."
+                    value={expression}
+                    onChange={(e) => {
+                      setExpression(e.target.value);
+                      setExpressionError(undefined);
+                    }}
+                  />
+                  <Button
+                    variant="sec"
+                    onClick={async () => {
+                      try {
+                        const r = await api.post<{
+                          data: { quantity: string };
+                        }>('/quantity-expression', { expression });
+                        setLine(selected.key, { quantity: r.data.quantity });
+                        setExpression('');
+                      } catch (e) {
+                        setExpressionError(e);
+                      }
+                    }}
+                  >
+                    Usar resultado como cantidad
+                  </Button>
+                  <ErrorBox error={expressionError} />
+                </details>
+              )}
+              {editable && (
+                <label className="row">
+                  <input
+                    type="checkbox"
+                    checked={selected.materialsIncludedInDirect ?? false}
+                    onChange={(e) =>
+                      setLine(selected.key, {
+                        materialsIncludedInDirect: e.target.checked,
+                      })
+                    }
+                  />
+                  Materiales valorizados dentro del agregado directo
+                </label>
+              )}
+              {selected.materialsIncludedInDirect && (
+                <p className="note">
+                  El agregado directo contiene el costo de suministro. Estos
+                  consumos generan cantidades físicas; sus precios de referencia
+                  no se suman otra vez. Sustituí el agregado por la composición
+                  cuando dispongas de precios completos.
+                </p>
+              )}
+              {editable && (
+                <>
+                  <Button
+                    variant="sec"
+                    onClick={() => {
+                      setMaterialPicker('new');
+                      setMaterialError('');
+                    }}
+                  >
+                    Agregar material
+                  </Button>
+                  {materialPicker && (
+                    <div className="note stack">
+                      <MaterialPicker
+                        value={null}
+                        onChange={chooseMaterial}
+                        label={
+                          materialPicker === 'new'
+                            ? 'Material a agregar'
+                            : 'Material de reemplazo'
+                        }
+                      />
+                      {materialError && <p className="err">{materialError}</p>}
+                      <Button
+                        variant="sec"
+                        onClick={() => setMaterialPicker(null)}
+                      >
+                        Cancelar selección de material
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+              {selected.materials.map((m, i) => (
+                <div className="stack" key={m.materialId}>
+                  <div className="formgrid">
                     <TextField
-                      key={field}
-                      label={label}
-                      hint="Vacío usa el general."
-                      value={selected[field] ?? ''}
+                      label={`${m.name} · consumo por unidad (${m.unit})`}
+                      value={m.coefficient ?? ''}
                       onChange={(e) =>
                         setLine(selected.key, {
-                          [field]: input(e.target.value) ?? undefined,
+                          materials: selected.materials.map((x, n) =>
+                            n === i
+                              ? {
+                                  ...x,
+                                  coefficient: input(e.target.value),
+                                }
+                              : x,
+                          ),
                         })
                       }
                       disabled={!editable}
                     />
-                  ))}
+                    <TextField
+                      label={`${m.name} · precio por ${m.unit}`}
+                      value={m.unitPrice ?? ''}
+                      onChange={(e) =>
+                        setLine(selected.key, {
+                          materials: selected.materials.map((x, n) =>
+                            n === i
+                              ? {
+                                  ...x,
+                                  unitPrice: input(e.target.value),
+                                  sourcePriceId: null,
+                                }
+                              : x,
+                          ),
+                        })
+                      }
+                      disabled={!editable}
+                    />
+                  </div>
+                  {editable && (
+                    <Button
+                      size="sm"
+                      variant="sec"
+                      data-compare-material={m.materialId}
+                      onClick={(e) => {
+                        comparisonTrigger.current = e.currentTarget;
+                        setComparisonMaterial(m.materialId);
+                      }}
+                    >
+                      Comparar corralones · {m.name}
+                    </Button>
+                  )}
+                  {editable && (
+                    <div className="row">
+                      <Button
+                        size="sm"
+                        variant="sec"
+                        onClick={() => {
+                          setMaterialPicker(m.materialId);
+                          setMaterialError('');
+                        }}
+                      >
+                        Reemplazar material · {m.name}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="sec"
+                        onClick={() =>
+                          setLine(selected.key, {
+                            materials: selected.materials.filter(
+                              (x) => x.materialId !== m.materialId,
+                            ),
+                          })
+                        }
+                      >
+                        Quitar material · {m.name}
+                      </Button>
+                    </div>
+                  )}
                 </div>
+              ))}
+              {editable && (
+                <details>
+                  <summary>Evidencia de composición y costos directos</summary>
+                  <p className="small muted">
+                    Completá los materiales y consumos verificables. Un costo
+                    directo legítimo no produce materiales. Identificá el
+                    documento o cálculo que lo sustenta.
+                  </p>
+                  <TextArea
+                    label="Detalle de revisión de materiales"
+                    value={selected.materialReview?.detail ?? ''}
+                    onChange={(e) =>
+                      setLine(selected.key, {
+                        materialReview: {
+                          status:
+                            selected.materialReview?.status ?? 'UNRESOLVED',
+                          detail: e.target.value,
+                          evidence: selected.materialReview?.evidence ?? '',
+                        },
+                      })
+                    }
+                  />
+                  <TextField
+                    label="Fuente o evidencia de composición"
+                    value={selected.materialReview?.evidence ?? ''}
+                    onChange={(e) =>
+                      setLine(selected.key, {
+                        materialReview: {
+                          status:
+                            selected.materialReview?.status ?? 'UNRESOLVED',
+                          detail:
+                            selected.materialReview?.detail ??
+                            'Revisión de composición de esta partida',
+                          evidence: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                  <SelectField
+                    label="Estado de composición"
+                    value={selected.materialReview?.status ?? 'UNRESOLVED'}
+                    options={[
+                      {
+                        value: 'UNRESOLVED',
+                        label: 'Faltantes o ambigüedades pendientes',
+                      },
+                      {
+                        value: 'VERIFIED',
+                        label: 'Composición física documentada',
+                      },
+                      { value: 'DIRECT', label: 'Costo directo documentado' },
+                    ]}
+                    onChange={(e) =>
+                      setLine(selected.key, {
+                        materialReview: {
+                          status: e.target.value as NonNullable<
+                            Line['materialReview']
+                          >['status'],
+                          detail:
+                            selected.materialReview?.detail ??
+                            'Revisión de composición de esta partida',
+                          evidence: selected.materialReview?.evidence ?? '',
+                        },
+                      })
+                    }
+                  />
+                  {selected.materialsIncludedInDirect &&
+                    selected.directUnitCost !== null &&
+                    selected.directUnitCost !== '0' &&
+                    selected.materials.length > 0 && (
+                      <Button
+                        variant="sec"
+                        disabled={
+                          !selected.materialReview?.evidence ||
+                          selected.materials.some(
+                            (m) =>
+                              m.coefficient === null ||
+                              (Number(m.coefficient) !== 0 &&
+                                m.unitPrice === null),
+                          )
+                        }
+                        onClick={() =>
+                          setLine(selected.key, {
+                            directUnitCost: '0',
+                            materialsIncludedInDirect: false,
+                            materialReview: {
+                              status: 'VERIFIED',
+                              detail: `Se sustituyó el agregado directo de ${selected.directUnitCost} ${content?.currency} por la composición detallada; no se acumulan ambos costos. ${selected.materialReview?.detail ?? ''}`,
+                              evidence: selected.materialReview!.evidence,
+                            },
+                          })
+                        }
+                      >
+                        Sustituir agregado directo por esta composición
+                      </Button>
+                    )}
+                </details>
               )}
-            </details>
-            <p className="note small">
-              Ajuste para este presupuesto. El catálogo y las revisiones
-              emitidas se conservan.
-            </p>
-            <Button onClick={() => setContext(null)}>Listo</Button>
-          </div>
+              <details>
+                <summary>Ajustes particulares</summary>
+                <TextField
+                  label="Recargo de esta partida (%)"
+                  hint="Reemplaza los recargos de esta partida. Vacío conserva el general o excepciones por componente."
+                  value={selected.markup ?? ''}
+                  onChange={(e) =>
+                    setLine(selected.key, {
+                      markup: input(e.target.value) ?? undefined,
+                      materialMarkup: undefined,
+                      laborMarkup: undefined,
+                      directMarkup: undefined,
+                    })
+                  }
+                  disabled={!editable}
+                />
+                {selected.markup === undefined && (
+                  <div className="formgrid">
+                    {(
+                      [
+                        ['materialMarkup', 'Recargo de materiales (%)'],
+                        ['laborMarkup', 'Recargo de mano de obra (%)'],
+                        ['directMarkup', 'Recargo de otros directos (%)'],
+                      ] as const
+                    ).map(([field, label]) => (
+                      <TextField
+                        key={field}
+                        label={label}
+                        hint="Vacío usa el general."
+                        value={selected[field] ?? ''}
+                        onChange={(e) =>
+                          setLine(selected.key, {
+                            [field]: input(e.target.value) ?? undefined,
+                          })
+                        }
+                        disabled={!editable}
+                      />
+                    ))}
+                  </div>
+                )}
+              </details>
+              <p className="note small">
+                Ajuste para este presupuesto. El catálogo y las revisiones
+                emitidas se conservan.
+              </p>
+              <Button onClick={() => setContext(null)}>Listo</Button>
+            </div>
+          )
         )}
       </Modal>
       <Modal
@@ -1071,38 +1448,25 @@ export function BudgetEditor({ id }: { id: string }) {
         </div>
       </Modal>
       <Modal
-        open={!!comparisonMaterial}
-        onClose={() => setComparisonMaterial(null)}
-        title="Comparar corralones"
-        wide
+        open={!!valuation && !valuation.reviewing}
+        onClose={() => setValuation(null)}
+        title="Cambiar moneda o IVA"
       >
-        {comparisonMaterial && selected && (
-          <PriceComparison
-            materialId={comparisonMaterial}
-            onSelect={(price, normalized) => {
-              if (
-                price.currency !== content?.currency ||
-                price.taxBasis !== content?.taxBasis
-              ) {
-                toast.failure(
-                  'Precio no comparable',
-                  new Error(
-                    'La moneda y el IVA deben coincidir con el presupuesto.',
-                  ),
-                );
-                return;
-              }
-              setLine(selected.key, {
-                materials: selected.materials.map((m) =>
-                  m.materialId === comparisonMaterial
-                    ? { ...m, unitPrice: normalized, sourcePriceId: price.id }
-                    : m,
-                ),
-              });
-              setComparisonMaterial(null);
-            }}
-          />
-        )}
+        <p>
+          Se dejarán pendientes los precios de materiales, mano de obra y otros
+          directos de {valuation?.previous.lines.length} partidas. No se
+          convertirán importes ni se supondrá una alícuota.
+        </p>
+        <p>
+          Podés restaurar el borrador previo mientras revisás los nuevos
+          valores. Las revisiones emitidas se conservan.
+        </p>
+        <div className="row" style={{ flexWrap: 'wrap' }}>
+          <Button onClick={confirmValuation}>Cambiar y revisar costos</Button>
+          <Button variant="sec" onClick={() => setValuation(null)}>
+            Conservar valoración
+          </Button>
+        </div>
       </Modal>
       <Modal
         open={!!preview}

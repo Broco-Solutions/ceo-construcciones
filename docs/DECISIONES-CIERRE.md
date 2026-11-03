@@ -23,3 +23,14 @@
 - La fuente incompleta conserva `materialDemandIncomplete`; el usuario puede registrar su revisión en Materiales previstos. Necesidades indica orientación y no exactitud mientras persista ese estado. Esto no impide emitir un precio comercial conocido ni impone un circuito de aprobación.
 - El PDF imprime el precio unitario comercial con su precisión de cálculo para que explique el importe extendido de dos decimales. Emisiones congelan datos públicos, condiciones y versión de formato; una descarga posterior no consulta nombres o precios maestros actuales.
 - Indicadores suman una emisión vigente por presupuesto. No convierten versiones V1 de costos en ventas ni mezclan monedas/IVA. OC antiguas con fracciones recurrentes y sin política declarada se cuentan como sin valorización verificable, sin inventar cero.
+
+
+## Correcciones técnicas de aceptación, 03/11/2026
+
+- La navegación controlada resuelve una intención pendiente una sola vez. La recarga/cierre usa `beforeunload`; no hay autoguardado ni almacenamiento sensible en navegador.
+- Moneda/IVA se muestran desde el inicio. Cambiar costos requiere confirmación y revisión explícita; una copia sólo en memoria permite deshacer esa revisión antes de confirmarla. No se infieren tasas ni conversiones.
+- El costo unitario se calcula en servidor independientemente de cantidad. `null` conserva pendiente y `0` es un cero explícito sin demanda.
+- Una composición física puede coexistir con un costo de suministro agregado documentado: `materialsIncludedInDirect` impide sumar nuevamente sus precios. No se publican precios cero ficticios cuando falta referencia. Sustituir el agregado por composición valorizada deja evidencia en el borrador y su auditoría.
+- La exactitud material depende de faltantes concretos y evidencia por partida. Un reconocimiento global no borra incompletitud; los 23 casos C del conjunto original de DG permanecen identificados.
+- Los contratos nuevos son aditivos y los campos de snapshots anteriores siguen aceptados. Esta pasada no introduce migraciones adicionales ni modifica infraestructura.
+- El entorno manual usa su propia base persistente y puertos; no comparte datos con las bases únicas de los runners automatizados.

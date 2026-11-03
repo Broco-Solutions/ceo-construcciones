@@ -1,6 +1,6 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Plus, Search } from 'lucide-react';
 import { Page } from '@/components/shell';
 import {
@@ -26,7 +26,7 @@ type Work = Schemas['WorkList'];
 
 export default function ObrasPage() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
   const [clientId, setClientId] = useState('');

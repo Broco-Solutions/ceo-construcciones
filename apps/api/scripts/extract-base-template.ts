@@ -2,6 +2,7 @@
 import ExcelJS from "exceljs";
 import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { extractComposition, type SourceSheet } from "./historical-composition";
 import { Prisma } from "@prisma/client";
 
 async function main() {
@@ -33,12 +34,24 @@ async function main() {
           .toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP)
           .toFixed()
       : null;
-  const ref = (v: ExcelJS.CellValue) => {
-    if (!v || typeof v !== "object" || !("formula" in v) || !v.formula)
-      return null;
-    const m = v.formula.match(/^\+?'([^']+)'!\$?J\$?(\d+)$/);
-    return m ? { sheet: m[1], row: Number(m[2]) } : null;
-  };
+  const sources: SourceSheet[] = book.worksheets.map((w) => ({
+    name: w.name,
+    rows: Array.from({ length: Math.min(w.rowCount, 1000) }, (_, i) =>
+      Array.from(
+        { length: Math.min(w.columnCount, 40) },
+        (_, j) => value(w.getCell(i + 1, j + 1).value) ?? "",
+      ),
+    ),
+    formulas: Array.from({ length: Math.min(w.rowCount, 1000) }, (_, i) =>
+      Array.from({ length: Math.min(w.columnCount, 40) }, (_, j) => ({
+        row: i + 1,
+        column: j + 1,
+        text: w.getCell(i + 1, j + 1).formula ?? null,
+      })),
+    )
+      .flat()
+      .filter((f) => f.text !== null),
+  }));
   const lines: Record<string, unknown>[] = [],
     issues: { row: number; message: string }[] = [];
   let category = "";
@@ -51,47 +64,38 @@ async function main() {
       continue;
     }
     if (!category || !name || !unit) continue;
-    const materialRef = ref(r.getCell(5).value),
-      materials: Record<string, unknown>[] = [],
+    const extracted = extractComposition(sources, "COSTO", row),
       materialCost = num(value(r.getCell(5).value)),
       labor = num(value(r.getCell(6).value));
+    const legitimateDirect =
+      /BAÑO QUIMICO|OBRADOR|MOVILIDAD|SEGUROS|HIGIENE|SEGURIDAD/i.test(name);
+    const materials = legitimateDirect
+      ? []
+      : extracted.materials.map((m) => ({
+          sourceKey: m.cells[0],
+          name: m.name,
+          unit: m.unit,
+          coefficient: m.coefficient,
+          unitPrice: m.unitPrice,
+        }));
     let direct: string | null = materialCost ?? "0";
-    if (materialRef) {
-      const recipe = book.getWorksheet(materialRef.sheet);
-      if (recipe) {
-        let start = materialRef.row - 1;
-        while (start > 1 && !value(recipe.getRow(start).getCell(1).value))
-          start--;
-        for (let n = start + 1; n < materialRef.row; n++) {
-          const rr = recipe.getRow(n);
-          if (
-            String(value(rr.getCell(6).value) ?? "")
-              .trim()
-              .toLowerCase() !== "x"
-          )
-            continue;
-          const label = String(value(rr.getCell(2).value) ?? "").trim(),
-            coefficient = num(value(rr.getCell(4).value)),
-            mu = String(value(rr.getCell(5).value) ?? "").trim();
-          if (!label || !mu || coefficient === null) {
-            issues.push({
-              row,
-              message: `Composición ${materialRef.sheet}:${n} sin consumo verificable`,
-            });
-            continue;
-          }
-          if (coefficient !== "0")
-            materials.push({
-              sourceKey: `${materialRef.sheet}:${n}`,
-              name: label,
-              unit: mu,
-              coefficient,
-              unitPrice: num(value(rr.getCell(7).value)),
-            });
-        }
-        if (materials.length) direct = "0";
-      }
-    }
+    const physicalWarnings = legitimateDirect ? [] : extracted.warnings;
+    const materialReview = {
+      status:
+        legitimateDirect || materialCost === "0"
+          ? "DIRECT"
+          : materials.length && !physicalWarnings.length
+            ? "VERIFIED"
+            : "UNRESOLVED",
+      detail:
+        physicalWarnings.join("; ") ||
+        (materials.length
+          ? "Consumos físicos de fuente; costo de suministro agregado sin doble suma"
+          : "Costo directo; comprobar su alcance físico"),
+      evidence: `COSTO!E${row}; ${extracted.cells.slice(0, 10).join(", ")}`,
+    };
+    for (const warning of physicalWarnings)
+      issues.push({ row, message: warning });
     if (
       materialCost === null &&
       r.getCell(5).value !== null &&
@@ -142,6 +146,8 @@ async function main() {
       quantity: "0",
       laborUnitCost: laborValue,
       directUnitCost: direct,
+      materialsIncludedInDirect: materials.length > 0,
+      materialReview,
       materials,
     });
   }
@@ -150,6 +156,7 @@ async function main() {
     JSON.stringify(
       {
         format: "base-template-v1",
+        extractionVersion: 2,
         sourceSha256: createHash("sha256").update(bytes).digest("hex"),
         currency: "ARS",
         taxBasis: "UNSPECIFIED",

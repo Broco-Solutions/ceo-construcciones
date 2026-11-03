@@ -1,5 +1,6 @@
 {
   "format": "base-template-v1",
+  "extractionVersion": 2,
   "sourceSha256": "5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21dbd1e03b5b243e9e",
   "currency": "ARS",
   "taxBasis": "UNSPECIFIED",
@@ -13,40 +14,46 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "3334.2",
-      "directUnitCost": "0",
+      "directUnitCost": "12954.22224",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "01-TareasP!G13: unidad m contradice PRECIOS!C230 (un); no se supone equivalencia; 01-TareasP!G15: unidad un contradice PRECIOS!C184 (m); no se supone equivalencia",
+        "evidence": "COSTO!E12; COSTO!E12, 01-TareasP!J18, 01-TareasP!I13, 01-TareasP!G13, 01-TareasP!D13, 01-TareasP!I14, 01-TareasP!G14, 01-TareasP!D14, 01-TareasP!I15, 01-TareasP!G15"
+      },
       "materials": [
         {
-          "sourceKey": "01-TareasP:13",
+          "sourceKey": "01-TareasP!G13",
           "name": "RAFIA",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "1",
           "unitPrice": "2904"
         },
         {
-          "sourceKey": "01-TareasP:14",
+          "sourceKey": "01-TareasP!G14",
           "name": "MALLA 15X15X4,2 (2X3M)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "2",
           "unitPrice": "3090.366217"
         },
         {
-          "sourceKey": "01-TareasP:15",
+          "sourceKey": "01-TareasP!G15",
           "name": "POSTES 2,44",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "0.4",
           "unitPrice": "1902.278689"
         },
         {
-          "sourceKey": "01-TareasP:16",
+          "sourceKey": "01-TareasP!G16",
           "name": "ALAMBRE GALVANIZADO",
           "unit": "kg",
           "coefficient": "0.07",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "01-TareasP:17",
+          "sourceKey": "01-TareasP!G17",
           "name": "BASES",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.0144",
           "unitPrice": "183490.45"
         }
@@ -60,6 +67,12 @@
       "quantity": "0",
       "laborUnitCost": "800208",
       "directUnitCost": "240000",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "DIRECT",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E13; COSTO!E13"
+      },
       "materials": []
     },
     {
@@ -70,6 +83,12 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": "115797",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "DIRECT",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E14; COSTO!E14, PRECIOS!G189"
+      },
       "materials": []
     },
     {
@@ -79,19 +98,18 @@
       "unit": "Gl",
       "quantity": "0",
       "laborUnitCost": "16671",
-      "directUnitCost": "0",
+      "directUnitCost": "60500",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E15; COSTO!E15, 01-TareasP!J49, 01-TareasP!I48, 01-TareasP!G48, 01-TareasP!D48"
+      },
       "materials": [
         {
-          "sourceKey": "01-TareasP:42",
-          "name": "BAÑO + LIMPIEZA",
-          "unit": "mes",
-          "coefficient": "1",
-          "unitPrice": "115797"
-        },
-        {
-          "sourceKey": "01-TareasP:48",
+          "sourceKey": "01-TareasP!G48",
           "name": "CARTEL",
-          "unit": "U",
+          "unit": "un",
           "coefficient": "1",
           "unitPrice": "60500"
         }
@@ -104,24 +122,30 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "31123.85",
-      "directUnitCost": "0",
+      "directUnitCost": "30716.212",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E16; COSTO!E16, 01-TareasP!J29, 01-TareasP!I26, 01-TareasP!G26, 01-TareasP!D26, 01-TareasP!I27, 01-TareasP!G27, 01-TareasP!D27, 01-TareasP!I28, 01-TareasP!G28"
+      },
       "materials": [
         {
-          "sourceKey": "01-TareasP:26",
+          "sourceKey": "01-TareasP!G26",
           "name": "ESTACAS DE MADERAS",
-          "unit": "Un",
+          "unit": "un",
           "coefficient": "24",
           "unitPrice": "1200"
         },
         {
-          "sourceKey": "01-TareasP:27",
+          "sourceKey": "01-TareasP!G27",
           "name": "CLAVOS",
-          "unit": "KG",
+          "unit": "kg",
           "coefficient": "0.2",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "01-TareasP:28",
+          "sourceKey": "01-TareasP!G28",
           "name": "HILO DE ALBAÑIL",
           "unit": "ROLLO",
           "coefficient": "0.2",
@@ -137,6 +161,12 @@
       "quantity": "0",
       "laborUnitCost": "230666.6667",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E19; COSTO!E19"
+      },
       "materials": []
     },
     {
@@ -147,6 +177,12 @@
       "quantity": "0",
       "laborUnitCost": "64674",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E20; COSTO!E20"
+      },
       "materials": []
     },
     {
@@ -157,6 +193,12 @@
       "quantity": "0",
       "laborUnitCost": "6607",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E21; COSTO!E21"
+      },
       "materials": []
     },
     {
@@ -167,6 +209,12 @@
       "quantity": "0",
       "laborUnitCost": "5124",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E22; COSTO!E22"
+      },
       "materials": []
     },
     {
@@ -177,6 +225,12 @@
       "quantity": "0",
       "laborUnitCost": "33000",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E23; COSTO!E23"
+      },
       "materials": []
     },
     {
@@ -187,6 +241,12 @@
       "quantity": "0",
       "laborUnitCost": "4688",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E24; COSTO!E24"
+      },
       "materials": []
     },
     {
@@ -196,12 +256,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "2634.32",
-      "directUnitCost": "0",
+      "directUnitCost": "512.63465",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E27; COSTO!E27, 03-Aisl!J49, 03-Aisl!I48, 03-Aisl!G48, 03-Aisl!D48"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:48",
+          "sourceKey": "03-Aisl!G48",
           "name": "FILM POLIETILENO 200 MICRONES",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "466.0315"
         }
@@ -214,12 +280,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "2634.32",
-      "directUnitCost": "0",
+      "directUnitCost": "512.63465",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E28; COSTO!E28, 03-Aisl!J49, 03-Aisl!I48, 03-Aisl!G48, 03-Aisl!D48"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:48",
+          "sourceKey": "03-Aisl!G48",
           "name": "FILM POLIETILENO 200 MICRONES",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "466.0315"
         }
@@ -232,40 +304,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": null,
-      "directUnitCost": "0",
+      "directUnitCost": "16439.85757",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E29; COSTO!E29, 03-Aisl!J200, 03-Aisl!I195, 03-Aisl!G195, 03-Aisl!D195, 03-Aisl!I196, 03-Aisl!G196, 03-Aisl!D196, 03-Aisl!I197, 03-Aisl!G197"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:195",
+          "sourceKey": "03-Aisl!G195",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "7.65",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "03-Aisl:196",
+          "sourceKey": "03-Aisl!G196",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.0165",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "03-Aisl:197",
+          "sourceKey": "03-Aisl!G197",
           "name": "HIDRÓFUGO",
           "unit": "kg",
           "coefficient": "0.375",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "03-Aisl:198",
+          "sourceKey": "03-Aisl!G198",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.5",
           "unitPrice": "6866.442122"
         },
         {
-          "sourceKey": "03-Aisl:199",
+          "sourceKey": "03-Aisl!G199",
           "name": "POLIESTIRENO EXP ESP. 5CM",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "9048.38"
         }
@@ -279,6 +357,12 @@
       "quantity": "0",
       "laborUnitCost": "39400",
       "directUnitCost": "59100",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E30: importe fijo 59100 sin desglose físico",
+        "evidence": "COSTO!E30; COSTO!E30"
+      },
       "materials": []
     },
     {
@@ -289,6 +373,12 @@
       "quantity": "0",
       "laborUnitCost": "11250",
       "directUnitCost": "19073.06818",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E31: importe fijo 19073.068181818181818181818181818181818181818181818181818181818181818181818181818 sin desglose físico",
+        "evidence": "COSTO!E31; COSTO!E31"
+      },
       "materials": []
     },
     {
@@ -299,6 +389,12 @@
       "quantity": "0",
       "laborUnitCost": "6500",
       "directUnitCost": "43029.54545",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E32: importe fijo 43029.545454545454545454545454545454545454545454545454545454545454545454545454546 sin desglose físico",
+        "evidence": "COSTO!E32; COSTO!E32"
+      },
       "materials": []
     },
     {
@@ -308,12 +404,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "7734.74",
-      "directUnitCost": "0",
+      "directUnitCost": "4256.059167",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E33; COSTO!E33, 03-Aisl!J127, 03-Aisl!I126, 03-Aisl!G126, 03-Aisl!D126"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:126",
+          "sourceKey": "03-Aisl!G126",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.75",
           "unitPrice": "5674.745556"
         }
@@ -326,12 +428,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "8565.4",
-      "directUnitCost": "0",
+      "directUnitCost": "4256.059167",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E34; COSTO!E34, 03-Aisl!J127, 03-Aisl!I126, 03-Aisl!G126, 03-Aisl!D126"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:126",
+          "sourceKey": "03-Aisl!G126",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.75",
           "unitPrice": "5674.745556"
         }
@@ -344,24 +452,30 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "7387",
-      "directUnitCost": "0",
+      "directUnitCost": "2847.274365",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E35; COSTO!E35, 03-Aisl!J25, 03-Aisl!I22, 03-Aisl!G22, 03-Aisl!D22, 03-Aisl!I23, 03-Aisl!G23, 03-Aisl!D23, 03-Aisl!I24, 03-Aisl!G24"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:22",
+          "sourceKey": "03-Aisl!G22",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "5.1",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "03-Aisl:23",
+          "sourceKey": "03-Aisl!G23",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.011",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "03-Aisl:24",
+          "sourceKey": "03-Aisl!G24",
           "name": "HIDRÓFUGO",
           "unit": "kg",
           "coefficient": "0.25",
@@ -376,40 +490,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "5475.55",
-      "directUnitCost": "0",
+      "directUnitCost": "8965.56276",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E36; COSTO!E36, 03-Aisl!J172, 03-Aisl!I167, 03-Aisl!G167, 03-Aisl!D167, 03-Aisl!I168, 03-Aisl!G168, 03-Aisl!D168, 03-Aisl!I169, 03-Aisl!G169"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:167",
+          "sourceKey": "03-Aisl!G167",
           "name": "PLASTICOR",
           "unit": "kg",
           "coefficient": "6",
           "unitPrice": null
         },
         {
-          "sourceKey": "03-Aisl:168",
+          "sourceKey": "03-Aisl!G168",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": null
         },
         {
-          "sourceKey": "03-Aisl:169",
+          "sourceKey": "03-Aisl!G169",
           "name": "HIDROFUGO",
           "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": null
         },
         {
-          "sourceKey": "03-Aisl:170",
+          "sourceKey": "03-Aisl!G170",
           "name": "POLIESTIRENO EXPANDIDO (30mm) ALTA DENSIDAD",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.05",
           "unitPrice": "8538.6312"
         },
         {
-          "sourceKey": "03-Aisl:171",
+          "sourceKey": "03-Aisl!G171",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.22",
           "unitPrice": null
         }
@@ -422,26 +542,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "10951.1",
-      "directUnitCost": "0",
+      "directUnitCost": "12568.56363",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E37; COSTO!E37, 03-Aisl!J186, 03-Aisl!I182, 03-Aisl!G182, 03-Aisl!D182, 03-Aisl!I183, 03-Aisl!G183, 03-Aisl!D183, 03-Aisl!I184, 03-Aisl!G184"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:182",
+          "sourceKey": "03-Aisl!G182",
           "name": "FILM DE POLIETILENO 200M",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "512.63465"
         },
         {
-          "sourceKey": "03-Aisl:183",
+          "sourceKey": "03-Aisl!G183",
           "name": "MALLA SIMA",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "3090.366217"
         },
         {
-          "sourceKey": "03-Aisl:184",
+          "sourceKey": "03-Aisl!G184",
           "name": "POLIESTIRENO EXPANDIDO (20mm) ALTA DENSIDAD",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.05",
           "unitPrice": "8538.6312"
         }
@@ -454,40 +580,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "5834.85",
-      "directUnitCost": "0",
+      "directUnitCost": "4312.678378",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "03-Aisl!G157: unidad L contradice PRECIOS!C138 (kg); no se supone equivalencia",
+        "evidence": "COSTO!E38; COSTO!E38, 03-Aisl!J158, 03-Aisl!I156, 03-Aisl!G156, 03-Aisl!D156, 03-Aisl!I157, 03-Aisl!G157, 03-Aisl!D157"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:146",
-          "name": "POLIESTILENO EXPANIDO 25mm (DENSIDAD 30) ENTRE MUROS",
-          "unit": "m2",
-          "coefficient": "1.1",
-          "unitPrice": "7056.72"
-        },
-        {
-          "sourceKey": "03-Aisl:150",
-          "name": "OFICIAL",
-          "unit": "h",
-          "coefficient": "0.1",
-          "unitPrice": "9485"
-        },
-        {
-          "sourceKey": "03-Aisl:151",
-          "name": "AYUDANTE",
-          "unit": "h",
-          "coefficient": "0.1",
-          "unitPrice": "7186"
-        },
-        {
-          "sourceKey": "03-Aisl:156",
+          "sourceKey": "03-Aisl!G156",
           "name": "MANTA GEOTEXTIL",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "580.8"
         },
         {
-          "sourceKey": "03-Aisl:157",
+          "sourceKey": "03-Aisl!G157",
           "name": "PINTURA ACRILICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.667",
           "unitPrice": "5507.943595"
         }
@@ -501,6 +612,12 @@
       "quantity": "0",
       "laborUnitCost": "14400",
       "directUnitCost": "17600",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E39: importe fijo 17600 sin desglose físico",
+        "evidence": "COSTO!E39; COSTO!E39, COSTO!E160"
+      },
       "materials": []
     },
     {
@@ -510,19 +627,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "44048.75",
-      "directUnitCost": "0",
+      "directUnitCost": "4934.1864",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E40; COSTO!E40, 03-Aisl!J60, 03-Aisl!I58, 03-Aisl!G58, 03-Aisl!D58, 03-Aisl!I59, 03-Aisl!G59, 03-Aisl!D59"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:58",
+          "sourceKey": "03-Aisl!G58",
           "name": "MANTA GEOTEXTIL",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.05",
           "unitPrice": "580.8"
         },
         {
-          "sourceKey": "03-Aisl:59",
+          "sourceKey": "03-Aisl!G59",
           "name": "PINTURA PQ5",
-          "unit": "LTS",
+          "unit": "L",
           "coefficient": "1.5",
           "unitPrice": "2882.8976"
         }
@@ -536,6 +659,12 @@
       "quantity": "0",
       "laborUnitCost": "26249000",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E44; COSTO!E44"
+      },
       "materials": []
     },
     {
@@ -545,47 +674,53 @@
       "unit": "m3",
       "quantity": "0",
       "laborUnitCost": "400104",
-      "directUnitCost": "0",
+      "directUnitCost": "619452.4376",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico; 04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento",
+        "evidence": "COSTO!E45; COSTO!E45, 04-EstructHE!J59, 04-EstructHE!I53, 04-EstructHE!G53, 04-EstructHE!D53, 04-EstructHE!I54, 04-EstructHE!G54, 04-EstructHE!D54, 04-EstructHE!I55, 04-EstructHE!G55"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:53",
+          "sourceKey": "04-EstructHE!G53",
           "name": "H°ELABORADO H21",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": "203183.2"
         },
         {
-          "sourceKey": "04-EstructHE:54",
+          "sourceKey": "04-EstructHE!G54",
           "name": "HIERRO TORSIONADO + DOBLADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "106",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "04-EstructHE:55",
+          "sourceKey": "04-EstructHE!G55",
           "name": "ALAMBRE Nº17",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "04-EstructHE:56",
+          "sourceKey": "04-EstructHE!G56",
           "name": "CLAVOS CAJONEROS 2,5\"",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.07",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "04-EstructHE:57",
+          "sourceKey": "04-EstructHE!G57",
           "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "9.9",
           "unitPrice": "11564.26364"
         },
         {
-          "sourceKey": "04-EstructHE:58",
+          "sourceKey": "04-EstructHE!G58",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": "10231.21"
         }
@@ -598,47 +733,53 @@
       "unit": "m3",
       "quantity": "0",
       "laborUnitCost": "400104",
-      "directUnitCost": "0",
+      "directUnitCost": "619452.4376",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico; 04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento",
+        "evidence": "COSTO!E46; COSTO!E46, 04-EstructHE!J59, 04-EstructHE!I53, 04-EstructHE!G53, 04-EstructHE!D53, 04-EstructHE!I54, 04-EstructHE!G54, 04-EstructHE!D54, 04-EstructHE!I55, 04-EstructHE!G55"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:53",
+          "sourceKey": "04-EstructHE!G53",
           "name": "H°ELABORADO H21",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": "203183.2"
         },
         {
-          "sourceKey": "04-EstructHE:54",
+          "sourceKey": "04-EstructHE!G54",
           "name": "HIERRO TORSIONADO + DOBLADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "106",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "04-EstructHE:55",
+          "sourceKey": "04-EstructHE!G55",
           "name": "ALAMBRE Nº17",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "04-EstructHE:56",
+          "sourceKey": "04-EstructHE!G56",
           "name": "CLAVOS CAJONEROS 2,5\"",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.07",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "04-EstructHE:57",
+          "sourceKey": "04-EstructHE!G57",
           "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "9.9",
           "unitPrice": "11564.26364"
         },
         {
-          "sourceKey": "04-EstructHE:58",
+          "sourceKey": "04-EstructHE!G58",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": "10231.21"
         }
@@ -651,54 +792,60 @@
       "unit": "m3",
       "quantity": "0",
       "laborUnitCost": "416775",
-      "directUnitCost": "0",
+      "directUnitCost": "780765.5666",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I91: división de costo por 2 (reutilización/amortización); cantidad física D91 conservada como orientativa, falta definir uso físico; 04-EstructHE!I92: división de costo por 2 (reutilización/amortización); cantidad física D92 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E47; COSTO!E47, 04-EstructHE!J93, 04-EstructHE!I86, 04-EstructHE!G86, 04-EstructHE!D86, 04-EstructHE!I87, 04-EstructHE!G87, 04-EstructHE!D87, 04-EstructHE!I88, 04-EstructHE!G88"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:86",
+          "sourceKey": "04-EstructHE!G86",
           "name": "HORMIGON ELABORADO H30",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": "220230.89"
         },
         {
-          "sourceKey": "04-EstructHE:87",
+          "sourceKey": "04-EstructHE!G87",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": "10231.21"
         },
         {
-          "sourceKey": "04-EstructHE:88",
+          "sourceKey": "04-EstructHE!G88",
           "name": "HIERRO TORSIONADO + DOBLADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "113",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "04-EstructHE:89",
+          "sourceKey": "04-EstructHE!G89",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.8",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "04-EstructHE:90",
+          "sourceKey": "04-EstructHE!G90",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "04-EstructHE:91",
+          "sourceKey": "04-EstructHE!G91",
           "name": "TIRANTES",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "30",
           "unitPrice": "1902.278689"
         },
         {
-          "sourceKey": "04-EstructHE:92",
+          "sourceKey": "04-EstructHE!G92",
           "name": "MADERA (TABLAS+FENOLICO IND.+FENOLICO IND.)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "15",
           "unitPrice": "32968.46532"
         }
@@ -712,53 +859,59 @@
       "quantity": "0",
       "laborUnitCost": "416775",
       "directUnitCost": null,
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I74: división de costo por 2 (reutilización/amortización); cantidad física D74 conservada como orientativa, falta definir uso físico; 04-EstructHE!I75: división de costo por 2 (reutilización/amortización); cantidad física D75 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E48; COSTO!E48, 04-EstructHE!J76, 04-EstructHE!I69, 04-EstructHE!G69, 04-EstructHE!D69, 04-EstructHE!I70, 04-EstructHE!G70, 04-EstructHE!D70, 04-EstructHE!I71, 04-EstructHE!G71"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:69",
+          "sourceKey": "04-EstructHE!G69",
           "name": "HORMIGON ELABORADO H30",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:70",
+          "sourceKey": "04-EstructHE!G70",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:71",
+          "sourceKey": "04-EstructHE!G71",
           "name": "HIERRO TORSIONADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "100",
           "unitPrice": "1600"
         },
         {
-          "sourceKey": "04-EstructHE:72",
+          "sourceKey": "04-EstructHE!G72",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.8",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:73",
+          "sourceKey": "04-EstructHE!G73",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:74",
+          "sourceKey": "04-EstructHE!G74",
           "name": "TIRANTES",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "30",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:75",
+          "sourceKey": "04-EstructHE!G75",
           "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "15",
           "unitPrice": null
         }
@@ -771,54 +924,60 @@
       "unit": "m3",
       "quantity": "0",
       "laborUnitCost": "400104",
-      "directUnitCost": "0",
+      "directUnitCost": "681590.9909",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I141: división de costo por 2 (reutilización/amortización); cantidad física D141 conservada como orientativa, falta definir uso físico; 04-EstructHE!I144: división de costo por 2 (reutilización/amortización); cantidad física D144 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E49; COSTO!E49, 04-EstructHE!J145, 04-EstructHE!I138, 04-EstructHE!G138, 04-EstructHE!D138, 04-EstructHE!I139, 04-EstructHE!G139, 04-EstructHE!D139, 04-EstructHE!I140, 04-EstructHE!G140"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:138",
+          "sourceKey": "04-EstructHE!G138",
           "name": "HORMIGÓN ELABORADO H30",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": "220230.89"
         },
         {
-          "sourceKey": "04-EstructHE:139",
+          "sourceKey": "04-EstructHE!G139",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": "10231.21"
         },
         {
-          "sourceKey": "04-EstructHE:140",
+          "sourceKey": "04-EstructHE!G140",
           "name": "HIERRO TORSIONADO + DOBLADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "125",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "04-EstructHE:141",
+          "sourceKey": "04-EstructHE!G141",
           "name": "PUNTALES",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "24",
           "unitPrice": "5801.95"
         },
         {
-          "sourceKey": "04-EstructHE:142",
+          "sourceKey": "04-EstructHE!G142",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "04-EstructHE:143",
+          "sourceKey": "04-EstructHE!G143",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.5",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "04-EstructHE:144",
+          "sourceKey": "04-EstructHE!G144",
           "name": "MADERA (FENOLICO IND)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "14.3",
           "unitPrice": "11564.26364"
         }
@@ -831,54 +990,60 @@
       "unit": "m3",
       "quantity": "0",
       "laborUnitCost": "408439.5",
-      "directUnitCost": "0",
+      "directUnitCost": "648415.1672",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I178: división de costo por 2 (reutilización/amortización); cantidad física D178 conservada como orientativa, falta definir uso físico; 04-EstructHE!I179: división de costo por 2 (reutilización/amortización); cantidad física D179 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E50; COSTO!E50, 04-EstructHE!J180, 04-EstructHE!I173, 04-EstructHE!G173, 04-EstructHE!D173, 04-EstructHE!I174, 04-EstructHE!G174, 04-EstructHE!D174, 04-EstructHE!I175, 04-EstructHE!G175"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:173",
+          "sourceKey": "04-EstructHE!G173",
           "name": "HORMIGON ELABORADO H30",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": "220230.89"
         },
         {
-          "sourceKey": "04-EstructHE:174",
+          "sourceKey": "04-EstructHE!G174",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": "10231.21"
         },
         {
-          "sourceKey": "04-EstructHE:175",
+          "sourceKey": "04-EstructHE!G175",
           "name": "HIERRO TORSIONADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "120",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "04-EstructHE:176",
+          "sourceKey": "04-EstructHE!G176",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "5",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "04-EstructHE:177",
+          "sourceKey": "04-EstructHE!G177",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2.5",
           "unitPrice": "4581.06"
         },
         {
-          "sourceKey": "04-EstructHE:178",
+          "sourceKey": "04-EstructHE!G178",
           "name": "PUNTALES",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "14",
           "unitPrice": "5801.95"
         },
         {
-          "sourceKey": "04-EstructHE:179",
+          "sourceKey": "04-EstructHE!G179",
           "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "10",
           "unitPrice": "11564.26364"
         }
@@ -892,53 +1057,59 @@
       "quantity": "0",
       "laborUnitCost": "449283.45",
       "directUnitCost": null,
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "04-EstructHE!I376: división de costo por 2 (reutilización/amortización); cantidad física D376 conservada como orientativa, falta definir uso físico; 04-EstructHE!I377: división de costo por 2 (reutilización/amortización); cantidad física D377 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E51; COSTO!E51, 04-EstructHE!J378, 04-EstructHE!I371, 04-EstructHE!G371, 04-EstructHE!D371, 04-EstructHE!I372, 04-EstructHE!G372, 04-EstructHE!D372, 04-EstructHE!I373, 04-EstructHE!G373"
+      },
       "materials": [
         {
-          "sourceKey": "04-EstructHE:371",
+          "sourceKey": "04-EstructHE!G371",
           "name": "HORMIGÓN ELABORADO H40",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1.1",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:372",
+          "sourceKey": "04-EstructHE!G372",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "1",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:373",
+          "sourceKey": "04-EstructHE!G373",
           "name": "HIERRO TORSIONADO + DOBLADO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "100",
           "unitPrice": "2000"
         },
         {
-          "sourceKey": "04-EstructHE:374",
+          "sourceKey": "04-EstructHE!G374",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "5",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:375",
+          "sourceKey": "04-EstructHE!G375",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2.5",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:376",
+          "sourceKey": "04-EstructHE!G376",
           "name": "PUNTALES",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "14",
           "unitPrice": null
         },
         {
-          "sourceKey": "04-EstructHE:377",
+          "sourceKey": "04-EstructHE!G377",
           "name": "MADERA",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "15",
           "unitPrice": null
         }
@@ -952,6 +1123,12 @@
       "quantity": "0",
       "laborUnitCost": "20000",
       "directUnitCost": "7000",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E52: importe fijo 7000 sin desglose físico",
+        "evidence": "COSTO!E52; COSTO!E52"
+      },
       "materials": []
     },
     {
@@ -962,6 +1139,12 @@
       "quantity": "0",
       "laborUnitCost": "160000",
       "directUnitCost": "205743",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E54: importe fijo 205743 sin desglose físico",
+        "evidence": "COSTO!E54; COSTO!E54"
+      },
       "materials": []
     },
     {
@@ -971,34 +1154,40 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "50013",
-      "directUnitCost": "0",
+      "directUnitCost": "52944.7914",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E57; COSTO!E57, 05-MampCA!J26, 05-MampCA!J25, 05-MampCA!I21, 05-MampCA!G21, 05-MampCA!D21, 05-MampCA!I22, 05-MampCA!G22, 05-MampCA!D22, 05-MampCA!I23"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:21",
+          "sourceKey": "05-MampCA!G21",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "157.6363636",
+          "unit": "kg",
+          "coefficient": "47.29090908",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampCA:22",
+          "sourceKey": "05-MampCA!G22",
           "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.34",
+          "unit": "m³",
+          "coefficient": "0.102",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:23",
+          "sourceKey": "05-MampCA!G23",
           "name": "HIDROFUGO",
-          "unit": "Kg",
-          "coefficient": "7.72",
+          "unit": "kg",
+          "coefficient": "2.316",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "05-MampCA:24",
+          "sourceKey": "05-MampCA!G24",
           "name": "LADRILLOS COMUNES",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1010,34 +1199,40 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "50013",
-      "directUnitCost": "0",
+      "directUnitCost": "52944.7914",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E58; COSTO!E58, 05-MampCA!J26, 05-MampCA!J25, 05-MampCA!I21, 05-MampCA!G21, 05-MampCA!D21, 05-MampCA!I22, 05-MampCA!G22, 05-MampCA!D22, 05-MampCA!I23"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:21",
+          "sourceKey": "05-MampCA!G21",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "157.6363636",
+          "unit": "kg",
+          "coefficient": "47.29090908",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampCA:22",
+          "sourceKey": "05-MampCA!G22",
           "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.34",
+          "unit": "m³",
+          "coefficient": "0.102",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:23",
+          "sourceKey": "05-MampCA!G23",
           "name": "HIDROFUGO",
-          "unit": "Kg",
-          "coefficient": "7.72",
+          "unit": "kg",
+          "coefficient": "2.316",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "05-MampCA:24",
+          "sourceKey": "05-MampCA!G24",
           "name": "LADRILLOS COMUNES",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1049,34 +1244,40 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "50013",
-      "directUnitCost": "0",
+      "directUnitCost": "52944.7914",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E59; COSTO!E59, 05-MampCA!J26, 05-MampCA!J25, 05-MampCA!I21, 05-MampCA!G21, 05-MampCA!D21, 05-MampCA!I22, 05-MampCA!G22, 05-MampCA!D22, 05-MampCA!I23"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:21",
+          "sourceKey": "05-MampCA!G21",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "157.6363636",
+          "unit": "kg",
+          "coefficient": "47.29090908",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampCA:22",
+          "sourceKey": "05-MampCA!G22",
           "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.34",
+          "unit": "m³",
+          "coefficient": "0.102",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:23",
+          "sourceKey": "05-MampCA!G23",
           "name": "HIDROFUGO",
-          "unit": "Kg",
-          "coefficient": "7.72",
+          "unit": "kg",
+          "coefficient": "2.316",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "05-MampCA:24",
+          "sourceKey": "05-MampCA!G24",
           "name": "LADRILLOS COMUNES",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1088,55 +1289,61 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "52513.65",
-      "directUnitCost": "0",
+      "directUnitCost": "46559.39315",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E60; COSTO!E60, 05-MampCA!J97, 05-MampCA!I89, 05-MampCA!G89, 05-MampCA!D89, 05-MampCA!I90, 05-MampCA!G90, 05-MampCA!D90, 05-MampCA!I91, 05-MampCA!G91"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:89",
+          "sourceKey": "05-MampCA!G89",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "54.1",
+          "unit": "kg",
+          "coefficient": "16.23",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampCA:90",
+          "sourceKey": "05-MampCA!G90",
           "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.3",
+          "unit": "m³",
+          "coefficient": "0.09",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:91",
+          "sourceKey": "05-MampCA!G91",
           "name": "FE",
-          "unit": "Kg",
-          "coefficient": "4.8",
+          "unit": "kg",
+          "coefficient": "1.44",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "05-MampCA:92",
+          "sourceKey": "05-MampCA!G92",
           "name": "TELGOPOR 5 cm ALTA DENSIDAD",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.3",
           "unitPrice": "9048.38"
         },
         {
-          "sourceKey": "05-MampCA:93",
+          "sourceKey": "05-MampCA!G93",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
-          "coefficient": "1",
+          "unit": "L",
+          "coefficient": "0.3",
           "unitPrice": "6866.442122"
         },
         {
-          "sourceKey": "05-MampCA:94",
+          "sourceKey": "05-MampCA!G94",
           "name": "HIDROFUGO",
           "unit": "kg",
-          "coefficient": "1",
+          "coefficient": "0.3",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "05-MampCA:95",
+          "sourceKey": "05-MampCA!G95",
           "name": "LADRILLOS COMUNES",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1148,55 +1355,61 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "54895.8375",
-      "directUnitCost": "0",
+      "directUnitCost": "44752.0372",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E61; COSTO!E61, 05-MampCA!J81, 05-MampCA!J80, 05-MampCA!I73, 05-MampCA!G73, 05-MampCA!D73, 05-MampCA!I74, 05-MampCA!G74, 05-MampCA!D74, 05-MampCA!I75"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:73",
+          "sourceKey": "05-MampCA!G73",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "54.1",
+          "unit": "kg",
+          "coefficient": "16.23",
           "unitPrice": "196.86337"
         },
         {
-          "sourceKey": "05-MampCA:74",
+          "sourceKey": "05-MampCA!G74",
           "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.3",
+          "unit": "m³",
+          "coefficient": "0.09",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:75",
+          "sourceKey": "05-MampCA!G75",
           "name": "FE",
-          "unit": "Kg",
-          "coefficient": "4.8",
+          "unit": "kg",
+          "coefficient": "1.44",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "05-MampCA:76",
+          "sourceKey": "05-MampCA!G76",
           "name": "TELGOPOR 5 cm ALTA DENSIDAD",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.3",
           "unitPrice": "9048.38"
         },
         {
-          "sourceKey": "05-MampCA:77",
+          "sourceKey": "05-MampCA!G77",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
-          "coefficient": "1",
+          "unit": "L",
+          "coefficient": "0.3",
           "unitPrice": "6866.442122"
         },
         {
-          "sourceKey": "05-MampCA:78",
+          "sourceKey": "05-MampCA!G78",
           "name": "HIDROFUGO",
           "unit": "kg",
-          "coefficient": "1",
+          "coefficient": "0.3",
           "unitPrice": "2076.28377"
         },
         {
-          "sourceKey": "05-MampCA:79",
+          "sourceKey": "05-MampCA!G79",
           "name": "LADRILLOS VISTOS",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1208,34 +1421,40 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "37509.75",
-      "directUnitCost": "0",
+      "directUnitCost": "43289.38182",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia",
+        "evidence": "COSTO!E62; COSTO!E62, 05-MampCA!J52, 05-MampCA!I47, 05-MampCA!G47, 05-MampCA!D47, 05-MampCA!I48, 05-MampCA!G48, 05-MampCA!D48, 05-MampCA!I49, 05-MampCA!G49"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampCA:47",
+          "sourceKey": "05-MampCA!G47",
           "name": "PLASTICOR",
-          "unit": "Kg",
-          "coefficient": "57",
+          "unit": "kg",
+          "coefficient": "17.1",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampCA:48",
+          "sourceKey": "05-MampCA!G48",
           "name": "ARENA",
-          "unit": "Kg",
-          "coefficient": "0.46",
+          "unit": "kg",
+          "coefficient": "0.138",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampCA:49",
+          "sourceKey": "05-MampCA!G49",
           "name": "FE",
-          "unit": "Kg",
-          "coefficient": "5",
+          "unit": "kg",
+          "coefficient": "1.5",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "05-MampCA:50",
+          "sourceKey": "05-MampCA!G50",
           "name": "LADRILLOS COMUNES",
-          "unit": "u",
-          "coefficient": "400",
+          "unit": "un",
+          "coefficient": "120",
           "unitPrice": "248.9817"
         }
       ]
@@ -1248,7 +1467,42 @@
       "quantity": "0",
       "laborUnitCost": "25006.5",
       "directUnitCost": "28859.58788",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia",
+        "evidence": "COSTO!E63; COSTO!E63, 05-MampCA!L52, 05-MampCA!J51, 05-MampCA!I47, 05-MampCA!G47, 05-MampCA!D47, 05-MampCA!I48, 05-MampCA!G48, 05-MampCA!D48, 05-MampCA!I49"
+      },
+      "materials": [
+        {
+          "sourceKey": "05-MampCA!G47",
+          "name": "PLASTICOR",
+          "unit": "kg",
+          "coefficient": "11.4",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA!G48",
+          "name": "ARENA",
+          "unit": "kg",
+          "coefficient": "0.092",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA!G49",
+          "name": "FE",
+          "unit": "kg",
+          "coefficient": "1",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA!G50",
+          "name": "LADRILLOS COMUNES",
+          "unit": "un",
+          "coefficient": "80",
+          "unitPrice": "248.9817"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:64",
@@ -1258,7 +1512,42 @@
       "quantity": "0",
       "laborUnitCost": "18754.875",
       "directUnitCost": "21644.69091",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia",
+        "evidence": "COSTO!E64; COSTO!E64, COSTO!E62, 05-MampCA!J52, 05-MampCA!I47, 05-MampCA!G47, 05-MampCA!D47, 05-MampCA!I48, 05-MampCA!G48, 05-MampCA!D48, 05-MampCA!I49"
+      },
+      "materials": [
+        {
+          "sourceKey": "05-MampCA!G47",
+          "name": "PLASTICOR",
+          "unit": "kg",
+          "coefficient": "8.55",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA!G48",
+          "name": "ARENA",
+          "unit": "kg",
+          "coefficient": "0.069",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA!G49",
+          "name": "FE",
+          "unit": "kg",
+          "coefficient": "0.75",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA!G50",
+          "name": "LADRILLOS COMUNES",
+          "unit": "un",
+          "coefficient": "60",
+          "unitPrice": "248.9817"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:65",
@@ -1267,33 +1556,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "11669.7",
-      "directUnitCost": "0",
+      "directUnitCost": "8669.828427",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E65; COSTO!E65, 05-MampC!J106, 05-MampC!I102, 05-MampC!G102, 05-MampC!D102, 05-MampC!I103, 05-MampC!G103, 05-MampC!D103, 05-MampC!I104, 05-MampC!G104"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampC:102",
+          "sourceKey": "05-MampC!G102",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.25",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "05-MampC:103",
+          "sourceKey": "05-MampC!G103",
           "name": "CAL HIDRATADA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.3",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "05-MampC:104",
+          "sourceKey": "05-MampC!G104",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.01",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampC:105",
+          "sourceKey": "05-MampC!G105",
           "name": "LADRILLOS",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "30",
           "unitPrice": "248.9817"
         }
@@ -1306,40 +1601,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16671",
-      "directUnitCost": "0",
+      "directUnitCost": "20267.53549",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E66; COSTO!E66, 05-MampC!J341, 05-MampC!I336, 05-MampC!G336, 05-MampC!D336, 05-MampC!I337, 05-MampC!G337, 05-MampC!D337, 05-MampC!I338, 05-MampC!G338"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampC:336",
+          "sourceKey": "05-MampC!G336",
           "name": "KLAUKOL IMPERMEABLE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "7",
           "unitPrice": "625.570968"
         },
         {
-          "sourceKey": "05-MampC:337",
+          "sourceKey": "05-MampC!G337",
           "name": "TEJUELAS de 20mm",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "35",
           "unitPrice": "436.81"
         },
         {
-          "sourceKey": "05-MampC:338",
+          "sourceKey": "05-MampC!G338",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.625",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "05-MampC:339",
+          "sourceKey": "05-MampC!G339",
           "name": "CAL HIDRATADA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.65",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "05-MampC:340",
+          "sourceKey": "05-MampC!G340",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.005",
           "unitPrice": "36099.9991"
         }
@@ -1353,7 +1654,42 @@
       "quantity": "0",
       "laborUnitCost": "37509.75",
       "directUnitCost": "43289.38182",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia",
+        "evidence": "COSTO!E67; COSTO!E67, COSTO!E62, 05-MampCA!J52, 05-MampCA!I47, 05-MampCA!G47, 05-MampCA!D47, 05-MampCA!I48, 05-MampCA!G48, 05-MampCA!D48, 05-MampCA!I49"
+      },
+      "materials": [
+        {
+          "sourceKey": "05-MampCA!G47",
+          "name": "PLASTICOR",
+          "unit": "kg",
+          "coefficient": "17.1",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA!G48",
+          "name": "ARENA",
+          "unit": "kg",
+          "coefficient": "0.138",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA!G49",
+          "name": "FE",
+          "unit": "kg",
+          "coefficient": "1.5",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA!G50",
+          "name": "LADRILLOS COMUNES",
+          "unit": "un",
+          "coefficient": "120",
+          "unitPrice": "248.9817"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:69",
@@ -1362,40 +1698,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "19004.94",
-      "directUnitCost": "0",
+      "directUnitCost": "13514.19716",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E69; COSTO!E69, 05-MampC!J237, 05-MampC!I232, 05-MampC!G232, 05-MampC!D232, 05-MampC!I233, 05-MampC!G233, 05-MampC!D233, 05-MampC!I234, 05-MampC!G234"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampC:232",
+          "sourceKey": "05-MampC!G232",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.75",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "05-MampC:233",
+          "sourceKey": "05-MampC!G233",
           "name": "PLASTICOR",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.4",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampC:234",
+          "sourceKey": "05-MampC!G234",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.01",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampC:235",
+          "sourceKey": "05-MampC!G235",
           "name": "LADRILLOS HUECOS 8x18x33",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "17",
           "unitPrice": "712.4117"
         },
         {
-          "sourceKey": "05-MampC:236",
+          "sourceKey": "05-MampC!G236",
           "name": "PLACA DE POLIESTIRENO 3CM",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": null
         }
@@ -1408,33 +1750,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "19171.65",
-      "directUnitCost": "0",
+      "directUnitCost": "25477.41934",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E70; COSTO!E70, 05-MampC!J278, 05-MampC!I274, 05-MampC!G274, 05-MampC!D274, 05-MampC!I275, 05-MampC!G275, 05-MampC!D275, 05-MampC!I276, 05-MampC!G276"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampC:274",
+          "sourceKey": "05-MampC!G274",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "3.9",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "05-MampC:275",
+          "sourceKey": "05-MampC!G275",
           "name": "CAL HIDRATADA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2.9",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "05-MampC:276",
+          "sourceKey": "05-MampC!G276",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampC:277",
+          "sourceKey": "05-MampC!G277",
           "name": "LADRILLOS HUECOS PORTANTES 18x19x33",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "17.5",
           "unitPrice": "1265.5148"
         }
@@ -1447,40 +1795,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "23005.98",
-      "directUnitCost": "0",
+      "directUnitCost": "25925.04104",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E71; COSTO!E71, 05-MampC!J265, 05-MampC!I260, 05-MampC!G260, 05-MampC!D260, 05-MampC!I261, 05-MampC!G261, 05-MampC!D261, 05-MampC!I262, 05-MampC!G262"
+      },
       "materials": [
         {
-          "sourceKey": "05-MampC:260",
+          "sourceKey": "05-MampC!G260",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.65",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "05-MampC:261",
+          "sourceKey": "05-MampC!G261",
           "name": "PLASTICOR",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2.125",
           "unitPrice": "308.222332"
         },
         {
-          "sourceKey": "05-MampC:262",
+          "sourceKey": "05-MampC!G262",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "05-MampC:263",
+          "sourceKey": "05-MampC!G263",
           "name": "LADRILLOS HUECOS 18x18x33",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "17",
           "unitPrice": "1410.134"
         },
         {
-          "sourceKey": "05-MampC:264",
+          "sourceKey": "05-MampC!G264",
           "name": "PLACA DE POLIESTIRENO 3CM",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": null
         }
@@ -1493,26 +1847,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16671",
-      "directUnitCost": "0",
+      "directUnitCost": "32106.82813",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E73; COSTO!E73, 05-Retak-Brimax!J11, 05-Retak-Brimax!I8, 05-Retak-Brimax!G8, 05-Retak-Brimax!D8, 05-Retak-Brimax!I9, 05-Retak-Brimax!G9, 05-Retak-Brimax!D9, 05-Retak-Brimax!I10, 05-Retak-Brimax!G10"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:8",
+          "sourceKey": "05-Retak-Brimax!G8",
           "name": "BRIMAX 7,5",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "8.33",
           "unitPrice": "3480.5287"
         },
         {
-          "sourceKey": "05-Retak-Brimax:9",
+          "sourceKey": "05-Retak-Brimax!G9",
           "name": "MORTERO ADHESIVO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2.585",
           "unitPrice": "762.73802"
         },
         {
-          "sourceKey": "05-Retak-Brimax:10",
+          "sourceKey": "05-Retak-Brimax!G10",
           "name": "HIERRO 8mm",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.4345",
           "unitPrice": "2629.105359"
         }
@@ -1525,26 +1885,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16671",
-      "directUnitCost": "0",
+      "directUnitCost": "42538.5622",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E74; COSTO!E74, 05-Retak-Brimax!J23, 05-Retak-Brimax!I20, 05-Retak-Brimax!G20, 05-Retak-Brimax!D20, 05-Retak-Brimax!I21, 05-Retak-Brimax!G21, 05-Retak-Brimax!D21, 05-Retak-Brimax!I22, 05-Retak-Brimax!G22"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:20",
+          "sourceKey": "05-Retak-Brimax!G20",
           "name": "BRIMAX 10",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "8.33",
           "unitPrice": "4639.7934"
         },
         {
-          "sourceKey": "05-Retak-Brimax:21",
+          "sourceKey": "05-Retak-Brimax!G21",
           "name": "MORTERO ADHESIVO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "3.465",
           "unitPrice": "762.73802"
         },
         {
-          "sourceKey": "05-Retak-Brimax:22",
+          "sourceKey": "05-Retak-Brimax!G22",
           "name": "HIERRO 8mm",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.474",
           "unitPrice": "2629.105359"
         }
@@ -1557,26 +1923,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "18338.1",
-      "directUnitCost": "0",
+      "directUnitCost": "53047.11271",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E75; COSTO!E75, 05-Retak-Brimax!J35, 05-Retak-Brimax!I32, 05-Retak-Brimax!G32, 05-Retak-Brimax!D32, 05-Retak-Brimax!I33, 05-Retak-Brimax!G33, 05-Retak-Brimax!D33, 05-Retak-Brimax!I34, 05-Retak-Brimax!G34"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:32",
+          "sourceKey": "05-Retak-Brimax!G32",
           "name": "BRIMAX 12,5",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "8.33",
           "unitPrice": "5800.8489"
         },
         {
-          "sourceKey": "05-Retak-Brimax:33",
+          "sourceKey": "05-Retak-Brimax!G33",
           "name": "MORTERO ADHESIVO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "4.29",
           "unitPrice": "762.73802"
         },
         {
-          "sourceKey": "05-Retak-Brimax:34",
+          "sourceKey": "05-Retak-Brimax!G34",
           "name": "HIERRO 8mm",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.553",
           "unitPrice": "2629.105359"
         }
@@ -1589,26 +1961,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "21672.3",
-      "directUnitCost": "0",
+      "directUnitCost": "65364.61589",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E76; COSTO!E76, 05-Retak-Brimax!J47, 05-Retak-Brimax!I44, 05-Retak-Brimax!G44, 05-Retak-Brimax!D44, 05-Retak-Brimax!I45, 05-Retak-Brimax!G45, 05-Retak-Brimax!D45, 05-Retak-Brimax!I46, 05-Retak-Brimax!G46"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:44",
+          "sourceKey": "05-Retak-Brimax!G44",
           "name": "BRIMAX 15",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "8.33",
           "unitPrice": "7174.0295"
         },
         {
-          "sourceKey": "05-Retak-Brimax:45",
+          "sourceKey": "05-Retak-Brimax!G45",
           "name": "MORTERO ADHESIVO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "5.17",
           "unitPrice": "762.73802"
         },
         {
-          "sourceKey": "05-Retak-Brimax:46",
+          "sourceKey": "05-Retak-Brimax!G46",
           "name": "HIERRO 8mm",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.632",
           "unitPrice": "2629.105359"
         }
@@ -1621,26 +1999,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "23339.4",
-      "directUnitCost": "0",
+      "directUnitCost": "86353.92976",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E77; COSTO!E77, 05-Retak-Brimax!J59, 05-Retak-Brimax!I56, 05-Retak-Brimax!G56, 05-Retak-Brimax!D56, 05-Retak-Brimax!I57, 05-Retak-Brimax!G57, 05-Retak-Brimax!D57, 05-Retak-Brimax!I58, 05-Retak-Brimax!G58"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:56",
+          "sourceKey": "05-Retak-Brimax!G56",
           "name": "BRIMAX 20",
-          "unit": "u",
+          "unit": "un",
           "coefficient": "8.33",
           "unitPrice": "9565.3525"
         },
         {
-          "sourceKey": "05-Retak-Brimax:57",
+          "sourceKey": "05-Retak-Brimax!G57",
           "name": "MORTERO ADHESIVO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "6.3",
           "unitPrice": "762.73802"
         },
         {
-          "sourceKey": "05-Retak-Brimax:58",
+          "sourceKey": "05-Retak-Brimax!G58",
           "name": "HIERRO 8mm",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.711",
           "unitPrice": "2629.105359"
         }
@@ -1654,6 +2038,12 @@
       "quantity": "0",
       "laborUnitCost": "400000",
       "directUnitCost": "200000",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E78: importe fijo 200000 sin desglose físico",
+        "evidence": "COSTO!E78; COSTO!E78"
+      },
       "materials": []
     },
     {
@@ -1663,19 +2053,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "8335.5",
-      "directUnitCost": "0",
+      "directUnitCost": "2830.741857",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E82; COSTO!E82, 05-Retak-Brimax!J92, 05-Retak-Brimax!I90, 05-Retak-Brimax!G90, 05-Retak-Brimax!D90, 05-Retak-Brimax!I91, 05-Retak-Brimax!G91, 05-Retak-Brimax!D91"
+      },
       "materials": [
         {
-          "sourceKey": "05-Retak-Brimax:90",
+          "sourceKey": "05-Retak-Brimax!G90",
           "name": "KLAUKOL IMPERMEABLE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2",
           "unitPrice": "625.570968"
         },
         {
-          "sourceKey": "05-Retak-Brimax:91",
+          "sourceKey": "05-Retak-Brimax!G91",
           "name": "MALLA FIBRA DE VIDRIO",
-          "unit": "M2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "1435.999928"
         }
@@ -1688,24 +2084,30 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "8335.5",
-      "directUnitCost": "0",
+      "directUnitCost": "3958.256508",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E83; COSTO!E83, 06-RevoqC!J17, 06-RevoqC!I14, 06-RevoqC!G14, 06-RevoqC!D14, 06-RevoqC!I15, 06-RevoqC!G15, 06-RevoqC!D15, 06-RevoqC!I16, 06-RevoqC!G16"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:14",
+          "sourceKey": "06-RevoqC!G14",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "7.65",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "06-RevoqC:15",
+          "sourceKey": "06-RevoqC!G15",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.0165",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqC:16",
+          "sourceKey": "06-RevoqC!G16",
           "name": "HIDRÓFUGO",
           "unit": "kg",
           "coefficient": "0.375",
@@ -1720,24 +2122,30 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "24006.24",
-      "directUnitCost": "0",
+      "directUnitCost": "2934.638168",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E84; COSTO!E84, 06-RevoqCA!J38, 06-RevoqCA!I35, 06-RevoqCA!G35, 06-RevoqCA!D35, 06-RevoqCA!I36, 06-RevoqCA!G36, 06-RevoqCA!D36, 06-RevoqCA!I37, 06-RevoqCA!G37"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqCA:35",
+          "sourceKey": "06-RevoqCA!G35",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "6",
           "unitPrice": "196.86337"
         },
         {
-          "sourceKey": "06-RevoqCA:36",
+          "sourceKey": "06-RevoqCA!G36",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqCA:37",
+          "sourceKey": "06-RevoqCA!G37",
           "name": "HIDROFUGO",
           "unit": "kg",
           "coefficient": "0.25",
@@ -1752,26 +2160,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "20005.2",
-      "directUnitCost": "0",
+      "directUnitCost": "3168.288222",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E85; COSTO!E85, 06-RevoqC!J42, 06-RevoqC!I39, 06-RevoqC!G39, 06-RevoqC!D39, 06-RevoqC!I40, 06-RevoqC!G40, 06-RevoqC!D40, 06-RevoqC!I41, 06-RevoqC!G41"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:39",
+          "sourceKey": "06-RevoqC!G39",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "2.64",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "06-RevoqC:40",
+          "sourceKey": "06-RevoqC!G40",
           "name": "CAL",
           "unit": "kg",
           "coefficient": "4.19",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "06-RevoqC:41",
+          "sourceKey": "06-RevoqC!G41",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.025",
           "unitPrice": "36099.9991"
         }
@@ -1784,24 +2198,30 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "9169.05",
-      "directUnitCost": "0",
+      "directUnitCost": "3958.256508",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E86; COSTO!E86, 06-RevoqC!J17, 06-RevoqC!I14, 06-RevoqC!G14, 06-RevoqC!D14, 06-RevoqC!I15, 06-RevoqC!G15, 06-RevoqC!D15, 06-RevoqC!I16, 06-RevoqC!G16"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:14",
+          "sourceKey": "06-RevoqC!G14",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "7.65",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "06-RevoqC:15",
+          "sourceKey": "06-RevoqC!G15",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.0165",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqC:16",
+          "sourceKey": "06-RevoqC!G16",
           "name": "HIDRÓFUGO",
           "unit": "kg",
           "coefficient": "0.375",
@@ -1817,7 +2237,35 @@
       "quantity": "0",
       "laborUnitCost": "20005.2",
       "directUnitCost": "3168.288222",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E87; COSTO!E87, COSTO!E85, 06-RevoqC!J42, 06-RevoqC!I39, 06-RevoqC!G39, 06-RevoqC!D39, 06-RevoqC!I40, 06-RevoqC!G40, 06-RevoqC!D40, 06-RevoqC!I41"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G39",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "2.64",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G40",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.19",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC!G41",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.025",
+          "unitPrice": "36099.9991"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:89",
@@ -1826,31 +2274,37 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "25006.5",
-      "directUnitCost": "0",
+      "directUnitCost": "5150.984573",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E89; COSTO!E89, 06-RevoqC!J55, 06-RevoqC!I51, 06-RevoqC!G51, 06-RevoqC!D51, 06-RevoqC!I52, 06-RevoqC!G52, 06-RevoqC!D52, 06-RevoqC!I53, 06-RevoqC!G53"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:51",
+          "sourceKey": "06-RevoqC!G51",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "6.9",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "06-RevoqC:52",
+          "sourceKey": "06-RevoqC!G52",
           "name": "CAL",
           "unit": "kg",
           "coefficient": "4.12",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "06-RevoqC:53",
+          "sourceKey": "06-RevoqC!G53",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqC:54",
+          "sourceKey": "06-RevoqC!G54",
           "name": "HIDROFUGO",
           "unit": "kg",
           "coefficient": "0.2",
@@ -1866,7 +2320,42 @@
       "quantity": "0",
       "laborUnitCost": "25006.5",
       "directUnitCost": "5150.984573",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E90; COSTO!E90, COSTO!E89, 06-RevoqC!J55, 06-RevoqC!I51, 06-RevoqC!G51, 06-RevoqC!D51, 06-RevoqC!I52, 06-RevoqC!G52, 06-RevoqC!D52, 06-RevoqC!I53"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G51",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC!G52",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.12",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC!G53",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G54",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "2076.28377"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:91",
@@ -1875,31 +2364,37 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "25006.5",
-      "directUnitCost": "0",
+      "directUnitCost": "5150.984573",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E91; COSTO!E91, 06-RevoqC!J55, 06-RevoqC!I51, 06-RevoqC!G51, 06-RevoqC!D51, 06-RevoqC!I52, 06-RevoqC!G52, 06-RevoqC!D52, 06-RevoqC!I53, 06-RevoqC!G53"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:51",
+          "sourceKey": "06-RevoqC!G51",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "6.9",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "06-RevoqC:52",
+          "sourceKey": "06-RevoqC!G52",
           "name": "CAL",
           "unit": "kg",
           "coefficient": "4.12",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "06-RevoqC:53",
+          "sourceKey": "06-RevoqC!G53",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqC:54",
+          "sourceKey": "06-RevoqC!G54",
           "name": "HIDROFUGO",
           "unit": "kg",
           "coefficient": "0.2",
@@ -1914,31 +2409,37 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "25006.5",
-      "directUnitCost": "0",
+      "directUnitCost": "5150.984573",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E92; COSTO!E92, 06-RevoqC!J55, 06-RevoqC!I51, 06-RevoqC!G51, 06-RevoqC!D51, 06-RevoqC!I52, 06-RevoqC!G52, 06-RevoqC!D52, 06-RevoqC!I53, 06-RevoqC!G53"
+      },
       "materials": [
         {
-          "sourceKey": "06-RevoqC:51",
+          "sourceKey": "06-RevoqC!G51",
           "name": "CEMENTO",
           "unit": "kg",
           "coefficient": "6.9",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "06-RevoqC:52",
+          "sourceKey": "06-RevoqC!G52",
           "name": "CAL",
           "unit": "kg",
           "coefficient": "4.12",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "06-RevoqC:53",
+          "sourceKey": "06-RevoqC!G53",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "06-RevoqC:54",
+          "sourceKey": "06-RevoqC!G54",
           "name": "HIDROFUGO",
           "unit": "kg",
           "coefficient": "0.2",
@@ -1954,36 +2455,13 @@
       "quantity": "0",
       "laborUnitCost": "19000",
       "directUnitCost": null,
-      "materials": [
-        {
-          "sourceKey": "06-RevoqC:51",
-          "name": "CEMENTO",
-          "unit": "kg",
-          "coefficient": "6.9",
-          "unitPrice": "337.777792"
-        },
-        {
-          "sourceKey": "06-RevoqC:52",
-          "name": "CAL",
-          "unit": "kg",
-          "coefficient": "4.12",
-          "unitPrice": "320.888612"
-        },
-        {
-          "sourceKey": "06-RevoqC:53",
-          "name": "ARENA",
-          "unit": "m3",
-          "coefficient": "0.03",
-          "unitPrice": "36099.9991"
-        },
-        {
-          "sourceKey": "06-RevoqC:54",
-          "name": "HIDROFUGO",
-          "unit": "kg",
-          "coefficient": "0.2",
-          "unitPrice": "2076.28377"
-        }
-      ]
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E93; COSTO!E93, 06-RevoqC!J56"
+      },
+      "materials": []
     },
     {
       "sourceKey": "COSTO:94",
@@ -1993,6 +2471,12 @@
       "quantity": "0",
       "laborUnitCost": "40000",
       "directUnitCost": "25000",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E94: importe fijo 25000 sin desglose físico",
+        "evidence": "COSTO!E94; COSTO!E94"
+      },
       "materials": []
     },
     {
@@ -2002,26 +2486,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "9000",
-      "directUnitCost": "0",
+      "directUnitCost": "3088.984835",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E95; COSTO!E95, 10-Yeso!J11, 10-Yeso!I8, 10-Yeso!G8, 10-Yeso!D8, 10-Yeso!I9, 10-Yeso!G9, 10-Yeso!D9, 10-Yeso!I10, 10-Yeso!G10"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:8",
+          "sourceKey": "10-Yeso!G8",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:9",
+          "sourceKey": "10-Yeso!G9",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:10",
+          "sourceKey": "10-Yeso!G10",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "4",
           "unitPrice": "422.8573171"
         }
@@ -2034,12 +2524,18 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "25000",
-      "directUnitCost": "0",
+      "directUnitCost": "2339.99964",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E96; COSTO!E96, 10-Yeso!J31, 10-Yeso!I29, 10-Yeso!I30, 10-Yeso!G30, 10-Yeso!D30"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:30",
+          "sourceKey": "10-Yeso!G30",
           "name": "CANTONERAS",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "2.4",
           "unitPrice": "974.99985"
         }
@@ -2052,27 +2548,33 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "11669.7",
-      "directUnitCost": "0",
+      "directUnitCost": "26604.66318",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E100; COSTO!E100, 07-ContrapC!J177, 07-ContrapC!I174, 07-ContrapC!G174, 07-ContrapC!D174, 07-ContrapC!I175, 07-ContrapC!G175, 07-ContrapC!D175, 07-ContrapC!I176, 07-ContrapC!G176"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:174",
+          "sourceKey": "07-ContrapC!G174",
           "name": "H13",
-          "unit": "m3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.132",
           "unitPrice": "183490.45"
         },
         {
-          "sourceKey": "07-ContrapC:175",
+          "sourceKey": "07-ContrapC!G175",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "1",
+          "unit": "m³",
+          "coefficient": "0.12",
           "unitPrice": "19400"
         },
         {
-          "sourceKey": "07-ContrapC:176",
+          "sourceKey": "07-ContrapC!G176",
           "name": "FILM DE POLIETILENO DE 200MICRONES",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.12",
           "unitPrice": "466.0315"
         }
       ]
@@ -2084,41 +2586,47 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16786.08",
-      "directUnitCost": "0",
+      "directUnitCost": "25524.674",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E101; COSTO!E101, 07-ContrapC!J126, 07-ContrapC!I121, 07-ContrapC!G121, 07-ContrapC!D121, 07-ContrapC!I122, 07-ContrapC!G122, 07-ContrapC!D122, 07-ContrapC!I123, 07-ContrapC!G123"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:121",
+          "sourceKey": "07-ContrapC!G121",
           "name": "MORTERO 350",
-          "unit": "M3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.132",
           "unitPrice": "171879.29"
         },
         {
-          "sourceKey": "07-ContrapC:122",
+          "sourceKey": "07-ContrapC!G122",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "1",
+          "unit": "m³",
+          "coefficient": "0.12",
           "unitPrice": "19360"
         },
         {
-          "sourceKey": "07-ContrapC:123",
+          "sourceKey": "07-ContrapC!G123",
           "name": "CAMA DE ARENA",
-          "unit": "m3",
-          "coefficient": "0.02",
+          "unit": "m³",
+          "coefficient": "0.0024",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:124",
+          "sourceKey": "07-ContrapC!G124",
           "name": "FILM DE POLIETILENO",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.12",
           "unitPrice": "466.0315"
         },
         {
-          "sourceKey": "07-ContrapC:125",
+          "sourceKey": "07-ContrapC!G125",
           "name": "MALLS",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.12",
           "unitPrice": "3090.366217"
         }
       ]
@@ -2130,40 +2638,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "9772.7",
-      "directUnitCost": "0",
+      "directUnitCost": "10140.8734",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "07-ContrapC!G26: unidad m² contradice PRECIOS!C86 (); no se supone equivalencia",
+        "evidence": "COSTO!E102; COSTO!E102, 07-ContrapC!J27, 07-ContrapC!I22, 07-ContrapC!G22, 07-ContrapC!D22, 07-ContrapC!I23, 07-ContrapC!G23, 07-ContrapC!D23, 07-ContrapC!I24, 07-ContrapC!G24"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:22",
+          "sourceKey": "07-ContrapC!G22",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "6",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "07-ContrapC:23",
+          "sourceKey": "07-ContrapC!G23",
           "name": "CAL",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "9.32",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "07-ContrapC:24",
+          "sourceKey": "07-ContrapC!G24",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.04",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:25",
+          "sourceKey": "07-ContrapC!G25",
           "name": "GRANZA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.06",
           "unitPrice": "41759.1328"
         },
         {
-          "sourceKey": "07-ContrapC:26",
+          "sourceKey": "07-ContrapC!G26",
           "name": "TELGOPOR PERIMETRAL",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "0.27",
           "unitPrice": "4099.48"
         }
@@ -2176,27 +2690,33 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "10836.15",
-      "directUnitCost": "0",
+      "directUnitCost": "10591.33109",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E103; COSTO!E103, 07-ContrapC!J151, 07-ContrapC!I147, 07-ContrapC!G147, 07-ContrapC!D147, 07-ContrapC!I148, 07-ContrapC!G148, 07-ContrapC!D148, 07-ContrapC!I149, 07-ContrapC!G149"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:147",
+          "sourceKey": "07-ContrapC!G147",
           "name": "MORTERO 350",
-          "unit": "M3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.055",
           "unitPrice": "171879.29"
         },
         {
-          "sourceKey": "07-ContrapC:148",
+          "sourceKey": "07-ContrapC!G148",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "1",
+          "unit": "m³",
+          "coefficient": "0.05",
           "unitPrice": "19360"
         },
         {
-          "sourceKey": "07-ContrapC:149",
+          "sourceKey": "07-ContrapC!G149",
           "name": "MALLA",
-          "unit": "m2",
-          "coefficient": "1.1",
+          "unit": "m²",
+          "coefficient": "0.055",
           "unitPrice": "3090.366217"
         }
       ]
@@ -2208,26 +2728,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "14086.995",
-      "directUnitCost": "0",
+      "directUnitCost": "5920.189058",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E104; COSTO!E104, 07-CarpetC!J11, 07-CarpetC!I8, 07-CarpetC!G8, 07-CarpetC!D8, 07-CarpetC!I9, 07-CarpetC!G9, 07-CarpetC!D9, 07-CarpetC!I10, 07-CarpetC!G10"
+      },
       "materials": [
         {
-          "sourceKey": "07-CarpetC:8",
+          "sourceKey": "07-CarpetC!G8",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "14",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-CarpetC:9",
+          "sourceKey": "07-CarpetC!G9",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.033",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-CarpetC:10",
+          "sourceKey": "07-CarpetC!G10",
           "name": "HIDROFUGO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.35",
           "unitPrice": null
         }
@@ -2240,33 +2766,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16643.568",
-      "directUnitCost": "0",
+      "directUnitCost": "15025.72664",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E105; COSTO!E105, 07-ContrapC!J101, 07-ContrapC!I97, 07-ContrapC!G97, 07-ContrapC!D97, 07-ContrapC!I98, 07-ContrapC!G98, 07-ContrapC!D98, 07-ContrapC!I99, 07-ContrapC!G99"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:97",
+          "sourceKey": "07-ContrapC!G97",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-ContrapC:98",
+          "sourceKey": "07-ContrapC!G98",
           "name": "CAL",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "07-ContrapC:99",
+          "sourceKey": "07-ContrapC!G99",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.05",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:100",
+          "sourceKey": "07-ContrapC!G100",
           "name": "GRANZA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.08",
           "unitPrice": "41759.1328"
         }
@@ -2279,40 +2811,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "18671.52",
-      "directUnitCost": "0",
+      "directUnitCost": "20174.92704",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E107; COSTO!E107, 07-ContrapC!J165, 07-ContrapC!I160, 07-ContrapC!G160, 07-ContrapC!D160, 07-ContrapC!I161, 07-ContrapC!G161, 07-ContrapC!D161, 07-ContrapC!I162, 07-ContrapC!G162"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:160",
+          "sourceKey": "07-ContrapC!G160",
           "name": "H17",
-          "unit": "M3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.066",
           "unitPrice": "161450"
         },
         {
-          "sourceKey": "07-ContrapC:161",
+          "sourceKey": "07-ContrapC!G161",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "1",
+          "unit": "m³",
+          "coefficient": "0.06",
           "unitPrice": "19360"
         },
         {
-          "sourceKey": "07-ContrapC:162",
+          "sourceKey": "07-ContrapC!G162",
           "name": "MALLA",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "7247.7064"
         },
         {
-          "sourceKey": "07-ContrapC:163",
+          "sourceKey": "07-ContrapC!G163",
           "name": "FILM DE POLIETILENO",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "385.15"
         },
         {
-          "sourceKey": "07-ContrapC:164",
+          "sourceKey": "07-ContrapC!G164",
           "name": "TELGOPOR PERIMETRAL",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "0.27",
           "unitPrice": null
         }
@@ -2325,19 +2863,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": null,
-      "directUnitCost": "0",
+      "directUnitCost": "44427.48",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E108; COSTO!E108, 07-ContrapC!J38, 07-ContrapC!I36, 07-ContrapC!G36, 07-ContrapC!D36, 07-ContrapC!I37, 07-ContrapC!G37, 07-ContrapC!D37"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:36",
+          "sourceKey": "07-ContrapC!G36",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "70",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "07-ContrapC:37",
+          "sourceKey": "07-ContrapC!G37",
           "name": "ISOCRET 170L",
-          "unit": "BOLSA",
+          "unit": "bolsa",
           "coefficient": "1",
           "unitPrice": "20000"
         }
@@ -2350,19 +2894,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "19387.1",
-      "directUnitCost": "0",
+      "directUnitCost": "7503.937573",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "08-09-PisosRev!G265: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia",
+        "evidence": "COSTO!E109; COSTO!E109, 08-09-PisosRev!J267, 08-09-PisosRev!I264, 08-09-PisosRev!G264, 08-09-PisosRev!D264, 08-09-PisosRev!I265, 08-09-PisosRev!G265, 08-09-PisosRev!D265"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:264",
+          "sourceKey": "08-09-PisosRev!G264",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "18.4",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "08-09-PisosRev:265",
+          "sourceKey": "08-09-PisosRev!G265",
           "name": "ARENA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.03",
           "unitPrice": "36099.9991"
         }
@@ -2375,33 +2925,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16643.568",
-      "directUnitCost": "0",
+      "directUnitCost": "15025.72664",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E110; COSTO!E110, 07-ContrapC!J101, 07-ContrapC!I97, 07-ContrapC!G97, 07-ContrapC!D97, 07-ContrapC!I98, 07-ContrapC!G98, 07-ContrapC!D98, 07-ContrapC!I99, 07-ContrapC!G99"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:97",
+          "sourceKey": "07-ContrapC!G97",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-ContrapC:98",
+          "sourceKey": "07-ContrapC!G98",
           "name": "CAL",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "07-ContrapC:99",
+          "sourceKey": "07-ContrapC!G99",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.05",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:100",
+          "sourceKey": "07-ContrapC!G100",
           "name": "GRANZA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.08",
           "unitPrice": "41759.1328"
         }
@@ -2415,7 +2971,49 @@
       "quantity": "0",
       "laborUnitCost": "16786.08",
       "directUnitCost": "25524.674",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E112; COSTO!E112, COSTO!E101, 07-ContrapC!J126, 07-ContrapC!I121, 07-ContrapC!G121, 07-ContrapC!D121, 07-ContrapC!I122, 07-ContrapC!G122, 07-ContrapC!D122, 07-ContrapC!I123"
+      },
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC!G121",
+          "name": "MORTERO 350",
+          "unit": "m³",
+          "coefficient": "0.132",
+          "unitPrice": "171879.29"
+        },
+        {
+          "sourceKey": "07-ContrapC!G122",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m³",
+          "coefficient": "0.12",
+          "unitPrice": "19360"
+        },
+        {
+          "sourceKey": "07-ContrapC!G123",
+          "name": "CAMA DE ARENA",
+          "unit": "m³",
+          "coefficient": "0.0024",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC!G124",
+          "name": "FILM DE POLIETILENO",
+          "unit": "m²",
+          "coefficient": "0.12",
+          "unitPrice": "466.0315"
+        },
+        {
+          "sourceKey": "07-ContrapC!G125",
+          "name": "MALLS",
+          "unit": "m²",
+          "coefficient": "0.12",
+          "unitPrice": "3090.366217"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:113",
@@ -2424,40 +3022,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "18338.1",
-      "directUnitCost": "0",
+      "directUnitCost": "21787.36852",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E113; COSTO!E113, 07-ContrapC!J63, 07-ContrapC!I58, 07-ContrapC!G58, 07-ContrapC!D58, 07-ContrapC!I59, 07-ContrapC!G59, 07-ContrapC!D59, 07-ContrapC!I60, 07-ContrapC!G60"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:58",
+          "sourceKey": "07-ContrapC!G58",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "9.02",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-ContrapC:59",
+          "sourceKey": "07-ContrapC!G59",
           "name": "CAL",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "13.97",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "07-ContrapC:60",
+          "sourceKey": "07-ContrapC!G60",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.07",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:61",
+          "sourceKey": "07-ContrapC!G61",
           "name": "GRANZA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.09",
           "unitPrice": "41759.1328"
         },
         {
-          "sourceKey": "07-ContrapC:62",
+          "sourceKey": "07-ContrapC!G62",
           "name": "MALLA",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "7247.7064"
         }
@@ -2471,6 +3075,12 @@
       "quantity": "0",
       "laborUnitCost": "10002.6",
       "directUnitCost": "5185.983",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E114: importe fijo 5185.983 sin desglose físico",
+        "evidence": "COSTO!E114; COSTO!E114"
+      },
       "materials": []
     },
     {
@@ -2480,19 +3090,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": null,
-      "directUnitCost": "0",
+      "directUnitCost": "44427.48",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E115; COSTO!E115, 07-ContrapC!J38, 07-ContrapC!I36, 07-ContrapC!G36, 07-ContrapC!D36, 07-ContrapC!I37, 07-ContrapC!G37, 07-ContrapC!D37"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:36",
+          "sourceKey": "07-ContrapC!G36",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "70",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "07-ContrapC:37",
+          "sourceKey": "07-ContrapC!G37",
           "name": "ISOCRET 170L",
-          "unit": "BOLSA",
+          "unit": "bolsa",
           "coefficient": "1",
           "unitPrice": "20000"
         }
@@ -2505,54 +3121,60 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "13926",
-      "directUnitCost": "0",
+      "directUnitCost": "8949.676991",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "08-09-PisosRev!I229: división de costo por 2 (reutilización/amortización); cantidad física D229 conservada como orientativa, falta definir uso físico",
+        "evidence": "COSTO!E116; COSTO!E116, 08-09-PisosRev!J233, 08-09-PisosRev!I226, 08-09-PisosRev!G226, 08-09-PisosRev!D226, 08-09-PisosRev!I227, 08-09-PisosRev!G227, 08-09-PisosRev!D227, 08-09-PisosRev!I228, 08-09-PisosRev!G228"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:226",
+          "sourceKey": "08-09-PisosRev!G226",
           "name": "PIEDRA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "105449.9996"
         },
         {
-          "sourceKey": "08-09-PisosRev:227",
+          "sourceKey": "08-09-PisosRev!G227",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "9",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "08-09-PisosRev:228",
+          "sourceKey": "08-09-PisosRev!G228",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "08-09-PisosRev:229",
+          "sourceKey": "08-09-PisosRev!G229",
           "name": "MADERA P/ENCOFRADO",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "0.2",
           "unitPrice": "11564.26364"
         },
         {
-          "sourceKey": "08-09-PisosRev:230",
+          "sourceKey": "08-09-PisosRev!G230",
           "name": "HIERRO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.8",
           "unitPrice": "2106.117375"
         },
         {
-          "sourceKey": "08-09-PisosRev:231",
+          "sourceKey": "08-09-PisosRev!G231",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.015",
           "unitPrice": "6661.655"
         },
         {
-          "sourceKey": "08-09-PisosRev:232",
+          "sourceKey": "08-09-PisosRev!G232",
           "name": "CLAVOS CAJONEROS 2\"",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.03",
           "unitPrice": "4581.06"
         }
@@ -2565,27 +3187,33 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "11669.7",
-      "directUnitCost": "0",
+      "directUnitCost": "26604.66318",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E117; COSTO!E117, 07-ContrapC!J177, 07-ContrapC!I174, 07-ContrapC!G174, 07-ContrapC!D174, 07-ContrapC!I175, 07-ContrapC!G175, 07-ContrapC!D175, 07-ContrapC!I176, 07-ContrapC!G176"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:174",
+          "sourceKey": "07-ContrapC!G174",
           "name": "H13",
-          "unit": "m3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.132",
           "unitPrice": "183490.45"
         },
         {
-          "sourceKey": "07-ContrapC:175",
+          "sourceKey": "07-ContrapC!G175",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "1",
+          "unit": "m³",
+          "coefficient": "0.12",
           "unitPrice": "19400"
         },
         {
-          "sourceKey": "07-ContrapC:176",
+          "sourceKey": "07-ContrapC!G176",
           "name": "FILM DE POLIETILENO DE 200MICRONES",
-          "unit": "m2",
-          "coefficient": "1",
+          "unit": "m²",
+          "coefficient": "0.12",
           "unitPrice": "466.0315"
         }
       ]
@@ -2597,26 +3225,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "14086.995",
-      "directUnitCost": "0",
+      "directUnitCost": "5920.189058",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E118; COSTO!E118, 07-CarpetC!J11, 07-CarpetC!I8, 07-CarpetC!G8, 07-CarpetC!D8, 07-CarpetC!I9, 07-CarpetC!G9, 07-CarpetC!D9, 07-CarpetC!I10, 07-CarpetC!G10"
+      },
       "materials": [
         {
-          "sourceKey": "07-CarpetC:8",
+          "sourceKey": "07-CarpetC!G8",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "14",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-CarpetC:9",
+          "sourceKey": "07-CarpetC!G9",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.033",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-CarpetC:10",
+          "sourceKey": "07-CarpetC!G10",
           "name": "HIDROFUGO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.35",
           "unitPrice": null
         }
@@ -2629,33 +3263,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "16643.568",
-      "directUnitCost": "0",
+      "directUnitCost": "15025.72664",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E119; COSTO!E119, 07-ContrapC!J101, 07-ContrapC!I97, 07-ContrapC!G97, 07-ContrapC!D97, 07-ContrapC!I98, 07-ContrapC!G98, 07-ContrapC!D98, 07-ContrapC!I99, 07-ContrapC!G99"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapC:97",
+          "sourceKey": "07-ContrapC!G97",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-ContrapC:98",
+          "sourceKey": "07-ContrapC!G98",
           "name": "CAL",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "320.888612"
         },
         {
-          "sourceKey": "07-ContrapC:99",
+          "sourceKey": "07-ContrapC!G99",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.05",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-ContrapC:100",
+          "sourceKey": "07-ContrapC!G100",
           "name": "GRANZA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.08",
           "unitPrice": "41759.1328"
         }
@@ -2668,33 +3308,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "66150.21",
-      "directUnitCost": "0",
+      "directUnitCost": "24077.12522",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E122; COSTO!E122, 08-09-PisosRev!J164, 08-09-PisosRev!I160, 08-09-PisosRev!G160, 08-09-PisosRev!D160, 08-09-PisosRev!I161, 08-09-PisosRev!G161, 08-09-PisosRev!D161, 08-09-PisosRev!I162, 08-09-PisosRev!G162"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:160",
+          "sourceKey": "08-09-PisosRev!G160",
           "name": "ADITIVO COLORES",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": null
         },
         {
-          "sourceKey": "08-09-PisosRev:161",
+          "sourceKey": "08-09-PisosRev!G161",
           "name": "Hº ELABORADO H35 (CON MICROFIBRA) esp=10cm",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.105",
           "unitPrice": "195435.5"
         },
         {
-          "sourceKey": "08-09-PisosRev:162",
+          "sourceKey": "08-09-PisosRev!G162",
           "name": "MALLA 15x15x6mm",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "3090.366217"
         },
         {
-          "sourceKey": "08-09-PisosRev:163",
+          "sourceKey": "08-09-PisosRev!G163",
           "name": "FILM DE POLIETILENO 200M",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1",
           "unitPrice": "466.0315"
         }
@@ -2707,19 +3353,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "40000",
-      "directUnitCost": "0",
+      "directUnitCost": "10121.28942",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E123; COSTO!E123, 08-09-PisosRev!J82, 08-09-PisosRev!I80, 08-09-PisosRev!G80, 08-09-PisosRev!D80, 08-09-PisosRev!I81, 08-09-PisosRev!G81, 08-09-PisosRev!D81"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:80",
+          "sourceKey": "08-09-PisosRev!G80",
           "name": "KLAUKOL FLEX",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "7.5",
           "unitPrice": "1260.584776"
         },
         {
-          "sourceKey": "08-09-PisosRev:81",
+          "sourceKey": "08-09-PisosRev!G81",
           "name": "PASTINA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.3",
           "unitPrice": "2223.012"
         }
@@ -2733,7 +3385,28 @@
       "quantity": "0",
       "laborUnitCost": "40000",
       "directUnitCost": "10121.28942",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E124; COSTO!E124, COSTO!E123, 08-09-PisosRev!J82, 08-09-PisosRev!I80, 08-09-PisosRev!G80, 08-09-PisosRev!D80, 08-09-PisosRev!I81, 08-09-PisosRev!G81, 08-09-PisosRev!D81"
+      },
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev!G80",
+          "name": "KLAUKOL FLEX",
+          "unit": "kg",
+          "coefficient": "7.5",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G81",
+          "name": "PASTINA",
+          "unit": "kg",
+          "coefficient": "0.3",
+          "unitPrice": "2223.012"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:125",
@@ -2743,7 +3416,28 @@
       "quantity": "0",
       "laborUnitCost": "40000",
       "directUnitCost": "10121.28942",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E125; COSTO!E125, COSTO!E124, COSTO!E123, 08-09-PisosRev!J82, 08-09-PisosRev!I80, 08-09-PisosRev!G80, 08-09-PisosRev!D80, 08-09-PisosRev!I81, 08-09-PisosRev!G81, 08-09-PisosRev!D81"
+      },
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev!G80",
+          "name": "KLAUKOL FLEX",
+          "unit": "kg",
+          "coefficient": "7.5",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G81",
+          "name": "PASTINA",
+          "unit": "kg",
+          "coefficient": "0.3",
+          "unitPrice": "2223.012"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:126",
@@ -2752,19 +3446,39 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "80000",
-      "directUnitCost": "0",
+      "directUnitCost": "6288.974976",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E126; COSTO!E126, 08-09-PisosRev!J294, 08-09-PisosRev!I290, 08-09-PisosRev!G290, 08-09-PisosRev!D290, 08-09-PisosRev!I291, 08-09-PisosRev!G291, 08-09-PisosRev!D291, 08-09-PisosRev!I292, 08-09-PisosRev!G292"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:290",
+          "sourceKey": "08-09-PisosRev!G290",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "9",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "08-09-PisosRev:293",
+          "sourceKey": "08-09-PisosRev!G291",
+          "name": "CAL GRASA",
+          "unit": "kg",
+          "coefficient": "4.5",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G292",
+          "name": "CEMENTO DE ALBAÑILERÍA",
+          "unit": "kg",
+          "coefficient": "2.25",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G293",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.028",
           "unitPrice": "36099.9991"
         }
@@ -2778,6 +3492,12 @@
       "quantity": "0",
       "laborUnitCost": "4200",
       "directUnitCost": "12000",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E127: importe fijo 12000 sin desglose físico",
+        "evidence": "COSTO!E127; COSTO!E127"
+      },
       "materials": []
     },
     {
@@ -2787,19 +3507,25 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "10002.6",
-      "directUnitCost": "0",
+      "directUnitCost": "1336.895113",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E128; COSTO!E128, 08-09-PisosRev!J243, 08-09-PisosRev!I241, 08-09-PisosRev!G241, 08-09-PisosRev!D241, 08-09-PisosRev!I242, 08-09-PisosRev!G242, 08-09-PisosRev!D242"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:241",
+          "sourceKey": "08-09-PisosRev!G241",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "3.08",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "08-09-PisosRev:242",
+          "sourceKey": "08-09-PisosRev!G242",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.00726",
           "unitPrice": "36099.9991"
         }
@@ -2813,7 +3539,28 @@
       "quantity": "0",
       "laborUnitCost": "40000",
       "directUnitCost": "11908.78709",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E129; COSTO!E129, 08-09-PisosRev!J57, 08-09-PisosRev!I55, 08-09-PisosRev!G55, 08-09-PisosRev!D55, 08-09-PisosRev!I56, 08-09-PisosRev!G56, 08-09-PisosRev!D56"
+      },
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev!G55",
+          "name": "KLAUKOL FLEX",
+          "unit": "kg",
+          "coefficient": "8.25",
+          "unitPrice": "1226.2624"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G56",
+          "name": "PASTINA",
+          "unit": "kg",
+          "coefficient": "0.33",
+          "unitPrice": "5430.6736"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:130",
@@ -2823,7 +3570,28 @@
       "quantity": "0",
       "laborUnitCost": "25000",
       "directUnitCost": "10121.28942",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E130; COSTO!E130, COSTO!E124, COSTO!E123, 08-09-PisosRev!J82, 08-09-PisosRev!I80, 08-09-PisosRev!G80, 08-09-PisosRev!D80, 08-09-PisosRev!I81, 08-09-PisosRev!G81, 08-09-PisosRev!D81"
+      },
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev!G80",
+          "name": "KLAUKOL FLEX",
+          "unit": "kg",
+          "coefficient": "7.5",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev!G81",
+          "name": "PASTINA",
+          "unit": "kg",
+          "coefficient": "0.3",
+          "unitPrice": "2223.012"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:131",
@@ -2833,6 +3601,12 @@
       "quantity": "0",
       "laborUnitCost": "10321",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E131; COSTO!E131"
+      },
       "materials": []
     },
     {
@@ -2842,19 +3616,25 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "10000",
-      "directUnitCost": "0",
+      "directUnitCost": "1518.193413",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E132; COSTO!E132, 08-09-PisosRev!J33, 08-09-PisosRev!I31, 08-09-PisosRev!G31, 08-09-PisosRev!D31, 08-09-PisosRev!I32, 08-09-PisosRev!G32, 08-09-PisosRev!D32"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:31",
+          "sourceKey": "08-09-PisosRev!G31",
           "name": "KLAUKOL FLEX",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.125",
           "unitPrice": "1260.584776"
         },
         {
-          "sourceKey": "08-09-PisosRev:32",
+          "sourceKey": "08-09-PisosRev!G32",
           "name": "PASTINA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.045",
           "unitPrice": "2223.012"
         }
@@ -2868,6 +3648,12 @@
       "quantity": "0",
       "laborUnitCost": "10000",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E134; COSTO!E134"
+      },
       "materials": []
     },
     {
@@ -2877,19 +3663,25 @@
       "unit": "ML",
       "quantity": "0",
       "laborUnitCost": "13000",
-      "directUnitCost": "0",
+      "directUnitCost": "1518.193413",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E135; COSTO!E135, 08-09-PisosRev!J33, 08-09-PisosRev!I31, 08-09-PisosRev!G31, 08-09-PisosRev!D31, 08-09-PisosRev!I32, 08-09-PisosRev!G32, 08-09-PisosRev!D32"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:31",
+          "sourceKey": "08-09-PisosRev!G31",
           "name": "KLAUKOL FLEX",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.125",
           "unitPrice": "1260.584776"
         },
         {
-          "sourceKey": "08-09-PisosRev:32",
+          "sourceKey": "08-09-PisosRev!G32",
           "name": "PASTINA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.045",
           "unitPrice": "2223.012"
         }
@@ -2902,19 +3694,25 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "45000",
-      "directUnitCost": "0",
+      "directUnitCost": "6320.98434",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E138; COSTO!E138, 08-09-PisosRev!J93, 08-09-PisosRev!I91, 08-09-PisosRev!G91, 08-09-PisosRev!D91, 08-09-PisosRev!I92, 08-09-PisosRev!G92, 08-09-PisosRev!D92"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:91",
+          "sourceKey": "08-09-PisosRev!G91",
           "name": "KLAUKOL IMPERMEABLE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "7.5",
           "unitPrice": "625.570968"
         },
         {
-          "sourceKey": "08-09-PisosRev:92",
+          "sourceKey": "08-09-PisosRev!G92",
           "name": "PASTINA",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.3",
           "unitPrice": "5430.6736"
         }
@@ -2927,40 +3725,46 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "36000",
-      "directUnitCost": "0",
+      "directUnitCost": "19141.77505",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E139; COSTO!E139, 08-09-PisosRev!J108, 08-09-PisosRev!I103, 08-09-PisosRev!G103, 08-09-PisosRev!D103, 08-09-PisosRev!I104, 08-09-PisosRev!G104, 08-09-PisosRev!D104, 08-09-PisosRev!I105, 08-09-PisosRev!G105"
+      },
       "materials": [
         {
-          "sourceKey": "08-09-PisosRev:103",
+          "sourceKey": "08-09-PisosRev!G103",
           "name": "KLAUKOL FLEX",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "7.5",
           "unitPrice": "1260.584776"
         },
         {
-          "sourceKey": "08-09-PisosRev:104",
+          "sourceKey": "08-09-PisosRev!G104",
           "name": "PLASTICOR",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "15",
           "unitPrice": "196.86337"
         },
         {
-          "sourceKey": "08-09-PisosRev:105",
+          "sourceKey": "08-09-PisosRev!G105",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "6.25",
           "unitPrice": "348.964"
         },
         {
-          "sourceKey": "08-09-PisosRev:106",
+          "sourceKey": "08-09-PisosRev!G106",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.08",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "08-09-PisosRev:107",
+          "sourceKey": "08-09-PisosRev!G107",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "6661.655"
         }
@@ -2974,6 +3778,12 @@
       "quantity": "0",
       "laborUnitCost": "24259",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E140; COSTO!E140"
+      },
       "materials": []
     },
     {
@@ -2983,61 +3793,67 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "24200",
-      "directUnitCost": "0",
+      "directUnitCost": "30123.97753",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento",
+        "evidence": "COSTO!E143; COSTO!E143, 10-Yeso!J62, 10-Yeso!I54, 10-Yeso!G54, 10-Yeso!D54, 10-Yeso!I55, 10-Yeso!G55, 10-Yeso!D55, 10-Yeso!I56, 10-Yeso!G56"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:54",
+          "sourceKey": "10-Yeso!G54",
           "name": "MADERA 1x1",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "5",
           "unitPrice": "269.9994"
         },
         {
-          "sourceKey": "10-Yeso:55",
+          "sourceKey": "10-Yeso!G55",
           "name": "MADERA 1X3",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "2.5",
           "unitPrice": "749.9943"
         },
         {
-          "sourceKey": "10-Yeso:56",
+          "sourceKey": "10-Yeso!G56",
           "name": "METAL DESPLEGADO",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.2",
           "unitPrice": "3560.0015"
         },
         {
-          "sourceKey": "10-Yeso:57",
+          "sourceKey": "10-Yeso!G57",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "6099.9972"
         },
         {
-          "sourceKey": "10-Yeso:58",
+          "sourceKey": "10-Yeso!G58",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "5199.9992"
         },
         {
-          "sourceKey": "10-Yeso:59",
+          "sourceKey": "10-Yeso!G59",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.5",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:60",
+          "sourceKey": "10-Yeso!G60",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:61",
+          "sourceKey": "10-Yeso!G61",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "18",
           "unitPrice": "474.000076"
         }
@@ -3051,7 +3867,70 @@
       "quantity": "0",
       "laborUnitCost": "36200",
       "directUnitCost": "30123.97753",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento",
+        "evidence": "COSTO!E144; COSTO!E144, COSTO!E143, 10-Yeso!J62, 10-Yeso!I54, 10-Yeso!G54, 10-Yeso!D54, 10-Yeso!I55, 10-Yeso!G55, 10-Yeso!D55, 10-Yeso!I56"
+      },
+      "materials": [
+        {
+          "sourceKey": "10-Yeso!G54",
+          "name": "MADERA 1x1",
+          "unit": "m",
+          "coefficient": "5",
+          "unitPrice": "269.9994"
+        },
+        {
+          "sourceKey": "10-Yeso!G55",
+          "name": "MADERA 1X3",
+          "unit": "m",
+          "coefficient": "2.5",
+          "unitPrice": "749.9943"
+        },
+        {
+          "sourceKey": "10-Yeso!G56",
+          "name": "METAL DESPLEGADO",
+          "unit": "m²",
+          "coefficient": "1.2",
+          "unitPrice": "3560.0015"
+        },
+        {
+          "sourceKey": "10-Yeso!G57",
+          "name": "CLAVOS",
+          "unit": "kg",
+          "coefficient": "0.25",
+          "unitPrice": "6099.9972"
+        },
+        {
+          "sourceKey": "10-Yeso!G58",
+          "name": "ALAMBRE",
+          "unit": "kg",
+          "coefficient": "0.25",
+          "unitPrice": "5199.9992"
+        },
+        {
+          "sourceKey": "10-Yeso!G59",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "1.5",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso!G60",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso!G61",
+          "name": "YESO",
+          "unit": "kg",
+          "coefficient": "18",
+          "unitPrice": "474.000076"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:145",
@@ -3061,7 +3940,70 @@
       "quantity": "0",
       "laborUnitCost": "24200",
       "directUnitCost": "8033.060675",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E145; COSTO!E145, 10-Yeso!J78, 10-Yeso!I70, 10-Yeso!G70, 10-Yeso!D70, 10-Yeso!I71, 10-Yeso!G71, 10-Yeso!D71, 10-Yeso!I72, 10-Yeso!G72"
+      },
+      "materials": [
+        {
+          "sourceKey": "10-Yeso!G70",
+          "name": "MADERA 1x1",
+          "unit": "m",
+          "coefficient": "2",
+          "unitPrice": "269.9994"
+        },
+        {
+          "sourceKey": "10-Yeso!G71",
+          "name": "MADERA 1X3",
+          "unit": "m",
+          "coefficient": "1",
+          "unitPrice": "749.9943"
+        },
+        {
+          "sourceKey": "10-Yeso!G72",
+          "name": "METAL DESPLEGADO",
+          "unit": "m²",
+          "coefficient": "0.48",
+          "unitPrice": "3560.0015"
+        },
+        {
+          "sourceKey": "10-Yeso!G73",
+          "name": "CLAVOS",
+          "unit": "kg",
+          "coefficient": "0.1",
+          "unitPrice": "6099.9972"
+        },
+        {
+          "sourceKey": "10-Yeso!G74",
+          "name": "ALAMBRE",
+          "unit": "kg",
+          "coefficient": "0.1",
+          "unitPrice": "5199.9992"
+        },
+        {
+          "sourceKey": "10-Yeso!G75",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "0.6",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso!G76",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.008",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso!G77",
+          "name": "YESO",
+          "unit": "kg",
+          "coefficient": "7.2",
+          "unitPrice": "474.000076"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:146",
@@ -3070,26 +4012,32 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "9680",
-      "directUnitCost": "0",
+      "directUnitCost": "2626.911476",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E146; COSTO!E146, 10-Yeso!J90, 10-Yeso!I87, 10-Yeso!G87, 10-Yeso!D87, 10-Yeso!I88, 10-Yeso!G88, 10-Yeso!D88, 10-Yeso!I89, 10-Yeso!G89"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:87",
+          "sourceKey": "10-Yeso!G87",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.4",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:88",
+          "sourceKey": "10-Yeso!G88",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.006",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:89",
+          "sourceKey": "10-Yeso!G89",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "4.8",
           "unitPrice": "474.000076"
         }
@@ -3103,7 +4051,35 @@
       "quantity": "0",
       "laborUnitCost": "9680",
       "directUnitCost": "1313.455738",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E147; COSTO!E147, 10-Yeso!J90, 10-Yeso!I87, 10-Yeso!G87, 10-Yeso!D87, 10-Yeso!I88, 10-Yeso!G88, 10-Yeso!D88, 10-Yeso!I89, 10-Yeso!G89"
+      },
+      "materials": [
+        {
+          "sourceKey": "10-Yeso!G87",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso!G88",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.003",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso!G89",
+          "name": "YESO",
+          "unit": "kg",
+          "coefficient": "2.4",
+          "unitPrice": "474.000076"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:148",
@@ -3112,26 +4088,32 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "8800",
-      "directUnitCost": "0",
+      "directUnitCost": "2626.911476",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E148; COSTO!E148, 10-Yeso!J90, 10-Yeso!I87, 10-Yeso!G87, 10-Yeso!D87, 10-Yeso!I88, 10-Yeso!G88, 10-Yeso!D88, 10-Yeso!I89, 10-Yeso!G89"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:87",
+          "sourceKey": "10-Yeso!G87",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.4",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:88",
+          "sourceKey": "10-Yeso!G88",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.006",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:89",
+          "sourceKey": "10-Yeso!G89",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "4.8",
           "unitPrice": "474.000076"
         }
@@ -3145,7 +4127,70 @@
       "quantity": "0",
       "laborUnitCost": "114400",
       "directUnitCost": "22592.98315",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento",
+        "evidence": "COSTO!E149; COSTO!E149, COSTO!E143, 10-Yeso!J62, 10-Yeso!I54, 10-Yeso!G54, 10-Yeso!D54, 10-Yeso!I55, 10-Yeso!G55, 10-Yeso!D55, 10-Yeso!I56"
+      },
+      "materials": [
+        {
+          "sourceKey": "10-Yeso!G54",
+          "name": "MADERA 1x1",
+          "unit": "m",
+          "coefficient": "3.75",
+          "unitPrice": "269.9994"
+        },
+        {
+          "sourceKey": "10-Yeso!G55",
+          "name": "MADERA 1X3",
+          "unit": "m",
+          "coefficient": "1.875",
+          "unitPrice": "749.9943"
+        },
+        {
+          "sourceKey": "10-Yeso!G56",
+          "name": "METAL DESPLEGADO",
+          "unit": "m²",
+          "coefficient": "0.9",
+          "unitPrice": "3560.0015"
+        },
+        {
+          "sourceKey": "10-Yeso!G57",
+          "name": "CLAVOS",
+          "unit": "kg",
+          "coefficient": "0.1875",
+          "unitPrice": "6099.9972"
+        },
+        {
+          "sourceKey": "10-Yeso!G58",
+          "name": "ALAMBRE",
+          "unit": "kg",
+          "coefficient": "0.1875",
+          "unitPrice": "5199.9992"
+        },
+        {
+          "sourceKey": "10-Yeso!G59",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "1.125",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso!G60",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.015",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso!G61",
+          "name": "YESO",
+          "unit": "kg",
+          "coefficient": "13.5",
+          "unitPrice": "474.000076"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:150",
@@ -3154,61 +4199,67 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "90200",
-      "directUnitCost": "0",
+      "directUnitCost": "20082.65169",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E150; COSTO!E150, 10-Yeso!J107, 10-Yeso!I99, 10-Yeso!G99, 10-Yeso!D99, 10-Yeso!I100, 10-Yeso!G100, 10-Yeso!D100, 10-Yeso!I101, 10-Yeso!G101"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:99",
+          "sourceKey": "10-Yeso!G99",
           "name": "MADERA 1x1",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "5",
           "unitPrice": "269.9994"
         },
         {
-          "sourceKey": "10-Yeso:100",
+          "sourceKey": "10-Yeso!G100",
           "name": "MADERA 1X3",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "2.5",
           "unitPrice": "749.9943"
         },
         {
-          "sourceKey": "10-Yeso:101",
+          "sourceKey": "10-Yeso!G101",
           "name": "METAL DESPLEGADO",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.2",
           "unitPrice": "3560.0015"
         },
         {
-          "sourceKey": "10-Yeso:102",
+          "sourceKey": "10-Yeso!G102",
           "name": "CLAVOS",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "6099.9972"
         },
         {
-          "sourceKey": "10-Yeso:103",
+          "sourceKey": "10-Yeso!G103",
           "name": "ALAMBRE",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.25",
           "unitPrice": "5199.9992"
         },
         {
-          "sourceKey": "10-Yeso:104",
+          "sourceKey": "10-Yeso!G104",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "1.5",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:105",
+          "sourceKey": "10-Yeso!G105",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:106",
+          "sourceKey": "10-Yeso!G106",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "18",
           "unitPrice": "474.000076"
         }
@@ -3221,12 +4272,18 @@
       "unit": "Un",
       "quantity": "0",
       "laborUnitCost": "27500",
-      "directUnitCost": "0",
+      "directUnitCost": "2339.99964",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E151; COSTO!E151, 10-Yeso!J31, 10-Yeso!I29, 10-Yeso!I30, 10-Yeso!G30, 10-Yeso!D30"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:30",
+          "sourceKey": "10-Yeso!G30",
           "name": "CANTONERAS",
-          "unit": "ml",
+          "unit": "m",
           "coefficient": "2.4",
           "unitPrice": "974.99985"
         }
@@ -3239,26 +4296,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "9000",
-      "directUnitCost": "0",
+      "directUnitCost": "3088.984835",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E152; COSTO!E152, 10-Yeso!J11, 10-Yeso!I8, 10-Yeso!G8, 10-Yeso!D8, 10-Yeso!I9, 10-Yeso!G9, 10-Yeso!D9, 10-Yeso!I10, 10-Yeso!G10"
+      },
       "materials": [
         {
-          "sourceKey": "10-Yeso:8",
+          "sourceKey": "10-Yeso!G8",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "2",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "10-Yeso:9",
+          "sourceKey": "10-Yeso!G9",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.02",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "10-Yeso:10",
+          "sourceKey": "10-Yeso!G10",
           "name": "YESO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "4",
           "unitPrice": "422.8573171"
         }
@@ -3271,12 +4334,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "8565.4",
-      "directUnitCost": "0",
+      "directUnitCost": "4256.059167",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E156; COSTO!E156, 03-Aisl!J127, 03-Aisl!I126, 03-Aisl!G126, 03-Aisl!D126"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:126",
+          "sourceKey": "03-Aisl!G126",
           "name": "PINTURA ASFALTICA",
-          "unit": "lts",
+          "unit": "L",
           "coefficient": "0.75",
           "unitPrice": "5674.745556"
         }
@@ -3289,12 +4358,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "2634.32",
-      "directUnitCost": "0",
+      "directUnitCost": "512.63465",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E157; COSTO!E157, 03-Aisl!J49, 03-Aisl!I48, 03-Aisl!G48, 03-Aisl!D48"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:48",
+          "sourceKey": "03-Aisl!G48",
           "name": "FILM POLIETILENO 200 MICRONES",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.1",
           "unitPrice": "466.0315"
         }
@@ -3307,12 +4382,18 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "5868.192",
-      "directUnitCost": "0",
+      "directUnitCost": "9500.799",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E158; COSTO!E158, 03-Aisl!J108, 03-Aisl!I107, 03-Aisl!G107, PRECIOS!A215: placa 1000×1000 mm = 1 m² explícito, 03-Aisl!D107"
+      },
       "materials": [
         {
-          "sourceKey": "03-Aisl:107",
+          "sourceKey": "03-Aisl!G107",
           "name": "POLIESTIRENO EXPANDIDO 2\" (50mm)",
-          "unit": "m2",
+          "unit": "m²",
           "coefficient": "1.05",
           "unitPrice": "9048.38"
         }
@@ -3325,20 +4406,26 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "13336.8",
-      "directUnitCost": "0",
+      "directUnitCost": "24140.06628",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "07-ContrapCA!G81: unidad m³ contradice PRECIOS!C202 (un); no se supone equivalencia",
+        "evidence": "COSTO!E159; COSTO!E159, 07-ContrapCA!J82, 07-ContrapCA!I80, 07-ContrapCA!G80, 07-ContrapCA!D80, 07-ContrapCA!I81, 07-ContrapCA!G81, 07-ContrapCA!D81"
+      },
       "materials": [
         {
-          "sourceKey": "07-ContrapCA:80",
+          "sourceKey": "07-ContrapCA!G80",
           "name": "HORMIGON DE PENDIENTE",
-          "unit": "m3",
-          "coefficient": "1.1",
+          "unit": "m³",
+          "coefficient": "0.132",
           "unitPrice": "171879.29"
         },
         {
-          "sourceKey": "07-ContrapCA:81",
+          "sourceKey": "07-ContrapCA!G81",
           "name": "BOMBEO H° ELABORADO",
-          "unit": "m3",
-          "coefficient": "0.02",
+          "unit": "m³",
+          "coefficient": "0.0024",
           "unitPrice": "605000"
         }
       ]
@@ -3351,6 +4438,12 @@
       "quantity": "0",
       "laborUnitCost": "14400",
       "directUnitCost": "17600",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E160: importe fijo 17600 sin desglose físico",
+        "evidence": "COSTO!E160; COSTO!E160"
+      },
       "materials": []
     },
     {
@@ -3360,26 +4453,32 @@
       "unit": "m2",
       "quantity": "0",
       "laborUnitCost": "15495.6945",
-      "directUnitCost": "0",
+      "directUnitCost": "5920.189058",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E161; COSTO!E161, 07-CarpetC!J11, 07-CarpetC!I8, 07-CarpetC!G8, 07-CarpetC!D8, 07-CarpetC!I9, 07-CarpetC!G9, 07-CarpetC!D9, 07-CarpetC!I10, 07-CarpetC!G10"
+      },
       "materials": [
         {
-          "sourceKey": "07-CarpetC:8",
+          "sourceKey": "07-CarpetC!G8",
           "name": "CEMENTO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "14",
           "unitPrice": "337.777792"
         },
         {
-          "sourceKey": "07-CarpetC:9",
+          "sourceKey": "07-CarpetC!G9",
           "name": "ARENA",
-          "unit": "m3",
+          "unit": "m³",
           "coefficient": "0.033",
           "unitPrice": "36099.9991"
         },
         {
-          "sourceKey": "07-CarpetC:10",
+          "sourceKey": "07-CarpetC!G10",
           "name": "HIDROFUGO",
-          "unit": "Kg",
+          "unit": "kg",
           "coefficient": "0.35",
           "unitPrice": null
         }
@@ -3393,6 +4492,12 @@
       "quantity": "0",
       "laborUnitCost": "14400",
       "directUnitCost": "17600",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E162: importe fijo 17600 sin desglose físico",
+        "evidence": "COSTO!E162; COSTO!E162, COSTO!E160"
+      },
       "materials": []
     },
     {
@@ -3403,6 +4508,12 @@
       "quantity": "0",
       "laborUnitCost": "5868.192",
       "directUnitCost": "11120.42",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E163: importe fijo 11120.42 sin desglose físico",
+        "evidence": "COSTO!E163; COSTO!E163"
+      },
       "materials": []
     },
     {
@@ -3413,6 +4524,12 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E164; COSTO!E164"
+      },
       "materials": []
     },
     {
@@ -3423,6 +4540,12 @@
       "quantity": "0",
       "laborUnitCost": null,
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E166; COSTO!E166"
+      },
       "materials": []
     },
     {
@@ -3433,7 +4556,42 @@
       "quantity": "0",
       "laborUnitCost": "54755.5",
       "directUnitCost": "2416.330772",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E170; COSTO!E170, 06-RevoqC!P76, 06-RevoqC!O76, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77, 06-RevoqC!D77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "4.14",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "2.472",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.018",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.12",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:171",
@@ -3443,7 +4601,42 @@
       "quantity": "0",
       "laborUnitCost": "57493.275",
       "directUnitCost": "4832.661544",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E171; COSTO!E171, 06-RevoqC!P77, 06-RevoqC!O77, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77, 06-RevoqC!D77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "8.28",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.944",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.036",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.24",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:172",
@@ -3453,7 +4646,42 @@
       "quantity": "0",
       "laborUnitCost": "82133.25",
       "directUnitCost": "6846.27052",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E172; COSTO!E172, 06-RevoqC!P78, 06-RevoqC!O78, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77, 06-RevoqC!D77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "11.73",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "7.004",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.051",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.34",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:173",
@@ -3463,7 +4691,42 @@
       "quantity": "0",
       "laborUnitCost": "104035.45",
       "directUnitCost": "12887.09745",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E173; COSTO!E173, 06-RevoqC!P79, 06-RevoqC!O79, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77, 06-RevoqC!D77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "22.08",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "13.184",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.096",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.64",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:174",
@@ -3473,7 +4736,42 @@
       "quantity": "0",
       "laborUnitCost": "54755.5",
       "directUnitCost": "2416.330772",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E174; COSTO!E174, COSTO!E170, 06-RevoqC!P76, 06-RevoqC!O76, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "4.14",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "2.472",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.018",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.12",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:175",
@@ -3483,7 +4781,42 @@
       "quantity": "0",
       "laborUnitCost": "54755.5",
       "directUnitCost": "2416.330772",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E175; COSTO!E175, COSTO!E170, 06-RevoqC!P76, 06-RevoqC!O76, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "4.14",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "2.472",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.018",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.12",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:176",
@@ -3493,7 +4826,42 @@
       "quantity": "0",
       "laborUnitCost": "54755.5",
       "directUnitCost": "2416.330772",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E176; COSTO!E176, COSTO!E170, 06-RevoqC!P76, 06-RevoqC!O76, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "4.14",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "2.472",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.018",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.12",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:177",
@@ -3503,7 +4871,42 @@
       "quantity": "0",
       "laborUnitCost": "54755.5",
       "directUnitCost": "2416.330772",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E177; COSTO!E177, COSTO!E170, 06-RevoqC!P76, 06-RevoqC!O76, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "4.14",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "2.472",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.018",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.12",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:178",
@@ -3513,7 +4916,42 @@
       "quantity": "0",
       "laborUnitCost": "82133.25",
       "directUnitCost": "6846.27052",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E178; COSTO!E178, COSTO!E172, 06-RevoqC!P78, 06-RevoqC!O78, 06-RevoqC!J80, 06-RevoqC!I76, 06-RevoqC!G76, 06-RevoqC!D76, 06-RevoqC!I77, 06-RevoqC!G77"
+      },
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC!G76",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "11.73",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC!G77",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "7.004",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "06-RevoqC!G78",
+          "name": "ARENA",
+          "unit": "m³",
+          "coefficient": "0.051",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC!G79",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.34",
+          "unitPrice": "2681.8319"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:181",
@@ -3523,6 +4961,12 @@
       "quantity": "0",
       "laborUnitCost": "8335.5",
       "directUnitCost": "7500",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "COSTO!E181: importe fijo 7500 sin desglose físico",
+        "evidence": "COSTO!E181; COSTO!E181"
+      },
       "materials": []
     },
     {
@@ -3532,13 +4976,19 @@
       "unit": "ml",
       "quantity": "0",
       "laborUnitCost": "12761.92",
-      "directUnitCost": "0",
+      "directUnitCost": "3630.484155",
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E182; COSTO!E182, 13-Marmoleria!J22, 13-Marmoleria!J21, 13-Marmoleria!I20, 13-Marmoleria!G20, 13-Marmoleria!D20"
+      },
       "materials": [
         {
-          "sourceKey": "13-Marmoleria:20",
+          "sourceKey": "13-Marmoleria!G20",
           "name": "KLAUKOL IMP",
-          "unit": "Kg",
-          "coefficient": "8",
+          "unit": "kg",
+          "coefficient": "2.88",
           "unitPrice": "1260.584776"
         }
       ]
@@ -3551,7 +5001,21 @@
       "quantity": "0",
       "laborUnitCost": "12761.92",
       "directUnitCost": "3630.484155",
-      "materials": []
+      "materialsIncludedInDirect": true,
+      "materialReview": {
+        "status": "VERIFIED",
+        "detail": "Consumos físicos de fuente; costo de suministro agregado sin doble suma",
+        "evidence": "COSTO!E183; COSTO!E183, COSTO!E182, 13-Marmoleria!J22, 13-Marmoleria!J21, 13-Marmoleria!I20, 13-Marmoleria!G20, 13-Marmoleria!D20"
+      },
+      "materials": [
+        {
+          "sourceKey": "13-Marmoleria!G20",
+          "name": "KLAUKOL IMP",
+          "unit": "kg",
+          "coefficient": "2.88",
+          "unitPrice": "1260.584776"
+        }
+      ]
     },
     {
       "sourceKey": "COSTO:187",
@@ -3561,6 +5025,12 @@
       "quantity": "0",
       "laborUnitCost": "8500",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E187; COSTO!E187"
+      },
       "materials": []
     },
     {
@@ -3571,6 +5041,12 @@
       "quantity": "0",
       "laborUnitCost": "8500",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E188; COSTO!E188"
+      },
       "materials": []
     },
     {
@@ -3581,6 +5057,12 @@
       "quantity": "0",
       "laborUnitCost": "18800",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E190; COSTO!E190"
+      },
       "materials": []
     },
     {
@@ -3591,6 +5073,12 @@
       "quantity": "0",
       "laborUnitCost": "18800",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E192; COSTO!E192"
+      },
       "materials": []
     },
     {
@@ -3601,6 +5089,12 @@
       "quantity": "0",
       "laborUnitCost": "18800",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E193; COSTO!E193"
+      },
       "materials": []
     },
     {
@@ -3611,6 +5105,12 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E196; COSTO!E196"
+      },
       "materials": []
     },
     {
@@ -3621,6 +5121,12 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E199; COSTO!E199"
+      },
       "materials": []
     },
     {
@@ -3631,6 +5137,12 @@
       "quantity": "0",
       "laborUnitCost": null,
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E202; COSTO!E202"
+      },
       "materials": []
     },
     {
@@ -3641,6 +5153,12 @@
       "quantity": "0",
       "laborUnitCost": null,
       "directUnitCost": "0",
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "UNRESOLVED",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E203; COSTO!E203"
+      },
       "materials": []
     },
     {
@@ -3651,6 +5169,12 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": null,
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "DIRECT",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E204; COSTO!E204"
+      },
       "materials": []
     },
     {
@@ -3661,10 +5185,24 @@
       "quantity": "0",
       "laborUnitCost": "0",
       "directUnitCost": null,
+      "materialsIncludedInDirect": false,
+      "materialReview": {
+        "status": "DIRECT",
+        "detail": "Costo directo; comprobar su alcance físico",
+        "evidence": "COSTO!E205; COSTO!E205"
+      },
       "materials": []
     }
   ],
   "issues": [
+    {
+      "row": 12,
+      "message": "01-TareasP!G13: unidad m contradice PRECIOS!C230 (un); no se supone equivalencia"
+    },
+    {
+      "row": 12,
+      "message": "01-TareasP!G15: unidad un contradice PRECIOS!C184 (m); no se supone equivalencia"
+    },
     {
       "row": 13,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
@@ -3679,7 +5217,15 @@
     },
     {
       "row": 30,
+      "message": "COSTO!E30: importe fijo 59100 sin desglose físico"
+    },
+    {
+      "row": 30,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 31,
+      "message": "COSTO!E31: importe fijo 19073.068181818181818181818181818181818181818181818181818181818181818181818181818 sin desglose físico"
     },
     {
       "row": 31,
@@ -3687,15 +5233,83 @@
     },
     {
       "row": 32,
+      "message": "COSTO!E32: importe fijo 43029.545454545454545454545454545454545454545454545454545454545454545454545454546 sin desglose físico"
+    },
+    {
+      "row": 32,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 38,
+      "message": "03-Aisl!G157: unidad L contradice PRECIOS!C138 (kg); no se supone equivalencia"
+    },
+    {
+      "row": 39,
+      "message": "COSTO!E39: importe fijo 17600 sin desglose físico"
     },
     {
       "row": 39,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
     },
     {
+      "row": 45,
+      "message": "04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 45,
+      "message": "04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento"
+    },
+    {
+      "row": 46,
+      "message": "04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 46,
+      "message": "04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento"
+    },
+    {
+      "row": 47,
+      "message": "04-EstructHE!I91: división de costo por 2 (reutilización/amortización); cantidad física D91 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 47,
+      "message": "04-EstructHE!I92: división de costo por 2 (reutilización/amortización); cantidad física D92 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 48,
+      "message": "04-EstructHE!I74: división de costo por 2 (reutilización/amortización); cantidad física D74 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 48,
+      "message": "04-EstructHE!I75: división de costo por 2 (reutilización/amortización); cantidad física D75 conservada como orientativa, falta definir uso físico"
+    },
+    {
       "row": 48,
       "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 49,
+      "message": "04-EstructHE!I141: división de costo por 2 (reutilización/amortización); cantidad física D141 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 49,
+      "message": "04-EstructHE!I144: división de costo por 2 (reutilización/amortización); cantidad física D144 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 50,
+      "message": "04-EstructHE!I178: división de costo por 2 (reutilización/amortización); cantidad física D178 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 50,
+      "message": "04-EstructHE!I179: división de costo por 2 (reutilización/amortización); cantidad física D179 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 51,
+      "message": "04-EstructHE!I376: división de costo por 2 (reutilización/amortización); cantidad física D376 conservada como orientativa, falta definir uso físico"
+    },
+    {
+      "row": 51,
+      "message": "04-EstructHE!I377: división de costo por 2 (reutilización/amortización); cantidad física D377 conservada como orientativa, falta definir uso físico"
     },
     {
       "row": 51,
@@ -3703,34 +5317,42 @@
     },
     {
       "row": 52,
+      "message": "COSTO!E52: importe fijo 7000 sin desglose físico"
+    },
+    {
+      "row": 52,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 54,
+      "message": "COSTO!E54: importe fijo 205743 sin desglose físico"
     },
     {
       "row": 54,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
     },
     {
+      "row": 62,
+      "message": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia"
+    },
+    {
       "row": 63,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia"
     },
     {
       "row": 64,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia"
     },
     {
       "row": 67,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia"
     },
     {
       "row": 78,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "COSTO!E78: importe fijo 200000 sin desglose físico"
     },
     {
-      "row": 87,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 90,
+      "row": 78,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
     },
     {
@@ -3739,15 +5361,27 @@
     },
     {
       "row": 94,
+      "message": "COSTO!E94: importe fijo 25000 sin desglose físico"
+    },
+    {
+      "row": 94,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 102,
+      "message": "07-ContrapC!G26: unidad m² contradice PRECIOS!C86 (); no se supone equivalencia"
     },
     {
       "row": 108,
       "message": "Mano de obra sin valor numérico verificable"
     },
     {
-      "row": 112,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "row": 109,
+      "message": "08-09-PisosRev!G265: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia"
+    },
+    {
+      "row": 114,
+      "message": "COSTO!E114: importe fijo 5185.983 sin desglose físico"
     },
     {
       "row": 114,
@@ -3758,40 +5392,36 @@
       "message": "Mano de obra sin valor numérico verificable"
     },
     {
-      "row": 124,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "row": 116,
+      "message": "08-09-PisosRev!I229: división de costo por 2 (reutilización/amortización); cantidad física D229 conservada como orientativa, falta definir uso físico"
     },
     {
-      "row": 125,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "row": 127,
+      "message": "COSTO!E127: importe fijo 12000 sin desglose físico"
     },
     {
       "row": 127,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
     },
     {
-      "row": 129,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 130,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "row": 143,
+      "message": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento"
     },
     {
       "row": 144,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 145,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 147,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento"
     },
     {
       "row": 149,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "message": "10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento"
+    },
+    {
+      "row": 159,
+      "message": "07-ContrapCA!G81: unidad m³ contradice PRECIOS!C202 (un); no se supone equivalencia"
+    },
+    {
+      "row": 160,
+      "message": "COSTO!E160: importe fijo 17600 sin desglose físico"
     },
     {
       "row": 160,
@@ -3799,7 +5429,15 @@
     },
     {
       "row": 162,
+      "message": "COSTO!E162: importe fijo 17600 sin desglose físico"
+    },
+    {
+      "row": 162,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 163,
+      "message": "COSTO!E163: importe fijo 11120.42 sin desglose físico"
     },
     {
       "row": 163,
@@ -3810,47 +5448,11 @@
       "message": "Mano de obra sin valor numérico verificable"
     },
     {
-      "row": 170,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 171,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 172,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 173,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 174,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 175,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 176,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 177,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 178,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+      "row": 181,
+      "message": "COSTO!E181: importe fijo 7500 sin desglose físico"
     },
     {
       "row": 181,
-      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
-    },
-    {
-      "row": 183,
       "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
     },
     {

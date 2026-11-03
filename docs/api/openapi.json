@@ -36396,6 +36396,9 @@
                     "EXCLUDED"
                   ]
                 },
+                "materialsIncludedInDirect": {
+                  "type": "boolean"
+                },
                 "materials": {
                   "type": "array",
                   "items": {
@@ -36422,8 +36425,15 @@
                         "maxLength": 500
                       },
                       "coefficient": {
-                        "type": "string",
-                        "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "unitPrice": {
                         "anyOf": [
@@ -36461,6 +36471,34 @@
                     "additionalProperties": false
                   },
                   "maxItems": 500
+                },
+                "materialReview": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DIRECT",
+                        "VERIFIED",
+                        "UNRESOLVED"
+                      ]
+                    },
+                    "detail": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000
+                    },
+                    "evidence": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "detail",
+                    "evidence"
+                  ],
+                  "additionalProperties": false
                 },
                 "markup": {
                   "type": "string",
@@ -36655,6 +36693,9 @@
                         "EXCLUDED"
                       ]
                     },
+                    "materialsIncludedInDirect": {
+                      "type": "boolean"
+                    },
                     "materials": {
                       "type": "array",
                       "items": {
@@ -36681,8 +36722,15 @@
                             "maxLength": 500
                           },
                           "coefficient": {
-                            "type": "string",
-                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "unitPrice": {
                             "anyOf": [
@@ -36720,6 +36768,34 @@
                         "additionalProperties": false
                       },
                       "maxItems": 500
+                    },
+                    "materialReview": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "DIRECT",
+                            "VERIFIED",
+                            "UNRESOLVED"
+                          ]
+                        },
+                        "detail": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "evidence": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "detail",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
                     },
                     "markup": {
                       "type": "string",
@@ -36965,6 +37041,9 @@
                         "EXCLUDED"
                       ]
                     },
+                    "materialsIncludedInDirect": {
+                      "type": "boolean"
+                    },
                     "materials": {
                       "type": "array",
                       "items": {
@@ -36991,8 +37070,15 @@
                             "maxLength": 500
                           },
                           "coefficient": {
-                            "type": "string",
-                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "unitPrice": {
                             "anyOf": [
@@ -37030,6 +37116,34 @@
                         "additionalProperties": false
                       },
                       "maxItems": 500
+                    },
+                    "materialReview": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "DIRECT",
+                            "VERIFIED",
+                            "UNRESOLVED"
+                          ]
+                        },
+                        "detail": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "evidence": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "detail",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
                     },
                     "markup": {
                       "type": "string",
@@ -37142,7 +37256,90 @@
           "materials": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SnapshotMaterial"
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "unitId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "coefficient": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sourcePriceId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Decimal serializado como texto, nunca float."
+                },
+                "unitCost": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Decimal serializado como texto, nunca float."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "materialId",
+                "name",
+                "unitId",
+                "unit",
+                "coefficient",
+                "unitPrice",
+                "sourcePriceId"
+              ],
+              "additionalProperties": false
             }
           },
           "materialUnitCost": {
@@ -37179,6 +37376,9 @@
             "type": "string",
             "pattern": "^-?\\d+(\\.\\d+)?$",
             "description": "Decimal serializado como texto, nunca float."
+          },
+          "materialsIncludedInDirect": {
+            "type": "boolean"
           },
           "sellingUnitPrice": {
             "type": "string",
@@ -37401,6 +37601,51 @@
           "formatVersion": {
             "const": 2
           },
+          "unitCosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lineKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "totalUnitCost": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Decimal serializado como texto, nunca float."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "missingCosts": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "quantityPending": {
+                  "type": "boolean"
+                },
+                "zeroQuantity": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "lineKey",
+                "totalUnitCost",
+                "missingCosts",
+                "quantityPending",
+                "zeroQuantity"
+              ],
+              "additionalProperties": false
+            }
+          },
           "commercialTotal": {
             "type": "string",
             "pattern": "^-?\\d+(\\.\\d+)?$",
@@ -37408,6 +37653,31 @@
           },
           "materialDemandIncomplete": {
             "type": "boolean"
+          },
+          "materialReviewIssues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lineKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "name": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "lineKey",
+                "name",
+                "detail"
+              ],
+              "additionalProperties": false
+            }
           },
           "materialQuantityPolicy": {
             "type": "object",
@@ -37737,6 +38007,51 @@
           "formatVersion": {
             "const": 2
           },
+          "unitCosts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lineKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "totalUnitCost": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Decimal serializado como texto, nunca float."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "missingCosts": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "quantityPending": {
+                  "type": "boolean"
+                },
+                "zeroQuantity": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "lineKey",
+                "totalUnitCost",
+                "missingCosts",
+                "quantityPending",
+                "zeroQuantity"
+              ],
+              "additionalProperties": false
+            }
+          },
           "commercialTotal": {
             "type": "string",
             "pattern": "^-?\\d+(\\.\\d+)?$",
@@ -37744,6 +38059,31 @@
           },
           "materialDemandIncomplete": {
             "type": "boolean"
+          },
+          "materialReviewIssues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "lineKey": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "name": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "lineKey",
+                "name",
+                "detail"
+              ],
+              "additionalProperties": false
+            }
           },
           "materialQuantityPolicy": {
             "type": "object",

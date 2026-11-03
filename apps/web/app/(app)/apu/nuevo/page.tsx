@@ -1,13 +1,13 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { Page, RequirePerm } from '@/components/shell';
 import { useSession } from '@/lib/session';
 import { ApuForm } from '@/components/presupuesto/ApuForm';
 
 export default function NewApuPage() {
   const { can } = useSession();
-  const router = useRouter();
+  const router = useAppRouter();
   return (
     <RequirePerm ok={can('editBudget')}>
       <Page

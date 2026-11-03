@@ -395,6 +395,23 @@ export async function handlerCommercial(
               "DRAFT_CONFLICT",
               "El borrador cambió en otra sesión. Tus cambios siguen en pantalla; recargá antes de reemplazarlo.",
             );
+          // An acknowledgement cannot erase a source completeness marker.
+          // Concrete per-line evidence can resolve it in the calculation.
+          if (
+            old &&
+            (old.content as { materialDemandIncomplete?: boolean })
+              .materialDemandIncomplete
+          )
+            b.content.materialDemandIncomplete = true;
+          for (const prior of (old?.content as EditorContent | undefined)
+            ?.lines ?? []) {
+            const current = b.content.lines.find((l) => l.key === prior.key);
+            if (current && prior.materialReview && !current.materialReview)
+              current.materialReview = prior.materialReview;
+          }
+          // Revalidate after retaining source evidence: a client cannot omit the
+          // review field and persist a VERIFIED composition without materials.
+          editorContentSchema.parse(b.content);
           const draft = old
             ? await tx.budgetDraft.update({
                 where: { budgetId: key },
@@ -405,6 +422,33 @@ export async function handlerCommercial(
               });
           await audit(tx, actor, "SAVE_DRAFT", "Budget", key, {
             revision: draft.revision,
+            compositionChanges: b.content.lines
+              .filter((l) => {
+                const previous = (
+                  old?.content as EditorContent | undefined
+                )?.lines.find((x) => x.key === l.key);
+                return (
+                  JSON.stringify([
+                    previous?.materials,
+                    previous?.directUnitCost,
+                    previous?.materialsIncludedInDirect,
+                    previous?.materialReview,
+                  ]) !==
+                  JSON.stringify([
+                    l.materials,
+                    l.directUnitCost,
+                    l.materialsIncludedInDirect,
+                    l.materialReview,
+                  ])
+                );
+              })
+              .map((l) => ({
+                lineKey: l.key,
+                before: (old?.content as EditorContent | undefined)?.lines.find(
+                  (x) => x.key === l.key,
+                ),
+                after: l,
+              })),
           });
           return draft;
         }),

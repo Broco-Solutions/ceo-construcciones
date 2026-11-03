@@ -1,6 +1,6 @@
 'use client';
+import { useAppRouter } from '@/lib/navigation';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Page, RequirePerm } from '@/components/shell';
 import { Card, DataTable, Empty, ErrorBox, Loading, PagerBar, SelectField } from '@/components/ui';
 import { usePaged } from '@/lib/hooks';
@@ -15,7 +15,7 @@ const NEEDS_PURCHASE: { status: RequestStatus; title: string }[] = [
 ];
 
 function Group({ status, title, workId, lk }: { status: RequestStatus; title: string; workId: string; lk: ReturnType<typeof useLookups> }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const list = usePaged<RequestDetail>('/requests', { workId: workId || undefined, status });
   return (
     <Card title={`${title}${list.pagination ? ` · ${list.pagination.total}` : ''}`} bodyClass="">

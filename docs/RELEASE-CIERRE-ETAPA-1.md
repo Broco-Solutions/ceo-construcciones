@@ -2,6 +2,16 @@
 
 Base de la misión: `a9a075dc159c8c59d075aa5894534e3dbaae961e`. El usuario autorizó PR/merge después de pruebas y compatibilidad. Las migraciones y cargas productivas no están autorizadas.
 
+## Corrección técnica posterior al PR8
+
+Base remota revalidada: `121264563b73f141e118a2a9f8093c727cc907b8`. Esta pasada conserva las diez migraciones existentes y no agrega DDL ni cambios de infraestructura. Los nuevos campos del editor están en contenido JSON; las respuestas/snapshots anteriores siguen aceptados por el contrato. No hay migraciones desde requests ni al arrancar el servidor productivo.
+
+Integración de esta pasada: [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9); el estado, SHA definitivo y observación del autodespliegue se registran allí.
+
+El candidato corregido aprobó `check-release-compatibility.ts --runtime --browser`, salida 0, sobre `ceo_release_test_cbad63f3407243d4a141e407e746b762`: V1 poblada, HTTP y navegador, ampliación aditiva, preservación de snapshots/OC parcial/stock/obra y `No difference detected`. Evidencia privada `logs/technical-release-final.log`. Esta comprobación usa exclusivamente PostgreSQL local; no implica que el esquema productivo esté ampliado.
+
+El auxiliar manual aplica migraciones sólo a `ceo_manual_test`, tras verificar Docker local, etiqueta y conexión loopback del preparador. No usa la base del runner automatizado. El resultado de su ejecución y el SHA integrado se registran en estado/aceptación y `manual/release.json` privado.
+
 ## Riesgo del autodespliegue
 
 La metadata de GitHub confirma un despliegue exitoso de esa base creado por `railway-app[bot]` en el entorno `ceo-construcciones / production`. Se asume que un merge puede iniciar el autodespliegue existente. No se cambian sus ajustes ni se inicia un despliegue manual.
@@ -21,7 +31,7 @@ Se ejecutan por separado los verificadores API, web y E2E; se espera su salida f
 
 La disponibilidad condicional demuestra que el código puede integrarse antes de aplicar las migraciones; no constituye habilitación de las nuevas funciones en producción. El entorno productivo deberá ejecutar un procedimiento autorizado de migración de aplicación y completar sus datos. Esa operación queda pendiente y no se ejecutó en esta misión.
 
-La comprobación local final terminó con salida0 y `No difference detected`; aprobó HTTP y alta web real antes y después de migrar. Evidencia privada: `logs/release-compatibility-binary-browser.log`, base conservada `ceo_release_test_9b1620c3631c47aa9b1838f50d771a02`.
+La comprobación local final terminó con salida 0 y `No difference detected`; aprobó HTTP y alta web real antes y después de migrar. Evidencia privada: `logs/release-compatibility-binary-browser.log`, base conservada `ceo_release_test_9b1620c3631c47aa9b1838f50d771a02`.
 
 El PR y el resultado final registran commits, checks y SHA leído de `origin/main`. Antes de merge se revisa nuevamente el estado remoto y las protecciones; no se omiten checks, no se autoaprueban revisiones exigidas y no se usa force-push. Después se comprueba CI de main y se observa únicamente la metadata permitida del autodespliegue.
 

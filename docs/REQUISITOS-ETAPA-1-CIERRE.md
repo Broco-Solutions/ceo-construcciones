@@ -38,3 +38,18 @@ La implementación funcional F1–F7 está verificada. El estado de candidato/CI
 | R30 | DG REV C real, costos/venta/recargos/PDF y demanda conocida | read-historical-xls.py; reconcile-dg.ts; historical-db-fixture.ts | DG-1153-RECONCILIACION.md; verification.json privado | T46 ejecutado con diferencias; composición física completa pendiente de datos |
 
 La demanda de fuentes incompletas conserva `materialDemandIncomplete`, `exact: false` y advertencias. No se marca completa la composición física DG por disponer de un costo agregado. BASE y DG no se cargaron en producción. La transición empresarial exige el export definitivo; el adaptador probado no equivale a haber migrado las OC reales.
+
+
+## Correcciones de aceptación posteriores al PR8
+
+| Hallazgo | Reproducción / corrección | Código | Regresión / evidencia |
+|---|---|---|---|
+| H01 | Pérdida por salida sin decisión; guardado asíncrono y logout coordinados | `lib/navigation.tsx`, `session.tsx`, `BudgetEditor.tsx`, navegación existente | `editor-corrections.spec.ts`: breadcrumb, menú, móvil, Atrás/Adelante, logout, conflicto real, respuesta demorada, recarga/cierre nativo |
+| H02 | Costo unitario antes de cantidades; cero no produce demanda, vacío pendiente | `commercial-domain.ts`, OpenAPI y editor | `commercial.test.ts`, `zz-base.spec.ts`: BASE 146 actividades, cero/vacío/positivo; precio faltante |
+| H03 | Confirmación previa y revisión reversible de moneda/IVA | `BudgetEditor.tsx` | `editor-corrections.spec.ts`: cancelar idéntico, revisar sin convertir, restaurar |
+| H04 | Material de catálogo contextual, reemplazo, consumo/precio, agregado sin doble costo | editor, `commercial.ts`, `commercial-domain.ts` | API real + E2E: equivalencia, duplicados, procedencia, cero/nulo, R1/R2, auditoría |
+| H05 | Comparador como subvista de la composición | editor, `Modal`, `MaterialPicker` | E2E: única capa, Tab, Escape, retorno y foco |
+| DG | Extracción simbólica acotada y faltantes por partida, no reconocimiento global | `historical-composition.ts`, extractores BASE/DG, revisión en editor/API | 4 pruebas del adaptador; fixture DG PostgreSQL; [conciliación](DG-1153-RECONCILIACION.md) |
+| Manual | Base persistente exclusiva, cinco perfiles, credenciales privadas | `CEO_Manual_Local.sh`, `manual-local.ts`, `manual-smoke.mjs` | [guía](PRUEBAS-MANUALES-ETAPA-1.md); resultado real en aceptación/estado |
+
+Los resultados finales de esta pasada se registran por corrida en aceptación; los conteos del PR8 se conservan como antecedente, no como prueba de estas correcciones.
