@@ -2,7 +2,7 @@
 
 Este entorno es local, aislado y persistente. Las pruebas manuales no equivalen a aceptación del piloto ni habilitación productiva. No se aplican migraciones ni datos a producción.
 
-Código funcional probado: `3fa7a54bf68f7266a527e8e1c3d50a6956703be0`. El smoke se ejecutó sobre estos mismos archivos antes del commit; API174 +3 runtime, web47, E2E68 y compatibilidad V1/ampliada aprobaron. La revisión posterior de integridad también pasó API completo; CI del PR vuelve a construir y probar el candidato integrado. El arranque registra el SHA realmente compilado en `release.json`; la comprobación posterior al merge se añade al registro del PR.
+Código funcional probado: `3fa7a54bf68f7266a527e8e1c3d50a6956703be0`. El smoke se ejecutó sobre estos mismos archivos antes del commit; API 174 + 3 runtime, web 47, E2E 68 y compatibilidad V1/ampliada aprobaron. La revisión posterior de integridad también pasó API completo; CI del PR vuelve a construir y probar el candidato integrado. El arranque registra el SHA realmente compilado en `release.json`; la comprobación posterior al merge se añade al registro del [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9).
 
 ## Arranque desde WSL
 

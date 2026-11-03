@@ -2,7 +2,7 @@
 
 ## Corrección técnica posterior al PR8 — validación local aprobada
 
-Base remota revalidada `121264563b73f141e118a2a9f8093c727cc907b8`; rama `codex/cierre-tecnico-manual-20261103`. H01–H05 reproducidos y corregidos; API, web, E2E, compatibilidad y smoke manual aprobados. Integración/checks remotos pendientes. API actual: 174 + 3 runtime aprobadas. DG: 57 casos originales clasificados 2 A/32 B/23 C; diferencia comercial explicada −15,69. Ver el checkpoint vigente en [estado del cierre](ESTADO-CIERRE-ETAPA-1.md), [conciliación](DG-1153-RECONCILIACION.md) y [guía manual](PRUEBAS-MANUALES-ETAPA-1.md). No se declara habilitación productiva; infraestructura intacta.
+Base remota revalidada `121264563b73f141e118a2a9f8093c727cc907b8`; rama `codex/cierre-tecnico-manual-20261103`. H01–H05 reproducidos y corregidos; API, web, E2E, compatibilidad y smoke manual aprobados. Integración y checks remotos registrados en [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9); consultar allí el SHA definitivo y el smoke del código integrado. API actual: 174 + 3 runtime aprobadas. DG: 57 casos originales clasificados 2 A/32 B/23 C; diferencia comercial explicada −15,69. Ver el checkpoint vigente en [estado del cierre](ESTADO-CIERRE-ETAPA-1.md), [conciliación](DG-1153-RECONCILIACION.md) y [guía manual](PRUEBAS-MANUALES-ETAPA-1.md). No se declara habilitación productiva; infraestructura intacta.
 
 ## Registro histórico del cierre inicial — PR8, 03/11/2026
 

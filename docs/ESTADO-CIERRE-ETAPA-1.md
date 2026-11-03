@@ -1,6 +1,6 @@
 # Estado del cierre de Etapa 1
 
-## Pasada de cierre técnico para pruebas manuales — validada localmente, integración pendiente
+## Pasada de cierre técnico para pruebas manuales — validación local aprobada
 
 Base remota verificada de nuevo: `121264563b73f141e118a2a9f8093c727cc907b8`. Rama nueva `codex/cierre-tecnico-manual-20261103`; árbol inicial limpio. No se reiniciaron las fases del plan. No apareció el adjunto de revisión PR8; se usaron los hallazgos completos aportados por el usuario.
 
@@ -12,7 +12,7 @@ DG: de los 57 casos originales, 2 A, 32 B recuperados y 23 C. Total actual de pa
 
 El entorno manual persistente usa base exclusiva `ceo_manual_test`, puertos 3100/3101 y credenciales privadas. Arranque real, health/login, cinco perfiles, edición descartada, permisos y parada aprobados (`logs/manual-acceptance-*.log`). Ambos procesos fueron identificados como propios; tras la parada no quedaron activos. La huella de datos se conservará para comparar al reiniciar con el código integrado. PDF extenso sintético de siete páginas y DG de siete páginas renderizados e inspeccionados; m²/m³, condiciones y textos dentro de página, sin etiquetas de economía interna. Evidencia privada `pdf-technical-final/`.
 
-Commit funcional: `3fa7a54bf68f7266a527e8e1c3d50a6956703be0`. Diff revisado y búsqueda de credenciales privadas/patrones de claves sin hallazgos. Sin cambios de esquema, configuración cloud ni infraestructura. Pendientes: checks del PR, merge autorizado y reinicio/smoke sobre el SHA remoto integrado.
+Commit funcional: `3fa7a54bf68f7266a527e8e1c3d50a6956703be0`. Diff revisado y búsqueda de credenciales privadas/patrones de claves sin hallazgos. Sin cambios de esquema, configuración cloud ni infraestructura. Integración controlada en [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9): el registro del PR acredita sus checks, SHA remoto y smoke posterior al merge. Este checkpoint local no afirma por adelantado que se haya integrado o desplegado. Código funcional `3fa7a54`, documentación `1480eec`; las actualizaciones posteriores de documentación conservan los mismos archivos de aplicación.
 
 Los registros siguientes corresponden al cierre PR8 anterior.
 

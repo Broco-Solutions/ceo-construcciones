@@ -6,6 +6,8 @@ Base de la misión: `a9a075dc159c8c59d075aa5894534e3dbaae961e`. El usuario autor
 
 Base remota revalidada: `121264563b73f141e118a2a9f8093c727cc907b8`. Esta pasada conserva las diez migraciones existentes y no agrega DDL ni cambios de infraestructura. Los nuevos campos del editor están en contenido JSON; las respuestas/snapshots anteriores siguen aceptados por el contrato. No hay migraciones desde requests ni al arrancar el servidor productivo.
 
+Integración de esta pasada: [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9); el estado, SHA definitivo y observación del autodespliegue se registran allí.
+
 El candidato corregido aprobó `check-release-compatibility.ts --runtime --browser`, salida 0, sobre `ceo_release_test_cbad63f3407243d4a141e407e746b762`: V1 poblada, HTTP y navegador, ampliación aditiva, preservación de snapshots/OC parcial/stock/obra y `No difference detected`. Evidencia privada `logs/technical-release-final.log`. Esta comprobación usa exclusivamente PostgreSQL local; no implica que el esquema productivo esté ampliado.
 
 El auxiliar manual aplica migraciones sólo a `ceo_manual_test`, tras verificar Docker local, etiqueta y conexión loopback del preparador. No usa la base del runner automatizado. El resultado de su ejecución y el SHA integrado se registran en estado/aceptación y `manual/release.json` privado.
