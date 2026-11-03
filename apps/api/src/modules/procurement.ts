@@ -7,7 +7,7 @@ import {
 } from "@prisma/client";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { createHash } from "node:crypto";
-import { db, transaction, type Tx } from "../core/db";
+import { db, transaction, schemaCapabilities, type Tx } from "../core/db";
 import { audit } from "../core/audit";
 import { type Actor, requireRoles, requireWork } from "../core/auth";
 import { ApiError } from "../core/errors";
@@ -31,12 +31,18 @@ import {
   uniqueLines,
 } from "./shared";
 import { idempotent, addPhysical } from "./inventory";
+import { receptionAccess } from "./reception-access";
+import { netNeedsInTransaction } from "./net-needs";
 export const requestSchema = z
   .object({
     workId: id,
     categoryId: id,
     requiredAt: z.string().datetime(),
     notes: z.string().max(4000).optional(),
+    coverageHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
     lines: z
       .array(z.object({ materialId: id, quantity: decimal }).strict())
       .min(1)
@@ -186,16 +192,31 @@ export async function createOrder(
     data: { ...data, createdById: actor.id, lines: { create: lines } },
     include: orderInclude,
   });
+  if ((await schemaCapabilities()).coverage)
+    await tx.orderAmountPolicy.create({ data: { orderId: order.id } });
   await audit(tx, actor, "CREATE", "PurchaseOrder", order.id, b);
-  return publicOrder(order, actor);
+  return publicOrder(order, actor, tx);
 }
-function publicOrder(
+async function publicOrder(
   order: Prisma.PurchaseOrderGetPayload<{ include: typeof orderInclude }>,
   actor: Actor,
+  client: Tx | typeof db = db,
 ) {
   const { createdBy, invoiceLoadedBy, ...data } = order;
   if (actor.role !== "JEFE_OBRA") {
-    const amounts = order.lines.map(exactOrderAmount);
+    const policy = (await schemaCapabilities()).coverage
+      ? await client.orderAmountPolicy.findUnique({
+          where: { orderId: order.id },
+        })
+      : null;
+    const amounts = order.lines.map((l) =>
+      policy
+        ? l.quantity
+            .mul(l.unitPrice)
+            .div(l.baseQuantity)
+            .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
+        : exactOrderAmount(l),
+    );
     const allExact = amounts.every((amount) => amount !== null);
     return {
       ...data,
@@ -346,22 +367,42 @@ export async function handlerProcurement(
       const b = await parse(request, requestSchema);
       await requireWork(actor, b.workId);
       uniqueLines(b.lines);
+      const createRequest = async (tx: Tx) => {
+        await requireWork(actor, b.workId, tx);
+        if (
+          b.coverageHash &&
+          (await netNeedsInTransaction(tx, b.workId)).coverageHash !==
+            b.coverageHash
+        )
+          throw new ApiError(
+            409,
+            "COVERAGE_CHANGED",
+            "Cambió la cobertura de materiales. Revisá nuevamente la sugerencia antes de confirmar.",
+          );
+        for (const l of b.lines) await validMaterial(tx, l.materialId);
+        const { lines, coverageHash, ...data } = b;
+        const r = await tx.materialRequest.create({
+          data: {
+            ...data,
+            requestedById: actor.id,
+            status: "SUBMITTED",
+            lines: { create: lines },
+          },
+          include: { lines: true },
+        });
+        await audit(tx, actor, "CREATE", "MaterialRequest", r.id, b);
+        return r;
+      };
       return ok(
-        await transaction(async (tx) => {
-          for (const l of b.lines) await validMaterial(tx, l.materialId);
-          const { lines, ...data } = b;
-          const r = await tx.materialRequest.create({
-            data: {
-              ...data,
-              requestedById: actor.id,
-              status: "SUBMITTED",
-              lines: { create: lines },
-            },
-            include: { lines: true },
-          });
-          await audit(tx, actor, "CREATE", "MaterialRequest", r.id, b);
-          return r;
-        }),
+        request.headers.has("idempotency-key")
+          ? await idempotent(
+              actor,
+              "material-request",
+              request.headers.get("idempotency-key")!,
+              b,
+              createRequest,
+            )
+          : await transaction(createRequest),
         201,
       );
     }
@@ -632,13 +673,13 @@ export async function handlerProcurement(
         db.purchaseOrder.count({ where }),
       ]);
       return listed(
-        data.map((o) => publicOrder(o, actor)),
+        await Promise.all(data.map((o) => publicOrder(o, actor))),
         total,
         p,
       );
     }
     if (method === "GET" && key && s.length === 2)
-      return ok(publicOrder(await orderAccess(actor, key), actor));
+      return ok(await publicOrder(await orderAccess(actor, key), actor));
     if (method === "POST" && !key) {
       requireRoles(actor, "GERENCIA", "COMPRAS");
       const b = await parse(request, orderSchema);
@@ -700,7 +741,7 @@ export async function handlerProcurement(
             from: o.status,
             to: b.status,
           });
-          return publicOrder(r, actor);
+          return publicOrder(r, actor, tx);
         }),
       );
     }
@@ -752,7 +793,7 @@ export async function handlerProcurement(
             include: orderInclude,
           });
           await audit(tx, actor, "UPDATE", "PurchaseOrder", key, b);
-          return publicOrder(result, actor);
+          return publicOrder(result, actor, tx);
         }),
       );
     }
@@ -785,14 +826,27 @@ export async function handlerProcurement(
             before: old.invoiceNumber,
             after: b.invoiceNumber,
           });
-          return publicOrder(result, actor);
+          return publicOrder(result, actor, tx);
         }),
       );
     }
     if (method === "POST" && key && action === "receipts" && s.length === 3) {
-      requireRoles(actor, "GERENCIA", "COMPRAS", "JEFE_OBRA");
+      requireRoles(
+        actor,
+        "GERENCIA",
+        "COMPRAS",
+        "JEFE_OBRA",
+        "COMPUTO",
+        "ADMINISTRACION",
+      );
       const b = await parse(request, receiptSchema);
-      await orderAccess(actor, key);
+      const accessOrder = found(
+        await db.purchaseOrder.findUnique({
+          where: { id: key },
+          select: { workId: true, destinationId: true },
+        }),
+      );
+      await receptionAccess(actor, accessOrder, b.locationId);
       const result = await idempotent(
         actor,
         `receipt:${key}`,
@@ -807,11 +861,9 @@ export async function handlerProcurement(
           );
           if (!["ISSUED", "PARTIALLY_RECEIVED"].includes(o.status))
             conflict("La orden no admite recepciones");
-          const loc = await locationAccess(actor, b.locationId, tx);
+          const loc = await receptionAccess(actor, o, b.locationId, tx);
           if (loc.workId && loc.workId !== o.workId)
             conflict("No puede recibir en una obra distinta a la orden");
-          if (actor.role === "JEFE_OBRA" && loc.workId !== o.workId)
-            throw new ApiError(403, "FORBIDDEN", "Recepción no autorizada");
           if (
             new Set(b.lines.map((l) => l.orderLineId)).size !== b.lines.length
           )
@@ -847,6 +899,57 @@ export async function handlerProcurement(
               data: { receivedQuantity: { increment: qty } },
             });
             await addPhysical(tx, ol.materialId, b.locationId, qty);
+            if (
+              o.workId &&
+              !loc.workId &&
+              (await schemaCapabilities()).coverage
+            ) {
+              const requestLine = o.requestId
+                ? await tx.requestLine.findUnique({
+                    where: {
+                      requestId_materialId: {
+                        requestId: o.requestId,
+                        materialId: ol.materialId,
+                      },
+                    },
+                  })
+                : null;
+              const reserve = await tx.reservation.create({
+                data: {
+                  materialId: ol.materialId,
+                  sourceId: b.locationId,
+                  workId: o.workId,
+                  requestLineId: requestLine?.id,
+                  quantity: qty,
+                  createdById: actor.id,
+                },
+              });
+              await tx.stockBalance.update({
+                where: {
+                  materialId_locationId: {
+                    materialId: ol.materialId,
+                    locationId: b.locationId,
+                  },
+                },
+                data: { reserved: { increment: qty } },
+              });
+              await tx.receiptCoverage.create({
+                data: { receiptLineId: rl.id, reservationId: reserve.id },
+              });
+              await audit(
+                tx,
+                actor,
+                "RESERVE_RECEIPT",
+                "Reservation",
+                reserve.id,
+                {
+                  receiptLineId: rl.id,
+                  orderId: key,
+                  workId: o.workId,
+                  quantity: qty.toFixed(),
+                },
+              );
+            }
             await tx.stockMovement.create({
               data: {
                 type: "RECEIPT",
@@ -935,6 +1038,9 @@ export async function handlerProcurement(
       write(`Moneda: ${o.currency}; base impositiva: ${o.taxBasis}`);
       let total = D(0),
         allExact = true;
+      const policy = (await schemaCapabilities()).coverage
+        ? await db.orderAmountPolicy.findUnique({ where: { orderId: o.id } })
+        : null;
       for (const l of o.lines) {
         const m = found(
           await db.material.findUnique({
@@ -942,7 +1048,12 @@ export async function handlerProcurement(
             include: { unit: true },
           }),
         );
-        const amount = exactOrderAmount(l);
+        const amount = policy
+          ? l.quantity
+              .mul(l.unitPrice)
+              .div(l.baseQuantity)
+              .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
+          : exactOrderAmount(l);
         const exact = amount !== null;
         allExact = allExact && exact;
         if (amount) total = total.plus(amount);
@@ -955,6 +1066,10 @@ export async function handlerProcurement(
           ? `Suma exacta de importes registrados: ${total.toFixed()} ${o.currency}`
           : "Total sin calcular: validar politica de redondeo para las fracciones indicadas.",
       );
+      if (policy)
+        write(
+          "Importes: 2 decimales, HALF_UP por renglón; total como suma de importes.",
+        );
       write(
         "Sin calculo adicional de IVA; no es factura ni comprobante de pago.",
       );

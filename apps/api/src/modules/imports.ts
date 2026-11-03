@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { type Actor, requireRoles } from "../core/auth";
-import { db, type Tx } from "../core/db";
+import { db, schemaCapabilities, type Tx } from "../core/db";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
 import { addPhysical, idempotent } from "./inventory";
@@ -14,10 +14,24 @@ import {
   parse,
   taxBasis,
   text,
+  canonicalTaxId,
+  duplicateClientTaxId,
 } from "./shared";
 
 const common = { externalCode: text };
 export const schemas = {
+  clients: z
+    .object({
+      ...common,
+      name: text,
+      taxId: text.optional(),
+      contact: text.optional(),
+      email: z.string().email().optional(),
+      phone: text.optional(),
+      address: text.optional(),
+      notes: text.optional(),
+    })
+    .strict(),
   suppliers: z
     .object({
       ...common,
@@ -28,7 +42,14 @@ export const schemas = {
       address: text.optional(),
     })
     .strict(),
-  works: z.object({ ...common, name: text }).strict(),
+  works: z
+    .object({
+      ...common,
+      name: text,
+      clientCode: text.optional(),
+      address: text.optional(),
+    })
+    .strict(),
   materials: z
     .object({
       ...common,
@@ -43,7 +64,7 @@ export const schemas = {
       ...common,
       materialCode: text,
       supplierCode: text.optional(),
-      price: decimal,
+      price: nonnegative,
       currency,
       taxBasis,
       effectiveAt: z.string().datetime(),
@@ -77,8 +98,18 @@ export const schemas = {
 };
 export type ImportKind = keyof typeof schemas;
 export const importTemplates: Record<ImportKind, string[]> = {
+  clients: [
+    "externalCode",
+    "name",
+    "taxId",
+    "contact",
+    "email",
+    "phone",
+    "address",
+    "notes",
+  ],
   suppliers: ["externalCode", "name", "taxId", "email", "phone", "address"],
-  works: ["externalCode", "name"],
+  works: ["externalCode", "name", "clientCode", "address"],
   materials: ["externalCode", "name", "unitCode", "categoryCode", "minimum"],
   prices: [
     "externalCode",
@@ -112,6 +143,7 @@ export const importTemplates: Record<ImportKind, string[]> = {
   ],
 };
 export const kindSchema = z.enum([
+  "clients",
   "suppliers",
   "works",
   "materials",
@@ -127,6 +159,11 @@ export const inputSchema = z
       .string()
       .regex(/^[a-f0-9]{64}$/)
       .optional(),
+    reviewPrices: z.boolean().optional(),
+    baselineHash: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/)
+      .optional(),
   })
   .strict()
   .refine(
@@ -137,6 +174,66 @@ const digest = (value: unknown) =>
   createHash("sha256").update(JSON.stringify(value)).digest("hex");
 export type ImportIssue = { row: number; message: string };
 type Row = Record<string, string>;
+
+async function priceBaseline(client: Tx | typeof db, rows: Row[]) {
+  const materials = await client.material.findMany({
+    where: { code: { in: [...new Set(rows.map((r) => r.materialCode))] } },
+    select: { id: true, code: true, unitId: true, active: true },
+  });
+  const suppliers = await client.supplier.findMany({
+    where: {
+      code: {
+        in: [
+          ...new Set(
+            rows.flatMap((r) => (r.supplierCode ? [r.supplierCode] : [])),
+          ),
+        ],
+      },
+    },
+    select: { id: true, code: true, active: true },
+  });
+  const prices = await client.materialPrice.findMany({
+    where: { materialId: { in: materials.map((m) => m.id) } },
+    select: {
+      id: true,
+      materialId: true,
+      supplierId: true,
+      presentationId: true,
+      price: true,
+      baseQuantity: true,
+      currency: true,
+      taxBasis: true,
+      effectiveAt: true,
+    },
+    orderBy: [{ effectiveAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
+  });
+  const baseline = rows.map((r) => {
+    const material = materials.find((m) => m.code === r.materialCode),
+      supplier = suppliers.find((s) => s.code === r.supplierCode);
+    const previous = prices.find(
+      (p) =>
+        p.materialId === material?.id &&
+        p.supplierId === (supplier?.id ?? null) &&
+        p.presentationId === (r.presentationId ?? null) &&
+        p.currency === r.currency &&
+        p.taxBasis === r.taxBasis &&
+        p.effectiveAt <= new Date(),
+    );
+    return {
+      material: material ?? null,
+      supplier: supplier ?? null,
+      previous: previous
+        ? {
+            ...previous,
+            price: previous.price.toFixed(),
+            baseQuantity: previous.baseQuantity.toFixed(),
+            effectiveAt: previous.effectiveAt.toISOString(),
+          }
+        : null,
+    };
+  });
+  return { baseline, hash: digest(baseline) };
+}
 
 // RFC 4180 subset: comma delimiter, quoted multiline fields and doubled quotes.
 export function parseCsv(source: string): Record<string, string>[] {
@@ -224,6 +321,7 @@ export function normalizeImport(
   const sourceRows: number[] = [];
   const seen = new Set<string>();
   const stockPairs = new Set<string>();
+  const pricePairs = new Set<string>();
   const taxIds = new Set<string>();
   for (const [i, value] of raw.entries()) {
     const result = schemas[kind].safeParse(value);
@@ -237,6 +335,7 @@ export function normalizeImport(
       continue;
     }
     const row = result.data as Row;
+    if (kind === "clients" && row.taxId) row.taxId = canonicalTaxId(row.taxId);
     const unique =
       kind === "purchase-orders"
         ? `${row.externalCode}:${row.materialCode}`
@@ -247,6 +346,23 @@ export function normalizeImport(
         message: "Identificador duplicado dentro del archivo",
       });
     seen.add(unique);
+    if (kind === "prices") {
+      const pair = JSON.stringify([
+        row.materialCode,
+        row.supplierCode ?? null,
+        row.presentationId ?? null,
+        row.currency,
+        row.taxBasis,
+        row.effectiveAt,
+      ]);
+      if (pricePairs.has(pair))
+        errors.push({
+          row: i + 1,
+          message:
+            "Referencia de precio duplicada para el mismo material, proveedor, presentación y vigencia",
+        });
+      pricePairs.add(pair);
+    }
     if (kind === "initial-stock") {
       const pair = JSON.stringify([row.materialCode, row.locationCode]);
       if (stockPairs.has(pair))
@@ -257,7 +373,7 @@ export function normalizeImport(
         });
       stockPairs.add(pair);
     }
-    if (kind === "suppliers" && row.taxId) {
+    if ((kind === "suppliers" || kind === "clients") && row.taxId) {
       if (taxIds.has(row.taxId))
         errors.push({
           row: i + 1,
@@ -305,24 +421,53 @@ async function references(
       })
     )
       fail("Identificador externo ya importado");
-    if (kind === "suppliers") {
+    if (kind === "suppliers" || kind === "clients") {
       if (
-        await tx.supplier.findFirst({
-          where: {
-            OR: [
-              { code: r.externalCode },
-              ...(r.taxId ? [{ taxId: r.taxId }] : []),
-            ],
-          },
-        })
+        kind === "clients" &&
+        r.taxId &&
+        (await duplicateClientTaxId(tx, r.taxId))
       )
-        fail("Proveedor ya existente");
+        fail("Cliente con CUIT ya existente");
+      const existing =
+        kind === "suppliers"
+          ? await tx.supplier.findFirst({
+              where: {
+                OR: [
+                  { code: r.externalCode },
+                  ...(r.taxId ? [{ taxId: r.taxId }] : []),
+                ],
+              },
+            })
+          : await tx.client.findFirst({
+              where: {
+                OR: [
+                  { code: r.externalCode },
+                  ...(r.taxId ? [{ taxId: r.taxId }] : []),
+                ],
+              },
+            });
+      if (existing)
+        fail(
+          kind === "clients"
+            ? "Cliente ya existente"
+            : "Proveedor ya existente",
+        );
     }
     if (
       kind === "works" &&
       (await tx.work.findUnique({ where: { code: r.externalCode } }))
     )
       fail("Obra ya existente");
+    if (
+      kind === "works" &&
+      r.clientCode &&
+      !(await tx.client.findFirst({
+        where: { code: r.clientCode, active: true },
+      }))
+    )
+      fail(
+        "Cliente desconocido o inactivo: revisá el mapeo exacto de la obra histórica.",
+      );
     if (kind === "materials") {
       if (await tx.material.findUnique({ where: { code: r.externalCode } }))
         fail("Material ya existente");
@@ -417,10 +562,17 @@ export async function handlerImports(
   s: string[],
 ): Promise<Response | null> {
   if (s[0] !== "imports") return null;
-  requireRoles(actor, "GERENCIA");
+  if (s[1] === "prices") requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
+  else requireRoles(actor, "GERENCIA");
   if (s.length !== 3) return null;
   const kind = kindSchema.parse(s[1]),
     action = s[2];
+  if (kind === "clients" && !(await schemaCapabilities()).clients)
+    throw new ApiError(
+      503,
+      "FEATURE_NOT_ENABLED",
+      "Los clientes aún no están habilitados en este entorno.",
+    );
   if (action === "template" && request.method === "GET")
     return new Response(importTemplates[kind].join(",") + "\r\n", {
       headers: {
@@ -433,7 +585,27 @@ export async function handlerImports(
   const input = await parse(request, inputSchema);
   const raw = input.rows ?? parseCsv(input.csv!);
   const normalized = normalizeImport(kind, raw);
-  const hash = digest({ kind, rows: normalized.rows });
+  if (
+    kind === "prices" &&
+    normalized.rows.some((r) => r.price === "0") &&
+    !(await schemaCapabilities()).coverage
+  )
+    throw new ApiError(
+      503,
+      "FEATURE_NOT_ENABLED",
+      "El precio cero explícito requiere la migración de aplicación.",
+    );
+  const review = kind === "prices" && input.reviewPrices === true;
+  const previewBaseline =
+    review && action === "preview"
+      ? await priceBaseline(db, normalized.rows)
+      : null;
+  const baselineHash = previewBaseline?.hash ?? input.baselineHash;
+  const hash = digest({
+    kind,
+    rows: normalized.rows,
+    ...(review ? { baselineHash } : {}),
+  });
   if (action === "preview") {
     const errors = [
       ...normalized.errors,
@@ -444,6 +616,22 @@ export async function handlerImports(
       rowCount: raw.length,
       errors,
       confirmationHash: hash,
+      ...(previewBaseline
+        ? {
+            baselineHash: previewBaseline.hash,
+            normalizedRows: normalized.rows,
+            differences: normalized.rows.map((r, i) => ({
+              row: normalized.sourceRows[i],
+              materialCode: r.materialCode,
+              previous: previewBaseline.baseline[i].previous,
+              newPrice: r.price,
+              baseQuantity: r.baseQuantity,
+              currency: r.currency,
+              taxBasis: r.taxBasis,
+              effectiveAt: r.effectiveAt,
+            })),
+          }
+        : {}),
     });
   }
   if (!input.confirmationHash || input.confirmationHash !== hash)
@@ -466,6 +654,15 @@ export async function handlerImports(
     { hash },
     async (tx) => {
       const rows = normalized.rows;
+      if (
+        review &&
+        (!baselineHash || (await priceBaseline(tx, rows)).hash !== baselineHash)
+      )
+        throw new ApiError(
+          409,
+          "PRICE_PREVIEW_STALE",
+          "Los precios o sus referencias cambiaron. Revisá nuevamente las diferencias antes de confirmar.",
+        );
       const errors = await references(tx, kind, rows);
       if (errors.length)
         throw new ApiError(
@@ -484,7 +681,22 @@ export async function handlerImports(
       for (const [code, group] of grouped) {
         const r = group[0];
         let entityId = "";
-        if (kind === "suppliers") {
+        if (kind === "clients") {
+          entityId = (
+            await tx.client.create({
+              data: {
+                code,
+                name: r.name,
+                taxId: r.taxId,
+                contact: r.contact,
+                email: r.email,
+                phone: r.phone,
+                address: r.address,
+                notes: r.notes,
+              },
+            })
+          ).id;
+        } else if (kind === "suppliers") {
           entityId = (
             await tx.supplier.create({
               data: {
@@ -503,6 +715,16 @@ export async function handlerImports(
               data: {
                 code,
                 name: r.name,
+                ...(r.clientCode
+                  ? {
+                      clientId: (
+                        await tx.client.findUniqueOrThrow({
+                          where: { code: r.clientCode },
+                        })
+                      ).id,
+                    }
+                  : {}),
+                ...(r.address ? { address: r.address } : {}),
                 location: {
                   create: { code: `OBRA-${code}`, name: r.name, kind: "WORK" },
                 },

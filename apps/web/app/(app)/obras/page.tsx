@@ -3,8 +3,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Search } from 'lucide-react';
 import { Page } from '@/components/shell';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, SelectField, Mono } from '@/components/ui';
-import { usePaged } from '@/lib/hooks';
+import {
+  Button,
+  Card,
+  DataTable,
+  Empty,
+  ErrorBox,
+  Loading,
+  PagerBar,
+  SelectField,
+  Mono,
+} from '@/components/ui';
+import { usePaged, useAll } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { formatDate } from '@/lib/format';
 import type { Schemas } from '@/lib/api';
@@ -19,10 +29,22 @@ export default function ObrasPage() {
   const router = useRouter();
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
+  const [clientId, setClientId] = useState('');
+  const clients = useAll<Schemas['Client']>(
+    can('readClients') ? '/clients' : null,
+  );
   const [form, setForm] = useState(false);
   const search = useDebounced(q.trim());
   // Filtros aplicados por el servidor antes de paginar (q + status); el total viene en pagination.total.
-  const list = usePaged<Work>('/works', { status: status || undefined, q: search || undefined }, 50);
+  const list = usePaged<Work>(
+    '/works',
+    {
+      status: status || undefined,
+      q: search || undefined,
+      clientId: clientId || undefined,
+    },
+    50,
+  );
   const rows = list.rows;
   const manage = can('manageWorks');
 
@@ -39,12 +61,38 @@ export default function ObrasPage() {
     >
       <Card bodyClass="">
         <div className="filters">
-          <SelectField id="f-obra-estado" label="Estado" value={status} onChange={(e) => setStatus(e.target.value)} placeholder="Todos" options={WORK_STATUS_OPTIONS} />
+          {can('readClients') && clients.rows.length > 0 && (
+            <SelectField
+              label="Cliente"
+              value={clientId}
+              placeholder="Todos"
+              options={clients.rows.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
+              onChange={(e) => setClientId(e.target.value)}
+            />
+          )}
+          <SelectField
+            id="f-obra-estado"
+            label="Estado"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            placeholder="Todos"
+            options={WORK_STATUS_OPTIONS}
+          />
           <div className="field">
             <label htmlFor="q-obra">Buscar</label>
             <div className="row" style={{ gap: 6 }}>
               <Search size={16} aria-hidden className="muted" />
-              <input id="q-obra" className="input" type="search" placeholder="Nombre o código" value={q} onChange={(e) => setQ(e.target.value)} />
+              <input
+                id="q-obra"
+                className="input"
+                type="search"
+                placeholder="Nombre o código"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -60,16 +108,40 @@ export default function ObrasPage() {
             rowKey={(w) => w.id}
             onRowClick={(w) => router.push(`/obras/${w.id}`)}
             columns={[
-              { key: 'code', header: 'Código', render: (w) => <Mono>{w.code}</Mono> },
-              { key: 'name', header: 'Obra', render: (w) => <b className="ink">{w.name}</b> },
-              { key: 'status', header: 'Estado', render: (w) => <WorkStatusPill status={w.status} /> },
-              { key: 'loc', header: 'Ubicación de stock', hideMobile: true, render: (w) => w.location?.code ?? '—' },
-              { key: 'upd', header: 'Actualizada', hideMobile: true, render: (w) => formatDate(w.updatedAt) },
+              {
+                key: 'code',
+                header: 'Código',
+                render: (w) => <Mono>{w.code}</Mono>,
+              },
+              {
+                key: 'name',
+                header: 'Obra',
+                render: (w) => <b className="ink">{w.name}</b>,
+              },
+              {
+                key: 'status',
+                header: 'Estado',
+                render: (w) => <WorkStatusPill status={w.status} />,
+              },
+              {
+                key: 'loc',
+                header: 'Ubicación de stock',
+                hideMobile: true,
+                render: (w) => w.location?.code ?? '—',
+              },
+              {
+                key: 'upd',
+                header: 'Actualizada',
+                hideMobile: true,
+                render: (w) => formatDate(w.updatedAt),
+              },
             ]}
             mobile={(w) => (
               <div className="stack" style={{ gap: 4 }}>
                 <div className="row">
-                  <b className="ink" style={{ flex: 1 }}>{w.name}</b>
+                  <b className="ink" style={{ flex: 1 }}>
+                    {w.name}
+                  </b>
                   <WorkStatusPill status={w.status} />
                 </div>
                 <span className="small muted">
@@ -78,15 +150,35 @@ export default function ObrasPage() {
               </div>
             )}
             empty={
-              <Empty title={q || status ? 'No hay obras con esos filtros' : 'Todavía no hay obras'}>
-                {!q && !status && (manage ? 'Creá la primera obra con “Nueva obra”.' : 'No tenés obras asignadas.')}
+              <Empty
+                title={
+                  q || status
+                    ? 'No hay obras con esos filtros'
+                    : 'Todavía no hay obras'
+                }
+              >
+                {!q &&
+                  !status &&
+                  (manage
+                    ? 'Creá la primera obra con “Nueva obra”.'
+                    : 'No tenés obras asignadas.')}
               </Empty>
             }
           />
         )}
-        <PagerBar pagination={list.pagination} page={list.page} setPage={list.setPage} />
+        <PagerBar
+          pagination={list.pagination}
+          page={list.page}
+          setPage={list.setPage}
+        />
       </Card>
-      {manage && <WorkForm open={form} onClose={() => setForm(false)} onSaved={(w) => router.push(`/obras/${w.id}`)} />}
+      {manage && (
+        <WorkForm
+          open={form}
+          onClose={() => setForm(false)}
+          onSaved={(w) => router.push(`/obras/${w.id}`)}
+        />
+      )}
     </Page>
   );
 }

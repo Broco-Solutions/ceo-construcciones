@@ -6,6 +6,20 @@ import { type Actor, requireWork } from "../core/auth";
 
 export const id = z.string().min(1).max(100);
 export const text = z.string().trim().min(1).max(500);
+/** Ignore presentation separators in numeric fiscal identifiers, never invent
+ * an identifier or infer a person from their name. */
+export const canonicalTaxId = (value: string) =>
+  /^[\d .-]+$/.test(value.trim()) ? value.replace(/[ .-]/g, "") : value.trim();
+export async function duplicateClientTaxId(
+  client: Tx | typeof db,
+  value: string,
+  exceptId = "",
+) {
+  const rows = await client.$queryRaw<
+    { id: string }[]
+  >`SELECT "id" FROM "Client" WHERE "id" <> ${exceptId} AND ("taxId" = ${value} OR (regexp_replace("taxId", '[ .-]', '', 'g') = ${value} AND ${/^\d+$/.test(value)})) LIMIT 1`;
+  return rows.length > 0;
+}
 export const decimal = z
   .string()
   .regex(

@@ -1,0 +1,3881 @@
+{
+  "format": "base-template-v1",
+  "sourceSha256": "5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21dbd1e03b5b243e9e",
+  "currency": "ARS",
+  "taxBasis": "UNSPECIFIED",
+  "markup": "50",
+  "notice": "BASE histórica: referencias de IVA contradictorias entre hojas. Moneda/IVA y precios se revisan expresamente; los valores faltantes no se inventan. Cantidad cero deja la partida fuera del presupuesto.",
+  "lines": [
+    {
+      "sourceKey": "COSTO:12",
+      "category": "TAREAS PRELIMINARES",
+      "name": "CERCO DE OBRA",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "3334.2",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "01-TareasP:13",
+          "name": "RAFIA",
+          "unit": "ml",
+          "coefficient": "1",
+          "unitPrice": "2904"
+        },
+        {
+          "sourceKey": "01-TareasP:14",
+          "name": "MALLA 15X15X4,2 (2X3M)",
+          "unit": "m2",
+          "coefficient": "2",
+          "unitPrice": "3090.366217"
+        },
+        {
+          "sourceKey": "01-TareasP:15",
+          "name": "POSTES 2,44",
+          "unit": "u",
+          "coefficient": "0.4",
+          "unitPrice": "1902.278689"
+        },
+        {
+          "sourceKey": "01-TareasP:16",
+          "name": "ALAMBRE GALVANIZADO",
+          "unit": "kg",
+          "coefficient": "0.07",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "01-TareasP:17",
+          "name": "BASES",
+          "unit": "m3",
+          "coefficient": "0.0144",
+          "unitPrice": "183490.45"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:13",
+      "category": "TAREAS PRELIMINARES",
+      "name": "OBRADOR Y MOVILIDAD",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "800208",
+      "directUnitCost": "240000",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:14",
+      "category": "TAREAS PRELIMINARES",
+      "name": "BAÑO QUIMICO",
+      "unit": "mes",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": "115797",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:15",
+      "category": "TAREAS PRELIMINARES",
+      "name": "CARTEL DE OBRA REGLAMENTARIO",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "16671",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "01-TareasP:42",
+          "name": "BAÑO + LIMPIEZA",
+          "unit": "mes",
+          "coefficient": "1",
+          "unitPrice": "115797"
+        },
+        {
+          "sourceKey": "01-TareasP:48",
+          "name": "CARTEL",
+          "unit": "U",
+          "coefficient": "1",
+          "unitPrice": "60500"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:16",
+      "category": "TAREAS PRELIMINARES",
+      "name": "REPLANTEO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "31123.85",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "01-TareasP:26",
+          "name": "ESTACAS DE MADERAS",
+          "unit": "Un",
+          "coefficient": "24",
+          "unitPrice": "1200"
+        },
+        {
+          "sourceKey": "01-TareasP:27",
+          "name": "CLAVOS",
+          "unit": "KG",
+          "coefficient": "0.2",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "01-TareasP:28",
+          "name": "HILO DE ALBAÑIL",
+          "unit": "ROLLO",
+          "coefficient": "0.2",
+          "unitPrice": "5000"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:19",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "PERFORACION DE PILOTES",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "230666.6667",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:20",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "EXCAVACIÓN PARA VIGAS, CABEZALES y FOSA ASCENSOR",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "64674",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:21",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "EXCAVACIÓN SUBSUELO",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "6607",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:22",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "DESMONTE DE SUELO VEGETAL e=10cm APROX",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "5124",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:23",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "RELLENO Y COMPACTACIÒN CON SUELO SELECCIONADO  e=30cm APROX.",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "33000",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:24",
+      "category": "MOVIMIENTO DE SUELO",
+      "name": "RETIRO DE TIERRA SOBRANTE",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "4688",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:27",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "FILM DE POLIETILENO 200 MICRONES BAJO CONTRAPISOS SOBRE TERRENO NATURAL",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "2634.32",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:48",
+          "name": "FILM POLIETILENO 200 MICRONES",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:28",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "FILM DE POLIETILENO 200 MICRONES BAJO CONTRAPISOS SOBRE LOSA AZOTEA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "2634.32",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:48",
+          "name": "FILM POLIETILENO 200 MICRONES",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:29",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "AZOTADO IMPERMEABLE + PINTURA ASFALTICA + POLIESTIRENO EXPANDIDO 2'' ENTRE TABIQUE DE Hº Y MAMPOSTERIA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:195",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "7.65",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "03-Aisl:196",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.0165",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "03-Aisl:197",
+          "name": "HIDRÓFUGO",
+          "unit": "kg",
+          "coefficient": "0.375",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "03-Aisl:198",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "0.5",
+          "unitPrice": "6866.442122"
+        },
+        {
+          "sourceKey": "03-Aisl:199",
+          "name": "POLIESTIRENO EXP ESP. 5CM",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "9048.38"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:30",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "MANTA DE PVC EN SUBSUELO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "39400",
+      "directUnitCost": "59100",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:31",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "PUENTE DE ADHERENCIA SIKADUR 32 GEL",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "11250",
+      "directUnitCost": "19073.06818",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:32",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "PERFIL PVC SIKA WATERSTOP AR 19",
+      "unit": "ML",
+      "quantity": "0",
+      "laborUnitCost": "6500",
+      "directUnitCost": "43029.54545",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:33",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "PINTURA ASFALTICA EN SUBSUELO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "7734.74",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:126",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "0.75",
+          "unitPrice": "5674.745556"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:34",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "PINTURA ASFALTICA EN TABIQUES DE HºAº",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8565.4",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:126",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "0.75",
+          "unitPrice": "5674.745556"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:35",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "REVOQUE HIDROFUGO CAPA AISLADORA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "7387",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:22",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "5.1",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "03-Aisl:23",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.011",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "03-Aisl:24",
+          "name": "HIDRÓFUGO",
+          "unit": "kg",
+          "coefficient": "0.25",
+          "unitPrice": "2681.8319"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:36",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "POLIESTIRENO EXPANDIDO 30mm PARA TABIQUES DE HºAº",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "5475.55",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:167",
+          "name": "PLASTICOR",
+          "unit": "kg",
+          "coefficient": "6",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "03-Aisl:168",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "03-Aisl:169",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.25",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "03-Aisl:170",
+          "name": "POLIESTIRENO EXPANDIDO (30mm) ALTA DENSIDAD",
+          "unit": "m2",
+          "coefficient": "1.05",
+          "unitPrice": "8538.6312"
+        },
+        {
+          "sourceKey": "03-Aisl:171",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "0.22",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:37",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "POLIESTIRENO EXPANDIDO 20mm + MALLA SIMA+ POLIETILENO 200",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "10951.1",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:182",
+          "name": "FILM DE POLIETILENO 200M",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "512.63465"
+        },
+        {
+          "sourceKey": "03-Aisl:183",
+          "name": "MALLA SIMA",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "3090.366217"
+        },
+        {
+          "sourceKey": "03-Aisl:184",
+          "name": "POLIESTIRENO EXPANDIDO (20mm) ALTA DENSIDAD",
+          "unit": "m2",
+          "coefficient": "1.05",
+          "unitPrice": "8538.6312"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:38",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "MANTA Y PINTURA ACRILICA EN ALFEIZAR",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "5834.85",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:146",
+          "name": "POLIESTILENO EXPANIDO 25mm (DENSIDAD 30) ENTRE MUROS",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "7056.72"
+        },
+        {
+          "sourceKey": "03-Aisl:150",
+          "name": "OFICIAL",
+          "unit": "h",
+          "coefficient": "0.1",
+          "unitPrice": "9485"
+        },
+        {
+          "sourceKey": "03-Aisl:151",
+          "name": "AYUDANTE",
+          "unit": "h",
+          "coefficient": "0.1",
+          "unitPrice": "7186"
+        },
+        {
+          "sourceKey": "03-Aisl:156",
+          "name": "MANTA GEOTEXTIL",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "580.8"
+        },
+        {
+          "sourceKey": "03-Aisl:157",
+          "name": "PINTURA ACRILICA",
+          "unit": "lts",
+          "coefficient": "0.667",
+          "unitPrice": "5507.943595"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:39",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "MEMBRANA GEOTEXTIL + PINTURA (TERRAZA/ TENDER)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "14400",
+      "directUnitCost": "17600",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:40",
+      "category": "IMPERMEABILIZACIÒN Y AISLANTES",
+      "name": "IMPERMEABILIZACION DE DUCHAS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "44048.75",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:58",
+          "name": "MANTA GEOTEXTIL",
+          "unit": "m2",
+          "coefficient": "1.05",
+          "unitPrice": "580.8"
+        },
+        {
+          "sourceKey": "03-Aisl:59",
+          "name": "PINTURA PQ5",
+          "unit": "LTS",
+          "coefficient": "1.5",
+          "unitPrice": "2882.8976"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:44",
+      "category": "ESTRUCTURA",
+      "name": "PILOTES (H-21)",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "26249000",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:45",
+      "category": "ESTRUCTURA",
+      "name": "CABEZALES (H-21)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "400104",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:53",
+          "name": "H°ELABORADO H21",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "203183.2"
+        },
+        {
+          "sourceKey": "04-EstructHE:54",
+          "name": "HIERRO TORSIONADO + DOBLADO",
+          "unit": "Kg",
+          "coefficient": "106",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "04-EstructHE:55",
+          "name": "ALAMBRE Nº17",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "04-EstructHE:56",
+          "name": "CLAVOS CAJONEROS 2,5\"",
+          "unit": "Kg",
+          "coefficient": "0.07",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "04-EstructHE:57",
+          "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
+          "unit": "m2",
+          "coefficient": "9.9",
+          "unitPrice": "11564.26364"
+        },
+        {
+          "sourceKey": "04-EstructHE:58",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "10231.21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:46",
+      "category": "ESTRUCTURA",
+      "name": "VIGAS DE FUNDACION, CABEZALES Y FUSTE (H-21)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "400104",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:53",
+          "name": "H°ELABORADO H21",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "203183.2"
+        },
+        {
+          "sourceKey": "04-EstructHE:54",
+          "name": "HIERRO TORSIONADO + DOBLADO",
+          "unit": "Kg",
+          "coefficient": "106",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "04-EstructHE:55",
+          "name": "ALAMBRE Nº17",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "04-EstructHE:56",
+          "name": "CLAVOS CAJONEROS 2,5\"",
+          "unit": "Kg",
+          "coefficient": "0.07",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "04-EstructHE:57",
+          "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
+          "unit": "m2",
+          "coefficient": "9.9",
+          "unitPrice": "11564.26364"
+        },
+        {
+          "sourceKey": "04-EstructHE:58",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "10231.21"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:47",
+      "category": "ESTRUCTURA",
+      "name": "TABIQUES Y COLUMNAS VISTAS (H-30)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "416775",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:86",
+          "name": "HORMIGON ELABORADO H30",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "220230.89"
+        },
+        {
+          "sourceKey": "04-EstructHE:87",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "10231.21"
+        },
+        {
+          "sourceKey": "04-EstructHE:88",
+          "name": "HIERRO TORSIONADO + DOBLADO",
+          "unit": "Kg",
+          "coefficient": "113",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "04-EstructHE:89",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.8",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "04-EstructHE:90",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "2",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "04-EstructHE:91",
+          "name": "TIRANTES",
+          "unit": "ml",
+          "coefficient": "30",
+          "unitPrice": "1902.278689"
+        },
+        {
+          "sourceKey": "04-EstructHE:92",
+          "name": "MADERA (TABLAS+FENOLICO IND.+FENOLICO IND.)",
+          "unit": "m2",
+          "coefficient": "15",
+          "unitPrice": "32968.46532"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:48",
+      "category": "ESTRUCTURA",
+      "name": "TABIQUES Y COLUMNAS (H-30)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "416775",
+      "directUnitCost": null,
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:69",
+          "name": "HORMIGON ELABORADO H30",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:70",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:71",
+          "name": "HIERRO TORSIONADO",
+          "unit": "Kg",
+          "coefficient": "100",
+          "unitPrice": "1600"
+        },
+        {
+          "sourceKey": "04-EstructHE:72",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.8",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:73",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "2",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:74",
+          "name": "TIRANTES",
+          "unit": "ml",
+          "coefficient": "30",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:75",
+          "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
+          "unit": "m2",
+          "coefficient": "15",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:49",
+      "category": "ESTRUCTURA",
+      "name": "VIGAS (H-30)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "400104",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:138",
+          "name": "HORMIGÓN ELABORADO H30",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "220230.89"
+        },
+        {
+          "sourceKey": "04-EstructHE:139",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "10231.21"
+        },
+        {
+          "sourceKey": "04-EstructHE:140",
+          "name": "HIERRO TORSIONADO + DOBLADO",
+          "unit": "Kg",
+          "coefficient": "125",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "04-EstructHE:141",
+          "name": "PUNTALES",
+          "unit": "u",
+          "coefficient": "24",
+          "unitPrice": "5801.95"
+        },
+        {
+          "sourceKey": "04-EstructHE:142",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "1",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "04-EstructHE:143",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "1.5",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "04-EstructHE:144",
+          "name": "MADERA (FENOLICO IND)",
+          "unit": "m2",
+          "coefficient": "14.3",
+          "unitPrice": "11564.26364"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:50",
+      "category": "ESTRUCTURA",
+      "name": "LOSAS MACIZAS (H-30)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "408439.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:173",
+          "name": "HORMIGON ELABORADO H30",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "220230.89"
+        },
+        {
+          "sourceKey": "04-EstructHE:174",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "10231.21"
+        },
+        {
+          "sourceKey": "04-EstructHE:175",
+          "name": "HIERRO TORSIONADO",
+          "unit": "Kg",
+          "coefficient": "120",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "04-EstructHE:176",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "5",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "04-EstructHE:177",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "2.5",
+          "unitPrice": "4581.06"
+        },
+        {
+          "sourceKey": "04-EstructHE:178",
+          "name": "PUNTALES",
+          "unit": "u",
+          "coefficient": "14",
+          "unitPrice": "5801.95"
+        },
+        {
+          "sourceKey": "04-EstructHE:179",
+          "name": "MADERA P/ENCOFRADO (FENOLICO INDUSTRIAL)",
+          "unit": "m2",
+          "coefficient": "10",
+          "unitPrice": "11564.26364"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:51",
+      "category": "ESTRUCTURA",
+      "name": "ESCALERA (H-30)",
+      "unit": "m3",
+      "quantity": "0",
+      "laborUnitCost": "449283.45",
+      "directUnitCost": null,
+      "materials": [
+        {
+          "sourceKey": "04-EstructHE:371",
+          "name": "HORMIGÓN ELABORADO H40",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:372",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:373",
+          "name": "HIERRO TORSIONADO + DOBLADO",
+          "unit": "Kg",
+          "coefficient": "100",
+          "unitPrice": "2000"
+        },
+        {
+          "sourceKey": "04-EstructHE:374",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "5",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:375",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "2.5",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:376",
+          "name": "PUNTALES",
+          "unit": "u",
+          "coefficient": "14",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "04-EstructHE:377",
+          "name": "MADERA",
+          "unit": "m2",
+          "coefficient": "15",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:52",
+      "category": "ESTRUCTURA",
+      "name": "MAQUILLAJE HORMIGÒN VISTO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "20000",
+      "directUnitCost": "7000",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:54",
+      "category": "ESTRUCTURA",
+      "name": "COLUMNA 2XUPN140 + PLACA DE ACERO (LARGO APROX. 3,75M)",
+      "unit": "un",
+      "quantity": "0",
+      "laborUnitCost": "160000",
+      "directUnitCost": "205743",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:57",
+      "category": "MAMPOSTERIAS",
+      "name": "CAPA AISLADORA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "50013",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:21",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "157.6363636",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA:22",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.34",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:23",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "7.72",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "05-MampCA:24",
+          "name": "LADRILLOS COMUNES",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:58",
+      "category": "MAMPOSTERIAS",
+      "name": "LADRILLOS COMUN CON HIDROFUGO PARA ASIENTO DE ABERTURAS, ALTURA: 50CM",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "50013",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:21",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "157.6363636",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA:22",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.34",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:23",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "7.72",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "05-MampCA:24",
+          "name": "LADRILLOS COMUNES",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:59",
+      "category": "MAMPOSTERIAS",
+      "name": "LADRILLOS COMUN CON HIDROFUGO PARA ASIENTO DE ABERTURAS, ALTURA: 33CM",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "50013",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:21",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "157.6363636",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA:22",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.34",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:23",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "7.72",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "05-MampCA:24",
+          "name": "LADRILLOS COMUNES",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:60",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES DOBLE MURO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "52513.65",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:89",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "54.1",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA:90",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.3",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:91",
+          "name": "FE",
+          "unit": "Kg",
+          "coefficient": "4.8",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA:92",
+          "name": "TELGOPOR 5 cm ALTA DENSIDAD",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "9048.38"
+        },
+        {
+          "sourceKey": "05-MampCA:93",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "1",
+          "unitPrice": "6866.442122"
+        },
+        {
+          "sourceKey": "05-MampCA:94",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "1",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "05-MampCA:95",
+          "name": "LADRILLOS COMUNES",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:61",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES DOBLE MURO VISTO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "54895.8375",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:73",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "54.1",
+          "unitPrice": "196.86337"
+        },
+        {
+          "sourceKey": "05-MampCA:74",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.3",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:75",
+          "name": "FE",
+          "unit": "Kg",
+          "coefficient": "4.8",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA:76",
+          "name": "TELGOPOR 5 cm ALTA DENSIDAD",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "9048.38"
+        },
+        {
+          "sourceKey": "05-MampCA:77",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "1",
+          "unitPrice": "6866.442122"
+        },
+        {
+          "sourceKey": "05-MampCA:78",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "1",
+          "unitPrice": "2076.28377"
+        },
+        {
+          "sourceKey": "05-MampCA:79",
+          "name": "LADRILLOS VISTOS",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:62",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES e=30 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "37509.75",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampCA:47",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "57",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampCA:48",
+          "name": "ARENA",
+          "unit": "Kg",
+          "coefficient": "0.46",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampCA:49",
+          "name": "FE",
+          "unit": "Kg",
+          "coefficient": "5",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "05-MampCA:50",
+          "name": "LADRILLOS COMUNES",
+          "unit": "u",
+          "coefficient": "400",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:63",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES e= 20 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25006.5",
+      "directUnitCost": "28859.58788",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:64",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES e=15 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18754.875",
+      "directUnitCost": "21644.69091",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:65",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES DE PANDERETE PARA ENCHAPADO DE COLUMNAS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "11669.7",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampC:102",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "1.25",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "05-MampC:103",
+          "name": "CAL HIDRATADA",
+          "unit": "Kg",
+          "coefficient": "1.3",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "05-MampC:104",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.01",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampC:105",
+          "name": "LADRILLOS",
+          "unit": "u",
+          "coefficient": "30",
+          "unitPrice": "248.9817"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:66",
+      "category": "MAMPOSTERIAS",
+      "name": "DE TEJUELAS E:3CM PARA ENCHAPADO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16671",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampC:336",
+          "name": "KLAUKOL IMPERMEABLE",
+          "unit": "Kg",
+          "coefficient": "7",
+          "unitPrice": "625.570968"
+        },
+        {
+          "sourceKey": "05-MampC:337",
+          "name": "TEJUELAS de 20mm",
+          "unit": "u",
+          "coefficient": "35",
+          "unitPrice": "436.81"
+        },
+        {
+          "sourceKey": "05-MampC:338",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "0.625",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "05-MampC:339",
+          "name": "CAL HIDRATADA",
+          "unit": "Kg",
+          "coefficient": "0.65",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "05-MampC:340",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.005",
+          "unitPrice": "36099.9991"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:67",
+      "category": "MAMPOSTERIAS",
+      "name": "DE LADRILLOS COMUNES EN MOJINETES e=30cm",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "37509.75",
+      "directUnitCost": "43289.38182",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:69",
+      "category": "MAMPOSTERIAS",
+      "name": "LADRILLOS HUECOS 8x18x33",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "19004.94",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampC:232",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "1.75",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "05-MampC:233",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "1.4",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampC:234",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.01",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampC:235",
+          "name": "LADRILLOS HUECOS 8x18x33",
+          "unit": "u",
+          "coefficient": "17",
+          "unitPrice": "712.4117"
+        },
+        {
+          "sourceKey": "05-MampC:236",
+          "name": "PLACA DE POLIESTIRENO 3CM",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:70",
+      "category": "MAMPOSTERIAS",
+      "name": "LADRILLOS HUECOS PORTANTES 18x19x33",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "19171.65",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampC:274",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "3.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "05-MampC:275",
+          "name": "CAL HIDRATADA",
+          "unit": "Kg",
+          "coefficient": "2.9",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "05-MampC:276",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampC:277",
+          "name": "LADRILLOS HUECOS PORTANTES 18x19x33",
+          "unit": "u",
+          "coefficient": "17.5",
+          "unitPrice": "1265.5148"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:71",
+      "category": "MAMPOSTERIAS",
+      "name": "LADRILLOS HUECOS 18x18x33",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "23005.98",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-MampC:260",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "1.65",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "05-MampC:261",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "2.125",
+          "unitPrice": "308.222332"
+        },
+        {
+          "sourceKey": "05-MampC:262",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "05-MampC:263",
+          "name": "LADRILLOS HUECOS 18x18x33",
+          "unit": "u",
+          "coefficient": "17",
+          "unitPrice": "1410.134"
+        },
+        {
+          "sourceKey": "05-MampC:264",
+          "name": "PLACA DE POLIESTIRENO 3CM",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:73",
+      "category": "MAMPOSTERIAS",
+      "name": "DE BRIMAX e=7,5 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16671",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:8",
+          "name": "BRIMAX 7,5",
+          "unit": "u",
+          "coefficient": "8.33",
+          "unitPrice": "3480.5287"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:9",
+          "name": "MORTERO ADHESIVO",
+          "unit": "Kg",
+          "coefficient": "2.585",
+          "unitPrice": "762.73802"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:10",
+          "name": "HIERRO 8mm",
+          "unit": "Kg",
+          "coefficient": "0.4345",
+          "unitPrice": "2629.105359"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:74",
+      "category": "MAMPOSTERIAS",
+      "name": "DE BRIMAX e=10 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16671",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:20",
+          "name": "BRIMAX 10",
+          "unit": "u",
+          "coefficient": "8.33",
+          "unitPrice": "4639.7934"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:21",
+          "name": "MORTERO ADHESIVO",
+          "unit": "Kg",
+          "coefficient": "3.465",
+          "unitPrice": "762.73802"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:22",
+          "name": "HIERRO 8mm",
+          "unit": "Kg",
+          "coefficient": "0.474",
+          "unitPrice": "2629.105359"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:75",
+      "category": "MAMPOSTERIAS",
+      "name": "DE BRIMAX e=12,5 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18338.1",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:32",
+          "name": "BRIMAX 12,5",
+          "unit": "u",
+          "coefficient": "8.33",
+          "unitPrice": "5800.8489"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:33",
+          "name": "MORTERO ADHESIVO",
+          "unit": "Kg",
+          "coefficient": "4.29",
+          "unitPrice": "762.73802"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:34",
+          "name": "HIERRO 8mm",
+          "unit": "Kg",
+          "coefficient": "0.553",
+          "unitPrice": "2629.105359"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:76",
+      "category": "MAMPOSTERIAS",
+      "name": "DE BRIMAX e=15 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "21672.3",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:44",
+          "name": "BRIMAX 15",
+          "unit": "u",
+          "coefficient": "8.33",
+          "unitPrice": "7174.0295"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:45",
+          "name": "MORTERO ADHESIVO",
+          "unit": "Kg",
+          "coefficient": "5.17",
+          "unitPrice": "762.73802"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:46",
+          "name": "HIERRO 8mm",
+          "unit": "Kg",
+          "coefficient": "0.632",
+          "unitPrice": "2629.105359"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:77",
+      "category": "MAMPOSTERIAS",
+      "name": "DE BRIMAX e=20 cm.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "23339.4",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:56",
+          "name": "BRIMAX 20",
+          "unit": "u",
+          "coefficient": "8.33",
+          "unitPrice": "9565.3525"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:57",
+          "name": "MORTERO ADHESIVO",
+          "unit": "Kg",
+          "coefficient": "6.3",
+          "unitPrice": "762.73802"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:58",
+          "name": "HIERRO 8mm",
+          "unit": "Kg",
+          "coefficient": "0.711",
+          "unitPrice": "2629.105359"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:78",
+      "category": "MAMPOSTERIAS",
+      "name": "PARRILLA",
+      "unit": "GL",
+      "quantity": "0",
+      "laborUnitCost": "400000",
+      "directUnitCost": "200000",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:82",
+      "category": "REVOQUES",
+      "name": "KLAUKOL + MALLA FIBRA DE VIDRIO EN LOCALES HUMEDOS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8335.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "05-Retak-Brimax:90",
+          "name": "KLAUKOL IMPERMEABLE",
+          "unit": "Kg",
+          "coefficient": "2",
+          "unitPrice": "625.570968"
+        },
+        {
+          "sourceKey": "05-Retak-Brimax:91",
+          "name": "MALLA FIBRA DE VIDRIO",
+          "unit": "M2",
+          "coefficient": "1.1",
+          "unitPrice": "1435.999928"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:83",
+      "category": "REVOQUES",
+      "name": "AZOTADO IMPERMEABLE EN LOCALES HUMEDOS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8335.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:14",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "7.65",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:15",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.0165",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:16",
+          "name": "HIDRÓFUGO",
+          "unit": "kg",
+          "coefficient": "0.375",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:84",
+      "category": "REVOQUES",
+      "name": "REVOQUE GRUESO CON HIDROFUGO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "24006.24",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqCA:35",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6",
+          "unitPrice": "196.86337"
+        },
+        {
+          "sourceKey": "06-RevoqCA:36",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqCA:37",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.25",
+          "unitPrice": "2681.8319"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:85",
+      "category": "REVOQUES",
+      "name": "REVOQUE GRUESO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "20005.2",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:39",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "2.64",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "06-RevoqC:40",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.19",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC:41",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.025",
+          "unitPrice": "36099.9991"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:86",
+      "category": "REVOQUES",
+      "name": "EMPROLIJADO PARA RECIBIR MANTA EN SUBSUELO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "9169.05",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:14",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "7.65",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:15",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.0165",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:16",
+          "name": "HIDRÓFUGO",
+          "unit": "kg",
+          "coefficient": "0.375",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:87",
+      "category": "REVOQUES",
+      "name": "REVOQUE BAJO REVESTIMIENTO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "20005.2",
+      "directUnitCost": "3168.288222",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:89",
+      "category": "REVOQUES",
+      "name": "AZOTADO IMPERMEABLE + GRUESO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25006.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:51",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:52",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.12",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC:53",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:54",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:90",
+      "category": "REVOQUES",
+      "name": "AZOTADO IMPERMEABLE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25006.5",
+      "directUnitCost": "5150.984573",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:91",
+      "category": "REVOQUES",
+      "name": "AZOTADO IMPERMEABLE + GRUESO BAJO REVESTIMIENTO (EQUITONE / MADERA)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25006.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:51",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:52",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.12",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC:53",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:54",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:92",
+      "category": "REVOQUES",
+      "name": "AZOTADO IMPERMEABLE + GRUESO EN INTERIOR DE MOJINETES",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25006.5",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:51",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:52",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.12",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC:53",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:54",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:93",
+      "category": "REVOQUES",
+      "name": "COLOCACION DE MATERIAL DE FRENTE (SOLO M.O.)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "19000",
+      "directUnitCost": null,
+      "materials": [
+        {
+          "sourceKey": "06-RevoqC:51",
+          "name": "CEMENTO",
+          "unit": "kg",
+          "coefficient": "6.9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "06-RevoqC:52",
+          "name": "CAL",
+          "unit": "kg",
+          "coefficient": "4.12",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "06-RevoqC:53",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "06-RevoqC:54",
+          "name": "HIDROFUGO",
+          "unit": "kg",
+          "coefficient": "0.2",
+          "unitPrice": "2076.28377"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:94",
+      "category": "REVOQUES",
+      "name": "REVESTIMIENTO WPC",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "40000",
+      "directUnitCost": "25000",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:95",
+      "category": "REVOQUES",
+      "name": "ENLUCIDO DE YESO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "9000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:8",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "2",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:9",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:10",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "4",
+          "unitPrice": "422.8573171"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:96",
+      "category": "REVOQUES",
+      "name": "CANTONERAS DE YESO H:2,72m",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "25000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:30",
+          "name": "CANTONERAS",
+          "unit": "ml",
+          "coefficient": "2.4",
+          "unitPrice": "974.99985"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:100",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "HORMIGÒN DE LIMPIEZA (H13)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "11669.7",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:174",
+          "name": "H13",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "183490.45"
+        },
+        {
+          "sourceKey": "07-ContrapC:175",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "19400"
+        },
+        {
+          "sourceKey": "07-ContrapC:176",
+          "name": "FILM DE POLIETILENO DE 200MICRONES",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:101",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO SOBRE TERRENO NATURAL e=15cm (MORTERO MDC 350 CON MALLA SIMA)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16786.08",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:121",
+          "name": "MORTERO 350",
+          "unit": "M3",
+          "coefficient": "1.1",
+          "unitPrice": "171879.29"
+        },
+        {
+          "sourceKey": "07-ContrapC:122",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "19360"
+        },
+        {
+          "sourceKey": "07-ContrapC:123",
+          "name": "CAMA DE ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:124",
+          "name": "FILM DE POLIETILENO",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "466.0315"
+        },
+        {
+          "sourceKey": "07-ContrapC:125",
+          "name": "MALLS",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "3090.366217"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:102",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO S/ LOSA H° A°",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "9772.7",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:22",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "6",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "07-ContrapC:23",
+          "name": "CAL",
+          "unit": "Kg",
+          "coefficient": "9.32",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "07-ContrapC:24",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.04",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:25",
+          "name": "GRANZA",
+          "unit": "m3",
+          "coefficient": "0.06",
+          "unitPrice": "41759.1328"
+        },
+        {
+          "sourceKey": "07-ContrapC:26",
+          "name": "TELGOPOR PERIMETRAL",
+          "unit": "m2",
+          "coefficient": "0.27",
+          "unitPrice": "4099.48"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:103",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO S/ LOSA Hº (MORTERO MDC 350 CON MALLA SIMA) e: 6cm",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "10836.15",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:147",
+          "name": "MORTERO 350",
+          "unit": "M3",
+          "coefficient": "1.1",
+          "unitPrice": "171879.29"
+        },
+        {
+          "sourceKey": "07-ContrapC:148",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "19360"
+        },
+        {
+          "sourceKey": "07-ContrapC:149",
+          "name": "MALLA",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "3090.366217"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:104",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CARPETA BAJO PISOS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "14086.995",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-CarpetC:8",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "14",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-CarpetC:9",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.033",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-CarpetC:10",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "0.35",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:105",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "BANQUINA DE HORMIGON POBRE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16643.568",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:97",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-ContrapC:98",
+          "name": "CAL",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "07-ContrapC:99",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.05",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:100",
+          "name": "GRANZA",
+          "unit": "m3",
+          "coefficient": "0.08",
+          "unitPrice": "41759.1328"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:107",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO S/ LOSA RADIANTE e: 8cm (CON MALLA)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18671.52",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:160",
+          "name": "H17",
+          "unit": "M3",
+          "coefficient": "1.1",
+          "unitPrice": "161450"
+        },
+        {
+          "sourceKey": "07-ContrapC:161",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "19360"
+        },
+        {
+          "sourceKey": "07-ContrapC:162",
+          "name": "MALLA",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "7247.7064"
+        },
+        {
+          "sourceKey": "07-ContrapC:163",
+          "name": "FILM DE POLIETILENO",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "385.15"
+        },
+        {
+          "sourceKey": "07-ContrapC:164",
+          "name": "TELGOPOR PERIMETRAL",
+          "unit": "m2",
+          "coefficient": "0.27",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:108",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "HORMIGÓN DE PENDIENTE (PERLITA DE POLIESTIRENO)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:36",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "70",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "07-ContrapC:37",
+          "name": "ISOCRET 170L",
+          "unit": "BOLSA",
+          "coefficient": "1",
+          "unitPrice": "20000"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:109",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "RECTIFICADO DE HUELLAS Y CONTRAHUELLAS ESCALERA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "19387.1",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:264",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "18.4",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:265",
+          "name": "ARENA",
+          "unit": "Kg",
+          "coefficient": "0.03",
+          "unitPrice": "36099.9991"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:110",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "BANQUINA DE HORMIGON POBRE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16643.568",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:97",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-ContrapC:98",
+          "name": "CAL",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "07-ContrapC:99",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.05",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:100",
+          "name": "GRANZA",
+          "unit": "m3",
+          "coefficient": "0.08",
+          "unitPrice": "41759.1328"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:112",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO SOBRE TERRENO NATURAL e=15cm (MORTERO MDC 350 CON MALLA SIMA)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16786.08",
+      "directUnitCost": "25524.674",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:113",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CONTRAPISO REFORZADO INGRESO VEHICULAR Y COCHERA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18338.1",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:58",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "9.02",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-ContrapC:59",
+          "name": "CAL",
+          "unit": "Kg",
+          "coefficient": "13.97",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "07-ContrapC:60",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.07",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:61",
+          "name": "GRANZA",
+          "unit": "m3",
+          "coefficient": "0.09",
+          "unitPrice": "41759.1328"
+        },
+        {
+          "sourceKey": "07-ContrapC:62",
+          "name": "MALLA",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "7247.7064"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:114",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CARPETA CON HIDROFUGO E:3CM",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "10002.6",
+      "directUnitCost": "5185.983",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:115",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "HORMIGON DE PENDIENTE (TERRAZA/ TENDER)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:36",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "70",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "07-ContrapC:37",
+          "name": "ISOCRET 170L",
+          "unit": "BOLSA",
+          "coefficient": "1",
+          "unitPrice": "20000"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:116",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CORDÒN PERIMETRAL INGRESO VEHICULAR",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "13926",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:226",
+          "name": "PIEDRA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "105449.9996"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:227",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "9",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:228",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:229",
+          "name": "MADERA P/ENCOFRADO",
+          "unit": "m2",
+          "coefficient": "0.2",
+          "unitPrice": "11564.26364"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:230",
+          "name": "HIERRO",
+          "unit": "Kg",
+          "coefficient": "0.8",
+          "unitPrice": "2106.117375"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:231",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.015",
+          "unitPrice": "6661.655"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:232",
+          "name": "CLAVOS CAJONEROS 2\"",
+          "unit": "Kg",
+          "coefficient": "0.03",
+          "unitPrice": "4581.06"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:117",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "HORMIGÒN DE LIMPIEZA (H13)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "11669.7",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:174",
+          "name": "H13",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "183490.45"
+        },
+        {
+          "sourceKey": "07-ContrapC:175",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "1",
+          "unitPrice": "19400"
+        },
+        {
+          "sourceKey": "07-ContrapC:176",
+          "name": "FILM DE POLIETILENO DE 200MICRONES",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:118",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "CARPETA BAJO PISOS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "14086.995",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-CarpetC:8",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "14",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-CarpetC:9",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.033",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-CarpetC:10",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "0.35",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:119",
+      "category": "CONTRAPISOS Y CARPETAS",
+      "name": "BANQUINAS",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "16643.568",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapC:97",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-ContrapC:98",
+          "name": "CAL",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "320.888612"
+        },
+        {
+          "sourceKey": "07-ContrapC:99",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.05",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-ContrapC:100",
+          "name": "GRANZA",
+          "unit": "m3",
+          "coefficient": "0.08",
+          "unitPrice": "41759.1328"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:122",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "HORMIGÒN LLANEADO e:10cm CON MALLA Y HORMIGON CON MICROFIBRA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "66150.21",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:160",
+          "name": "ADITIVO COLORES",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": null
+        },
+        {
+          "sourceKey": "08-09-PisosRev:161",
+          "name": "Hº ELABORADO H35 (CON MICROFIBRA) esp=10cm",
+          "unit": "m3",
+          "coefficient": "0.105",
+          "unitPrice": "195435.5"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:162",
+          "name": "MALLA 15x15x6mm",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "3090.366217"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:163",
+          "name": "FILM DE POLIETILENO 200M",
+          "unit": "m2",
+          "coefficient": "1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:123",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "PORCELLANATO INTERIOR BAÑOS (DIMENSION MAX=0,72m2)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "40000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:80",
+          "name": "KLAUKOL FLEX",
+          "unit": "Kg",
+          "coefficient": "7.5",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:81",
+          "name": "PASTINA",
+          "unit": "Kg",
+          "coefficient": "0.3",
+          "unitPrice": "2223.012"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:124",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "PORCELLANATO INTERIOR (DIMENSION MAX=0,72m2)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "40000",
+      "directUnitCost": "10121.28942",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:125",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "PORCELLANATO EXTERIOR (DIMENSION MAX=0,72m2)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "40000",
+      "directUnitCost": "10121.28942",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:126",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "COLOCACION DE PISO DE PORFIDO (SIN TOMADO DE JUNTAS)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "80000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:290",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "9",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:293",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.028",
+          "unitPrice": "36099.9991"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:127",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "PERFIL TIPO \"ATRIM\" EN CAMBIO DE PISOS",
+      "unit": "ML",
+      "quantity": "0",
+      "laborUnitCost": "4200",
+      "directUnitCost": "12000",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:128",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "BORDE DE CEMENTO VEREDAS",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "10002.6",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:241",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "3.08",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:242",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.00726",
+          "unitPrice": "36099.9991"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:129",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "VENECITA POLIMÈRICA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "40000",
+      "directUnitCost": "11908.78709",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:130",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "BALDOSAS CEMENTICIAS EN TENDER",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "25000",
+      "directUnitCost": "10121.28942",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:131",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "HORMIGON LLANEADO INGRESO VEHICULAR Y PEATONAL (SOLO M.O.)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "10321",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:132",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "ZOCALOS EXTERIOR DE PORCELANATO SOBRE MATERIAL DE FRENTE",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "10000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:31",
+          "name": "KLAUKOL FLEX",
+          "unit": "Kg",
+          "coefficient": "1.125",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:32",
+          "name": "PASTINA",
+          "unit": "Kg",
+          "coefficient": "0.045",
+          "unitPrice": "2223.012"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:134",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "DE MADERA MACIZA H:8CM + PINTURA LACA MATE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "10000",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:135",
+      "category": "PISOS Y ZOCALOS (m.o. y mat de aporte)",
+      "name": "DE PORCELLANATO H:8CM",
+      "unit": "ML",
+      "quantity": "0",
+      "laborUnitCost": "13000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:31",
+          "name": "KLAUKOL FLEX",
+          "unit": "Kg",
+          "coefficient": "1.125",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:32",
+          "name": "PASTINA",
+          "unit": "Kg",
+          "coefficient": "0.045",
+          "unitPrice": "2223.012"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:138",
+      "category": "REVESTIMIENTOS (m.o. y mat de aporte)",
+      "name": "DE PORCELLANATO (DIMENSION MAX=0,72m2)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "45000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:91",
+          "name": "KLAUKOL IMPERMEABLE",
+          "unit": "Kg",
+          "coefficient": "7.5",
+          "unitPrice": "625.570968"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:92",
+          "name": "PASTINA",
+          "unit": "Kg",
+          "coefficient": "0.3",
+          "unitPrice": "5430.6736"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:139",
+      "category": "REVESTIMIENTOS (m.o. y mat de aporte)",
+      "name": "REVESTIMIENTO DE PIEDRA ZAPALA NEUQUEN SIN JUNTA TOMADA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "36000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "08-09-PisosRev:103",
+          "name": "KLAUKOL FLEX",
+          "unit": "Kg",
+          "coefficient": "7.5",
+          "unitPrice": "1260.584776"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:104",
+          "name": "PLASTICOR",
+          "unit": "Kg",
+          "coefficient": "15",
+          "unitPrice": "196.86337"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:105",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "6.25",
+          "unitPrice": "348.964"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:106",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.08",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "08-09-PisosRev:107",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "6661.655"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:140",
+      "category": "REVESTIMIENTOS (m.o. y mat de aporte)",
+      "name": "DE REFRACTARIOS EN PARRILLA  (NO INCLUYE REFRACTARIOS NI ADHESIVO)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "24259",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:143",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "SUSPENDIDO DE YESO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "24200",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:54",
+          "name": "MADERA 1x1",
+          "unit": "ml",
+          "coefficient": "5",
+          "unitPrice": "269.9994"
+        },
+        {
+          "sourceKey": "10-Yeso:55",
+          "name": "MADERA 1X3",
+          "unit": "ml",
+          "coefficient": "2.5",
+          "unitPrice": "749.9943"
+        },
+        {
+          "sourceKey": "10-Yeso:56",
+          "name": "METAL DESPLEGADO",
+          "unit": "m2",
+          "coefficient": "1.2",
+          "unitPrice": "3560.0015"
+        },
+        {
+          "sourceKey": "10-Yeso:57",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "6099.9972"
+        },
+        {
+          "sourceKey": "10-Yeso:58",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "5199.9992"
+        },
+        {
+          "sourceKey": "10-Yeso:59",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "1.5",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:60",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:61",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "18",
+          "unitPrice": "474.000076"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:144",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "SUSPENDIDO EXTERIOR CON YESO REFORZADO, TERMINACIÓN MATERIAL DE FRENTE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "36200",
+      "directUnitCost": "30123.97753",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:145",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "PANTALLAS / FRENTE ARMADO",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "24200",
+      "directUnitCost": "8033.060675",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:146",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "BUÑAS",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "9680",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:87",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "0.4",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:88",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.006",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:89",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "4.8",
+          "unitPrice": "474.000076"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:147",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "ARISTAS",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "9680",
+      "directUnitCost": "1313.455738",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:148",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "TALON",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "8800",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:87",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "0.4",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:88",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.006",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:89",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "4.8",
+          "unitPrice": "474.000076"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:149",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "CAJONES (4 CARAS + 2 ARISTA)",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "114400",
+      "directUnitCost": "22592.98315",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:150",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "GARGANTA",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "90200",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:99",
+          "name": "MADERA 1x1",
+          "unit": "ml",
+          "coefficient": "5",
+          "unitPrice": "269.9994"
+        },
+        {
+          "sourceKey": "10-Yeso:100",
+          "name": "MADERA 1X3",
+          "unit": "ml",
+          "coefficient": "2.5",
+          "unitPrice": "749.9943"
+        },
+        {
+          "sourceKey": "10-Yeso:101",
+          "name": "METAL DESPLEGADO",
+          "unit": "m2",
+          "coefficient": "1.2",
+          "unitPrice": "3560.0015"
+        },
+        {
+          "sourceKey": "10-Yeso:102",
+          "name": "CLAVOS",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "6099.9972"
+        },
+        {
+          "sourceKey": "10-Yeso:103",
+          "name": "ALAMBRE",
+          "unit": "Kg",
+          "coefficient": "0.25",
+          "unitPrice": "5199.9992"
+        },
+        {
+          "sourceKey": "10-Yeso:104",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "1.5",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:105",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:106",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "18",
+          "unitPrice": "474.000076"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:151",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "CANTONERAS",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "27500",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:30",
+          "name": "CANTONERAS",
+          "unit": "ml",
+          "coefficient": "2.4",
+          "unitPrice": "974.99985"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:152",
+      "category": "CIELORRASOS Y YESERIA",
+      "name": "ENLUCIDO DE YESO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "9000",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "10-Yeso:8",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "2",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "10-Yeso:9",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "10-Yeso:10",
+          "name": "YESO",
+          "unit": "Kg",
+          "coefficient": "4",
+          "unitPrice": "422.8573171"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:156",
+      "category": "CUBIERTAS",
+      "name": "PINTURA ASFÀLTICA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8565.4",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:126",
+          "name": "PINTURA ASFALTICA",
+          "unit": "lts",
+          "coefficient": "0.75",
+          "unitPrice": "5674.745556"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:157",
+      "category": "CUBIERTAS",
+      "name": "FILM DE POLIETILENO 200 MICRONES",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "2634.32",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:48",
+          "name": "FILM POLIETILENO 200 MICRONES",
+          "unit": "m2",
+          "coefficient": "1.1",
+          "unitPrice": "466.0315"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:158",
+      "category": "CUBIERTAS",
+      "name": "PLANCHAS DE POLIESTIRENO 2\" STD",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "5868.192",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "03-Aisl:107",
+          "name": "POLIESTIRENO EXPANDIDO 2\" (50mm)",
+          "unit": "m2",
+          "coefficient": "1.05",
+          "unitPrice": "9048.38"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:159",
+      "category": "CUBIERTAS",
+      "name": "HORMIGÓN DE PENDIENTE e:10cm (MORTERO MDC 350)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "13336.8",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-ContrapCA:80",
+          "name": "HORMIGON DE PENDIENTE",
+          "unit": "m3",
+          "coefficient": "1.1",
+          "unitPrice": "171879.29"
+        },
+        {
+          "sourceKey": "07-ContrapCA:81",
+          "name": "BOMBEO H° ELABORADO",
+          "unit": "m3",
+          "coefficient": "0.02",
+          "unitPrice": "605000"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:160",
+      "category": "CUBIERTAS",
+      "name": "MEMBRANA GEOTEXTIL + PINTURA FIBRADA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "14400",
+      "directUnitCost": "17600",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:161",
+      "category": "CUBIERTAS",
+      "name": "CARPETA DE CEMENTO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "15495.6945",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "07-CarpetC:8",
+          "name": "CEMENTO",
+          "unit": "Kg",
+          "coefficient": "14",
+          "unitPrice": "337.777792"
+        },
+        {
+          "sourceKey": "07-CarpetC:9",
+          "name": "ARENA",
+          "unit": "m3",
+          "coefficient": "0.033",
+          "unitPrice": "36099.9991"
+        },
+        {
+          "sourceKey": "07-CarpetC:10",
+          "name": "HIDROFUGO",
+          "unit": "Kg",
+          "coefficient": "0.35",
+          "unitPrice": null
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:162",
+      "category": "CUBIERTAS",
+      "name": "MANTA Y PINTURA EN MOJINETE",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "14400",
+      "directUnitCost": "17600",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:163",
+      "category": "CUBIERTAS",
+      "name": "POLIESTIRENO EXP. DIAMANTADO 1000X1000X50MM-30",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "5868.192",
+      "directUnitCost": "11120.42",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:164",
+      "category": "CUBIERTAS",
+      "name": "COLOCACION DE PIEDRA BOLA (SOLO M.O)",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:166",
+      "category": "CUBIERTAS",
+      "name": "PROVISION Y COLOCACION DE:\n- FENOLICO \n- ESCURRIDORES 1X2\"\n- PINTURA Y MEMBRANA ASFALTICA \n- MEMBRANA ISOLANT TBA 10 mm\n- CLAVADORES 2X2\" \n- CHAPA TRAPEZOIDAL NEGRA",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:170",
+      "category": "CARPINTERIAS",
+      "name": "MENORES A 2 m2",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "54755.5",
+      "directUnitCost": "2416.330772",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:171",
+      "category": "CARPINTERIAS",
+      "name": "ENTRE 2 y 5 m2",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "57493.275",
+      "directUnitCost": "4832.661544",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:172",
+      "category": "CARPINTERIAS",
+      "name": "ENTRE 5 y 10 m2",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "82133.25",
+      "directUnitCost": "6846.27052",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:173",
+      "category": "CARPINTERIAS",
+      "name": "MAYORES A 10 m2",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "104035.45",
+      "directUnitCost": "12887.09745",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:174",
+      "category": "CARPINTERIAS",
+      "name": "PUERTA INGRESO 1",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "54755.5",
+      "directUnitCost": "2416.330772",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:175",
+      "category": "CARPINTERIAS",
+      "name": "PUERTA INGRESO 2",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "54755.5",
+      "directUnitCost": "2416.330772",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:176",
+      "category": "CARPINTERIAS",
+      "name": "PUERTAS INTERIORES",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "54755.5",
+      "directUnitCost": "2416.330772",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:177",
+      "category": "CARPINTERIAS",
+      "name": "PUERTAS CORREDIZAS",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "54755.5",
+      "directUnitCost": "2416.330772",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:178",
+      "category": "CARPINTERIAS",
+      "name": "PORTON",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "82133.25",
+      "directUnitCost": "6846.27052",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:181",
+      "category": "MARMOLERIA",
+      "name": "COLOCACION DE MENSULAS PARA MESADAS",
+      "unit": "Un",
+      "quantity": "0",
+      "laborUnitCost": "8335.5",
+      "directUnitCost": "7500",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:182",
+      "category": "MARMOLERIA",
+      "name": "PLACAS DE GRANITO EN MOJINETES Y SOBRE PERIMETRO PERGOLA",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "12761.92",
+      "directUnitCost": "0",
+      "materials": [
+        {
+          "sourceKey": "13-Marmoleria:20",
+          "name": "KLAUKOL IMP",
+          "unit": "Kg",
+          "coefficient": "8",
+          "unitPrice": "1260.584776"
+        }
+      ]
+    },
+    {
+      "sourceKey": "COSTO:183",
+      "category": "MARMOLERIA",
+      "name": "UMBRALES Y ALFEIZAR",
+      "unit": "ml",
+      "quantity": "0",
+      "laborUnitCost": "12761.92",
+      "directUnitCost": "3630.484155",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:187",
+      "category": "PINTURA (SOLO MANO OBRA)",
+      "name": "PINTURA LATEX MUROS EXTERIORES",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8500",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:188",
+      "category": "PINTURA (SOLO MANO OBRA)",
+      "name": "PINTURA IMPERM. TRANSP. PARA HORMIGÒN VISTO",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "8500",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:190",
+      "category": "PINTURA (SOLO MANO OBRA)",
+      "name": "ENDUIDO COMPLETO + PINTURA LATEX MATE MUROS INTERIORES",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18800",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:192",
+      "category": "PINTURA (SOLO MANO OBRA)",
+      "name": "ENDUIDO COMPLETO + PINTURA LATEX SATINADO COLOR BL EN CIELORRASOS INT.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18800",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:193",
+      "category": "PINTURA (SOLO MANO OBRA)",
+      "name": "ENDUIDO COMPLETO + PINTURA LATEX SATINADO COLOR BL EN CIELORRASOS EXT.",
+      "unit": "m2",
+      "quantity": "0",
+      "laborUnitCost": "18800",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:196",
+      "category": "INSTALACION ELECTRICA",
+      "name": "CAÑERIA DE 220 INDEPENDIENTE\nCAÑERIA DE TV INDEPENDIENTE (SIN CABLEADO)\nCAÑERIA DE TELEFONO, REDES, AUDIO (SIN CABLEADO)\nCABLEADO Y COLOCACION DE LLAVES Y TOMAS \nARMADO DE TABLEROS DE ELECTRICIDAD CON TERMICAS CORRESPONDIENTES",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:199",
+      "category": "INSTALACION SANITARIA Y GAS",
+      "name": "INSTALACIÒN ALIMENTACION AGUA FRIA Y CALIENTE\nDESAGUES CLOACALES\nDESAGUES PLUVIALES Y DESAGUES AA SPLIT\nGAS: 1 PITT COOKING Y 2 CALDERAS (NO INCLUYE PROYECTO NI COMBUSTION)\nCOLOCACION DE ARTEFACTOS",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:202",
+      "category": "VARIOS",
+      "name": "LIMPIEZA DE OBRA",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:203",
+      "category": "VARIOS",
+      "name": "AYUDA DE GREMIOS",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": null,
+      "directUnitCost": "0",
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:204",
+      "category": "VARIOS",
+      "name": "SEGURIDAD E HIGIENE",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": null,
+      "materials": []
+    },
+    {
+      "sourceKey": "COSTO:205",
+      "category": "VARIOS",
+      "name": "SEGUROS",
+      "unit": "Gl",
+      "quantity": "0",
+      "laborUnitCost": "0",
+      "directUnitCost": null,
+      "materials": []
+    }
+  ],
+  "issues": [
+    {
+      "row": 13,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 14,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 29,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 30,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 31,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 32,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 39,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 48,
+      "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 51,
+      "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 52,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 54,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 63,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 64,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 67,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 78,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 87,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 90,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 93,
+      "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 94,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 108,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 112,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 114,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 115,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 124,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 125,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 127,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 129,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 130,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 144,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 145,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 147,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 149,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 160,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 162,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 163,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 166,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 170,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 171,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 172,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 173,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 174,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 175,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 176,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 177,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 178,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 181,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 183,
+      "message": "Suministro agregado sin composición: conservado como costo directo explícito, no genera materiales previstos"
+    },
+    {
+      "row": 202,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 203,
+      "message": "Mano de obra sin valor numérico verificable"
+    },
+    {
+      "row": 204,
+      "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 204,
+      "message": "Seguro/higiene se conserva como servicio directo; no se representa como salario aunque la fuente use la columna de mano de obra."
+    },
+    {
+      "row": 205,
+      "message": "Costo de suministro sin valor numérico verificable"
+    },
+    {
+      "row": 205,
+      "message": "Seguro/higiene se conserva como servicio directo; no se representa como salario aunque la fuente use la columna de mano de obra."
+    }
+  ]
+}

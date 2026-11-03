@@ -6,6 +6,7 @@ import {
   named,
   unitSchema,
   workSchema,
+  clientSchema,
   supplierSchema,
   materialSchema,
   materialPatchSchema,
@@ -29,14 +30,31 @@ import {
   receiptSchema,
 } from "../apps/api/src/modules/procurement";
 import { schemas as importSchemas } from "../apps/api/src/modules/imports";
+import { editorContentSchema } from "../apps/api/src/modules/commercial-domain";
+import {
+  draftSaveSchema,
+  editorCreateSchema,
+  issueSchema,
+  templateSchema,
+} from "../apps/api/src/modules/commercial";
+import {
+  invoiceInfoSchema,
+  paymentStatusSchema,
+  delegationSchema,
+} from "../apps/api/src/modules/order-administration";
+import {
+  priceFileSchema,
+  priceMappingSchema,
+} from "../apps/api/src/modules/reference-prices";
 
 type S = Record<string, any>;
 const schemas: Record<string, S> = {};
 const paths: Record<string, S> = {};
-const roles = ["GERENCIA", "COMPRAS", "COMPUTO", "JEFE_OBRA"];
+const roles = ["GERENCIA", "COMPRAS", "COMPUTO", "JEFE_OBRA", "ADMINISTRACION"];
 const commercial = roles.slice(0, 3),
   buyers = roles.slice(0, 2),
   writers = ["GERENCIA", "COMPUTO"];
+const operational = ["GERENCIA", "COMPRAS", "COMPUTO", "JEFE_OBRA"];
 const str: S = { type: "string" },
   bool: S = { type: "boolean" },
   integer: S = { type: "integer" },
@@ -92,7 +110,11 @@ for (const enumeration of Prisma.dmmf.datamodel.enums)
     enum: enumeration.values.map((v) => v.name),
   });
 for (const model of Prisma.dmmf.datamodel.models) {
-  if (["Session", "AuthAttempt", "IdempotencyRecord", "CodeCounter"].includes(model.name))
+  if (
+    ["Session", "AuthAttempt", "IdempotencyRecord", "CodeCounter"].includes(
+      model.name,
+    )
+  )
     continue;
   const properties: Record<string, S> = {};
   for (const field of model.fields) {
@@ -121,6 +143,12 @@ for (const model of Prisma.dmmf.datamodel.models) {
   }
   add(model.name, obj(properties));
 }
+schemas.Work.required = schemas.Work.required.filter(
+  (name: string) => !["clientId", "address"].includes(name),
+);
+schemas.ApuItem.required = schemas.ApuItem.required.filter(
+  (name: string) => name !== "directCost",
+);
 add(
   "Pagination",
   obj({
@@ -169,6 +197,7 @@ for (const [name, schema] of Object.entries({
   NamedInput: named,
   UnitInput: unitSchema,
   WorkInput: workSchema,
+  ClientInput: clientSchema,
   SupplierInput: supplierSchema,
   MaterialInput: materialSchema,
   PresentationInput: presentationSchema,
@@ -190,6 +219,7 @@ for (const [name, schema] of Object.entries({
   zod(name, schema);
 for (const [name, schema] of Object.entries({
   WorkPatch: workSchema.partial(),
+  ClientPatch: clientSchema.partial(),
   SupplierPatch: supplierSchema.partial(),
   MaterialPatch: materialPatchSchema,
   NamedPatch: named.partial(),
@@ -307,11 +337,18 @@ extend("MaterialDetail", "Material", {
   unit: ref("Unit"),
   category: nullable(ref("Category")),
 });
-extend("WorkList", "Work", { location: nullable(ref("Location")) });
+add("ClientSummary", obj({ id, code: str, name: str }));
+extend("WorkList", "Work", {
+  location: nullable(ref("Location")),
+  client: nullable(ref("ClientSummary")),
+});
 extend("WorkDetail", "WorkList", {
   assignments: arr(obj({ userId: id })),
   referenceVersionId: nullable(id),
 });
+extend("ClientWork", "WorkList", { budgets: arr(ref("Budget")) });
+extend("ClientDetail", "Client", { works: arr(ref("ClientWork")) });
+extend("ClientList", "Client", { _count: obj({ works: integer }) });
 extend("Stock", "StockBalance", {
   material: extend("StockMaterial", "Material", { unit: ref("Unit") }),
   location: ref("Location"),
@@ -361,7 +398,7 @@ extend("OrderDetail", "PurchaseOrder", {
   },
 });
 schemas.OrderDetail.description =
-  "Importes exactos quantity*unitPrice/baseQuantity cuando son representables hasta8decimales; sin agregar IVA ni redondear. Si alguna línea requiere política de redondeo: lineAmount y totalAmount null, amountWarning ROUNDING_POLICY_REQUIRED. No certifica política monetaria final CEO.";
+  "OC nuevas: HALF_UP a 2 decimales por importe extendido, total como suma de líneas; precios y equivalencias originales intactos, sin agregar IVA. OC históricas sin política: importes exactos hasta 8 decimales; si no son representables, null y ROUNDING_POLICY_REQUIRED.";
 extend("LegacyOrderDetail", "PurchaseOrder", {
   lines: arr(ref("PurchaseOrderLine")),
 });
@@ -506,6 +543,12 @@ add(
     totalCost: dec,
   }),
 );
+// New activity direct costs are optional in V1 snapshots and old schemas.
+schemas.SnapshotLine.properties.directUnitCost = dec;
+schemas.SnapshotLine.properties.directCost = dec;
+schemas.BudgetCalculation.properties.directCost = dec;
+schemas.BudgetCalculation.properties.categories.items.properties.directCost =
+  dec;
 extend("StoredSnapshot", "BudgetCalculation", {
   computationId: id,
   computationName: str,
@@ -517,6 +560,232 @@ extend("VersionCreated", "BudgetVersion", {
 });
 extend("VersionDetail", "BudgetVersion", { budget: ref("Budget") });
 extend("BudgetDetail", "Budget", { versions: arr(ref("BudgetVersion")) });
+zod("EditorContent", editorContentSchema);
+zod("DraftSaveInput", draftSaveSchema);
+zod("EditorCreateInput", editorCreateSchema);
+zod("IssueInput", issueSchema);
+zod("TemplateInput", templateSchema);
+schemas.BudgetDraft.properties.content = ref("EditorContent");
+schemas.BudgetTemplate.properties.content = ref("EditorContent");
+extend("CommercialLine", "SnapshotLine", {
+  directUnitCost: dec,
+  directCost: dec,
+  sellingUnitPrice: dec,
+  sellingAmount: dec,
+});
+extend("CommercialCategory", "BudgetCalculation", {});
+schemas.CommercialCategory = obj({
+  ...schemas.BudgetCalculation.properties.categories.items.properties,
+  directCost: dec,
+  sellingAmount: dec,
+});
+extend("CommercialCalculation", "BudgetCalculation", {
+  formatVersion: { const: 2 },
+  lines: arr(ref("CommercialLine")),
+  categories: arr(ref("CommercialCategory")),
+  directCost: dec,
+  commercialTotal: dec,
+  materialDemandIncomplete:bool,
+  materialQuantityPolicy: obj({
+    precision: { const: 8 },
+    roundingMode: { const: "HALF_UP" },
+    boundary: { const: "CATEGORY_MATERIAL" },
+  }),
+  issues: arr(obj({ lineKey: id, message: str })),
+  complete: bool,
+});
+add(
+  "CommercialHeader",
+  obj({
+    client: obj({ name: str, taxId: nullable(str), address: nullable(str) }),
+    work: obj({ name: str, address: nullable(str) }),
+    name: str,
+    conditions: str,
+    exclusions: str,
+    observations: str,
+    deadline: str,
+    pdfTemplateVersion: integer,
+    issuedAt: { type: "string", format: "date-time" },
+  }),
+);
+schemas.CommercialHeader.properties.nonPricedLines = arr(
+  obj({ category: str, name: str, status: { enum: ["INCLUDED", "EXCLUDED"] } }),
+);
+extend("CommercialSnapshot", "CommercialCalculation", {
+  editorContent: ref("EditorContent"),
+  commercial: ref("CommercialHeader"),
+  computationId: id,
+  computationName: str,
+  overrides: arr({}),
+});
+schemas.BudgetVersion.properties.snapshot = {
+  anyOf: [ref("StoredSnapshot"), ref("CommercialSnapshot")],
+};
+extend("IssuedVersion", "BudgetVersion", { issue: ref("BudgetIssue") });
+extend("EditorVersion", "BudgetVersion", {
+  issue: nullable(ref("BudgetIssue")),
+});
+extend("EditorWork", "Work", { client: nullable(ref("Client")) });
+extend("BudgetEditor", "Budget", {
+  work: ref("EditorWork"),
+  draft: nullable(ref("BudgetDraft")),
+  versions: arr(ref("EditorVersion")),
+});
+zod("InvoiceInfoInput", invoiceInfoSchema);
+zod("PaymentStatusInput", paymentStatusSchema);
+zod("DelegationInput", delegationSchema);
+add(
+  "AdministrativeOrder",
+  obj({
+    id,
+    number: integer,
+    status: ref("PurchaseOrderStatus"),
+    createdAt: { type: "string", format: "date-time" },
+    supplier: obj({ id, name: str }),
+    work: nullable(obj({ id, name: str, code: str })),
+    invoiceNumber: nullable(str),
+    invoiceLoadedAt: nullable({ type: "string", format: "date-time" }),
+    invoiceLoadedByName: nullable(str),
+    invoiceInfo: nullable(ref("OrderInvoiceInfo")),
+    informationChangedByName: nullable(str),
+  }),
+);
+add(
+  "DelegatedOrder",
+  obj({
+    id,
+    number: integer,
+    status: ref("PurchaseOrderStatus"),
+    destination: obj({ id, name: str }),
+    lines: arr(
+      obj({
+        id,
+        quantity: dec,
+        receivedQuantity: dec,
+        pendingQuantity: dec,
+        material: obj({
+          name: str,
+          unit: obj({ name: str, symbol: nullable(str) }),
+        }),
+      }),
+    ),
+  }),
+);
+zod("PriceFileInput", priceFileSchema);
+zod("PriceMappingInput", priceMappingSchema);
+add(
+  "PriceFileSheets",
+  obj({
+    sheets: arr(obj({ name: str, columns: arr(str), rows: arr(arr(str)) })),
+  }),
+);
+extend("ReferencePrice", "MaterialPrice", {
+  presentation: nullable(ref("Presentation")),
+});
+add(
+  "PriceComparison",
+  obj({
+    material: obj({ id, name: str, unit: str }),
+    candidates: arr(
+      obj({
+        supplier: obj({ id, name: str }),
+        price: nullable(ref("ReferencePrice")),
+        normalizedPrice: nullable(dec),
+        lowest: bool,
+        reviewDue: bool,
+        lastReviewedAt: nullable({ type: "string", format: "date-time" }),
+      }),
+    ),
+  }),
+);
+add(
+  "NetNeeds",
+  obj({
+    workId: id,
+    referenceVersionId: nullable(id),
+    materialDemandIncomplete:bool,
+    coverageHash: str,
+    rows: arr(
+      obj({
+        materialId: id,
+        code: str,
+        name: str,
+        unit: str,
+        planned: nullable(dec),
+        consumed: dec,
+        workAvailable: dec,
+        pendingCoverage: dec,
+        covered: dec,
+        remaining: nullable(dec),
+        excess: nullable(dec),
+        generalAvailable: nullable(dec),
+        exact: bool,
+        warnings: arr(str),
+        sources: arr(obj({ kind: str, id, quantity: dec })),
+      }),
+    ),
+  }),
+);
+add("MoneyGroup", obj({ currency: str, taxBasis: str, amount: dec }));
+add(
+  "ManagementTotals",
+  obj({
+    purchases: arr(ref("MoneyGroup")),
+    budgeted: arr(ref("MoneyGroup")),
+    unvaluedPurchases: integer,
+  }),
+);
+add(
+  "ClientIndicatorRow",
+  obj({
+    clientId: nullable(id),
+    name: str,
+    activeWorks: integer,
+    completedWorks: integer,
+    otherWorks: integer,
+    unissuedBudgets: integer,
+    unvaluedPurchases: integer,
+    budgeted: arr(ref("MoneyGroup")),
+    purchases: arr(ref("MoneyGroup")),
+  }),
+);
+add(
+  "PurchaseReportRow",
+  obj({
+    id,
+    number: integer,
+    workId: nullable(id),
+    workName: str,
+    supplierId: id,
+    supplierName: str,
+    status: ref("PurchaseOrderStatus"),
+    createdAt: { type: "string", format: "date-time" },
+    currency: str,
+    taxBasis: str,
+    totalAmount: nullable(dec),
+    lines: arr(
+      obj({
+        materialId: id,
+        materialCode: str,
+        materialName: str,
+        unit: str,
+        quantity: dec,
+        receivedQuantity: dec,
+      }),
+    ),
+  }),
+);
+add(
+  "ClientIndicators",
+  obj({
+    rows: arr(ref("ClientIndicatorRow")),
+    totals: ref("ManagementTotals"),
+  }),
+);
+add(
+  "PurchasesReport",
+  obj({ rows: arr(ref("PurchaseReportRow")), totals: ref("ManagementTotals") }),
+);
 add(
   "VersionMaterials",
   obj({
@@ -705,7 +974,7 @@ function operation(
     operationId: `${method}_${path.replace(/[^a-zA-Z0-9]+/g, "_")}`,
     summary,
     tags: [path.split("/")[1]],
-    "x-roles": options.roles ?? roles,
+    "x-roles": options.roles ?? operational,
     description:
       options.description ??
       "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
@@ -822,6 +1091,263 @@ for (const code of [401, 429]) {
 }
 operation("/auth/logout", "post", "Cerrar sesión", obj({ loggedOut: bool }));
 operation("/auth/me", "get", "Usuario actual", ref("User"));
+paths["/auth/me"].get["x-roles"] = roles;
+paths["/auth/logout"].post["x-roles"] = roles;
+paths["/auth/login"].post["x-roles"] = roles;
+operation(
+  "/budget-editor",
+  "post",
+  "Crear presupuesto desde plantilla o revisión",
+  ref("Budget"),
+  {
+    roles: writers,
+    input: ref("EditorCreateInput"),
+    idempotent: true,
+    status: 201,
+  },
+);
+add(
+  "BaseTemplateInfo",
+  obj({
+    sourceSha256: str,
+    notice: str,
+    activities: integer,
+    issues: arr(obj({ row: integer, message: str })),
+  }),
+);
+operation(
+  "/budget-templates/base",
+  "get",
+  "Consultar procedencia y observaciones de la BASE real",
+  ref("BaseTemplateInfo"),
+  { roles: commercial },
+);
+operation(
+  "/budget-templates/base",
+  "post",
+  "Incorporar BASE normalizada por acción explícita",
+  ref("BudgetTemplate"),
+  { roles: writers, idempotent: true, status: 201 },
+);
+operation(
+  "/budget-editor/{id}",
+  "get",
+  "Espacio de trabajo de presupuesto",
+  ref("BudgetEditor"),
+  { roles: commercial },
+);
+operation(
+  "/budget-editor/{id}",
+  "put",
+  "Guardar borrador con revisión optimista",
+  ref("BudgetDraft"),
+  { roles: writers, input: ref("DraftSaveInput") },
+);
+operation(
+  "/budget-editor/{id}/calculate",
+  "post",
+  "Recalcular sin guardar",
+  ref("CommercialCalculation"),
+  { roles: commercial, input: ref("EditorContent") },
+);
+add(
+  "DraftPriceChanges",
+  obj({
+    changes: arr(
+      obj({
+        lineKey: id,
+        materialId: id,
+        name: str,
+        previous: nullable(dec),
+        next: dec,
+        sourcePriceId: id,
+        effectiveAt: { type: "string", format: "date-time" },
+        source: nullable(str),
+        manual: bool,
+      }),
+    ),
+  }),
+);
+operation(
+  "/budget-editor/{id}/price-updates",
+  "post",
+  "Revisar diferencias de precios sin modificar el borrador",
+  ref("DraftPriceChanges"),
+  { roles: writers, input: ref("EditorContent") },
+);
+operation(
+  "/budget-editor/{id}/issue",
+  "post",
+  "Emitir revisión comercial",
+  ref("IssuedVersion"),
+  { roles: writers, input: ref("IssueInput"), idempotent: true, status: 201 },
+);
+operation(
+  "/budget-editor/{id}/preview",
+  "post",
+  "Previsualizar PDF sin emitir",
+  str,
+  {
+    roles: writers,
+    input: ref("EditorContent"),
+    raw: true,
+    mime: "application/pdf",
+  },
+);
+operation(
+  "/budget-issues/{id}/pdf",
+  "get",
+  "Descargar revisión comercial conservada",
+  str,
+  { roles: commercial, raw: true, mime: "application/pdf" },
+);
+operation(
+  "/budget-templates",
+  "get",
+  "Plantillas de presupuesto",
+  arr(ref("BudgetTemplate")),
+  { roles: commercial },
+);
+operation(
+  "/budget-templates",
+  "post",
+  "Guardar plantilla reutilizable",
+  ref("BudgetTemplate"),
+  { roles: writers, input: ref("TemplateInput"), status: 201 },
+);
+operation(
+  "/quantity-expression",
+  "post",
+  "Resolver cantidad auxiliar",
+  obj({ quantity: dec }),
+  {
+    roles: writers,
+    input: obj({ expression: { type: "string", maxLength: 200 } }),
+  },
+);
+operation(
+  "/order-administration",
+  "get",
+  "Consultar referencias informativas de factura",
+  ref("AdministrativeOrder"),
+  { roles: ["GERENCIA", "COMPRAS", "ADMINISTRACION"], list: true },
+);
+operation(
+  "/order-administration/{id}",
+  "get",
+  "Referencia informativa de una OC",
+  ref("AdministrativeOrder"),
+  { roles: ["GERENCIA", "COMPRAS", "ADMINISTRACION"] },
+);
+operation(
+  "/order-administration/{id}/invoice",
+  "put",
+  "Registrar número e importe de factura",
+  ref("OrderInvoiceInfo"),
+  { roles: buyers, input: ref("InvoiceInfoInput") },
+);
+operation(
+  "/order-administration/{id}/payment",
+  "put",
+  "Marcar pago informativo",
+  ref("OrderInvoiceInfo"),
+  {
+    roles: ["GERENCIA", "COMPRAS", "ADMINISTRACION"],
+    input: ref("PaymentStatusInput"),
+  },
+);
+operation(
+  "/reception-delegations/{id}",
+  "get",
+  "Destinos delegados al usuario",
+  arr(obj({ locationId: id })),
+  { roles: ["GERENCIA"] },
+);
+operation(
+  "/reception-delegations/{id}",
+  "put",
+  "Reemplazar delegaciones de recepción",
+  obj({ locationIds: arr(id) }),
+  { roles: ["GERENCIA"], input: ref("DelegationInput") },
+);
+operation(
+  "/receipt-desk",
+  "get",
+  "Recepciones delegadas sin datos económicos",
+  ref("DelegatedOrder"),
+  { roles, list: true },
+);
+operation(
+  "/price-files",
+  "post",
+  "Leer archivo XLSX/CSV limitado sin ejecutar contenido activo",
+  ref("PriceFileSheets"),
+  { roles: commercial, input: ref("PriceFileInput") },
+);
+operation(
+  "/price-mapping",
+  "post",
+  "Resolver columnas contra catálogo exacto",
+  obj({
+    rows: arr(ref("Import_prices_Row")),
+    errors: arr(obj({ row: integer, message: str })),
+  }),
+  { roles: commercial, input: ref("PriceMappingInput") },
+);
+operation(
+  "/price-comparison",
+  "get",
+  "Comparar hasta tres referencias vigentes",
+  ref("PriceComparison"),
+  {
+    roles: commercial,
+    queries: [q("materialId", id, true), q("supplierIds", str, true)],
+  },
+);
+operation(
+  "/price-review/{id}",
+  "post",
+  "Registrar revisión mensual sin cambiar precios",
+  obj({ reviewedAt: { type: "string", format: "date-time" } }),
+  { roles: commercial },
+);
+operation(
+  "/net-needs",
+  "get",
+  "Necesidad neta de obra sin duplicar documentos",
+  ref("NetNeeds"),
+  { queries: [q("workId", id, true)] },
+);
+for (const kind of ["clients", "purchases"]) {
+  const access = kind === "clients" ? ["GERENCIA"] : commercial,
+    queries = ["clientId", "workId", "supplierId", "from", "to", "status"].map(
+      (k) => q(k),
+    );
+  operation(
+    `/reports/${kind}`,
+    "get",
+    kind === "clients"
+      ? "Indicadores por cliente"
+      : "Compras por obra y proveedor",
+    obj({
+      data: ref(kind === "clients" ? "ClientIndicators" : "PurchasesReport"),
+      pagination: ref("Pagination"),
+    }),
+    { roles: access, raw: true, queries: [...queries, ...paging] },
+  );
+  operation(
+    `/reports/${kind}/export`,
+    "get",
+    "Exportar informe completo conciliado",
+    str,
+    {
+      roles: access,
+      raw: true,
+      mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      queries,
+    },
+  );
+}
 operation("/users", "get", "Listar usuarios", ref("User"), {
   roles: ["GERENCIA"],
   list: true,
@@ -857,6 +1383,7 @@ operation(
 
 const catalog = [
   ["works", "Work", "WorkInput", "WorkPatch", ["GERENCIA"]],
+  ["clients", "Client", "ClientInput", "ClientPatch", ["GERENCIA", "COMPUTO"]],
   ["units", "Unit", "UnitInput", "UnitPatch", writers],
   ["categories", "Category", "NamedInput", "NamedPatch", writers],
   ["suppliers", "Supplier", "SupplierInput", "SupplierPatch", buyers],
@@ -865,17 +1392,20 @@ const catalog = [
   ["prices", "MaterialPrice", "PriceInput", null, commercial],
 ] as const;
 for (const [resource, model, input, patch, writeRoles] of catalog) {
-  const readRoles = ["suppliers", "prices"].includes(resource)
+  const readRoles = ["suppliers", "prices", "clients"].includes(resource)
     ? commercial
-    : roles;
+    : operational;
   const enriched =
     resource === "works"
       ? "WorkList"
-      : resource === "materials"
-        ? "MaterialDetail"
-        : model;
+      : resource === "clients"
+        ? "ClientList"
+        : resource === "materials"
+          ? "MaterialDetail"
+          : model;
   const filters: Record<string, string[]> = {
     works: ["status", "q", "search"],
+    clients: ["search", "q", "active"],
     suppliers: ["search", "q", "active"],
     materials: ["search", "q", "categoryId", "active"],
     presentations: ["materialId"],
@@ -899,7 +1429,13 @@ for (const [resource, model, input, patch, writeRoles] of catalog) {
     `/${resource}/{id}`,
     "get",
     `Consultar ${resource}`,
-    ref(resource === "works" ? "WorkDetail" : enriched),
+    ref(
+      resource === "works"
+        ? "WorkDetail"
+        : resource === "clients"
+          ? "ClientDetail"
+          : enriched,
+    ),
     { roles: readRoles },
   );
   operation(`/${resource}`, "post", `Crear ${resource}`, ref(model), {
@@ -1041,7 +1577,7 @@ operation(
   "post",
   "Elegir referencia de obra",
   ref("BudgetVersion"),
-  { roles: ["GERENCIA"] },
+  { roles: writers },
 );
 operation(
   "/budget-versions/{id}/materials",
@@ -1227,7 +1763,7 @@ operation(
   "Confirmar recepción parcial o total",
   ref("ReceiptWriteResult"),
   {
-    roles: ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
+    roles,
     input: ref("ReceiptInput"),
     status: 201,
     idempotent: true,
@@ -1372,6 +1908,8 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
     rows: { type: "array", items: row, minItems: 1, maxItems: 1000 },
     csv: { type: "string", maxLength: 1500000 },
     confirmationHash: { type: "string", pattern: "^[a-f0-9]{64}$" },
+    reviewPrices: bool,
+    baselineHash: { type: "string", pattern: "^[a-f0-9]{64}$" },
   };
   const input = {
     ...obj(properties, []),
@@ -1381,7 +1919,7 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
     ],
   };
   operation(`/imports/${kind}/template`, "get", `Plantilla CSV ${kind}`, str, {
-    roles: ["GERENCIA"],
+    roles: kind === "prices" ? commercial : ["GERENCIA"],
     raw: true,
     mime: "text/csv",
   });
@@ -1389,14 +1927,43 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
     `/imports/${kind}/preview`,
     "post",
     `Validar ${kind} sin escribir`,
-    obj({
-      valid: bool,
-      rowCount: integer,
-      errors: arr(obj({ row: integer, message: str })),
-      confirmationHash: str,
-    }),
+    obj(
+      {
+        valid: bool,
+        rowCount: integer,
+        errors: arr(obj({ row: integer, message: str })),
+        confirmationHash: str,
+        baselineHash: str,
+        normalizedRows: arr(row),
+        differences: arr(
+          obj({
+            row: integer,
+            materialCode: str,
+            previous: nullable(
+              obj({
+                id,
+                materialId: id,
+                supplierId: nullable(id),
+                presentationId: nullable(id),
+                price: dec,
+                baseQuantity: dec,
+                currency: str,
+                taxBasis: ref("TaxBasis"),
+                effectiveAt: { type: "string", format: "date-time" },
+              }),
+            ),
+            newPrice: dec,
+            baseQuantity: dec,
+            currency: str,
+            taxBasis: ref("TaxBasis"),
+            effectiveAt: str,
+          }),
+        ),
+      },
+      ["valid", "rowCount", "errors", "confirmationHash"],
+    ),
     {
-      roles: ["GERENCIA"],
+      roles: kind === "prices" ? commercial : ["GERENCIA"],
       input,
       description:
         "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
@@ -1408,7 +1975,7 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
     `Importar ${kind} atómicamente`,
     obj({ importedRows: integer, createdIds: arr(id), confirmationHash: str }),
     {
-      roles: ["GERENCIA"],
+      roles: kind === "prices" ? commercial : ["GERENCIA"],
       input: { ...input, required: ["confirmationHash"] },
       status: 201,
       idempotent: true,

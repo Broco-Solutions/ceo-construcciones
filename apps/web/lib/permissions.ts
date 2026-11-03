@@ -6,12 +6,16 @@ export const ROLE_LABEL: Record<Role, string> = {
   COMPRAS: 'Compras',
   COMPUTO: 'Cómputo y Presupuestos',
   JEFE_OBRA: 'Jefe de Obra',
+  ADMINISTRACION: 'Administración restringida',
 };
 
 const R = (...roles: Role[]) => roles;
 export const PERMS = {
   adminUsers: R('GERENCIA'),
   manageWorks: R('GERENCIA'),
+  readClients: R('GERENCIA', 'COMPUTO', 'COMPRAS'),
+  editClients: R('GERENCIA', 'COMPUTO'),
+  invoiceAdmin: R('GERENCIA', 'COMPRAS', 'ADMINISTRACION'),
   manageLocations: R('GERENCIA'),
   editMaterials: R('GERENCIA', 'COMPRAS', 'COMPUTO'),
   readSuppliers: R('GERENCIA', 'COMPRAS', 'COMPUTO'),
@@ -19,7 +23,7 @@ export const PERMS = {
   editCatalogBase: R('GERENCIA', 'COMPUTO'), // rubros, unidades
   readEconomic: R('GERENCIA', 'COMPRAS', 'COMPUTO'),
   editBudget: R('GERENCIA', 'COMPUTO'), // APU, cómputos, presupuestos
-  selectReference: R('GERENCIA'),
+  selectReference: R('GERENCIA', 'COMPUTO'),
   createRequest: R('GERENCIA', 'COMPRAS', 'JEFE_OBRA'),
   processPurchases: R('GERENCIA', 'COMPRAS'), // estado pedido, cotizar, OC, factura
   readOrders: R('GERENCIA', 'COMPRAS', 'COMPUTO', 'JEFE_OBRA'),

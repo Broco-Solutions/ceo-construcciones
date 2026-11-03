@@ -5,12 +5,26 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill, SelectField } from '@/components/ui';
+import {
+  Button,
+  Card,
+  DataTable,
+  Empty,
+  ErrorBox,
+  Loading,
+  PagerBar,
+  Pill,
+  SelectField,
+} from '@/components/ui';
 import { useSession } from '@/lib/session';
 import { usePaged } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
-import { BudgetFlow, TAX_LABEL, useCatalogs } from '@/components/presupuesto/common';
+import {
+  BudgetFlow,
+  TAX_LABEL,
+  useCatalogs,
+} from '@/components/presupuesto/common';
 
 export default function ApuListPage() {
   const { can } = useSession();
@@ -26,17 +40,20 @@ function ApuList() {
   const router = useRouter();
   const cat = useCatalogs();
   const [categoryId, setCategoryId] = useState('');
-  const list = usePaged<Schemas['ApuDetail']>('/apu-items', { categoryId: categoryId || undefined });
+  const list = usePaged<Schemas['ApuDetail']>('/apu-items', {
+    categoryId: categoryId || undefined,
+  });
   const edit = can('editBudget');
-  const labor = (a: Schemas['ApuDetail']) => (a.laborCost ? formatMoney(a.laborCost, a.laborCurrency) : '—');
+  const labor = (a: Schemas['ApuDetail']) =>
+    a.laborCost ? formatMoney(a.laborCost, a.laborCurrency) : '—';
   return (
     <Page
       title="Análisis de precios unitarios"
-      crumb="Presupuestos / APU"
+      crumb="Catálogos / Actividades de obra"
       actions={
         edit && (
           <Link href="/apu/nuevo" className="btn">
-            <Plus size={16} /> Nuevo APU
+            <Plus size={16} /> Nueva actividad
           </Link>
         )
       }
@@ -45,14 +62,17 @@ function ApuList() {
         <BudgetFlow step={0} />
       </Card>
       <Card
-        title="Ítems de APU"
+        title="Actividades de obra"
         actions={
           <div className="filters">
             <SelectField
               label="Rubro"
               value={categoryId}
               placeholder="Todos"
-              options={cat.categories.rows.map((c) => ({ value: c.id, label: c.name }))}
+              options={cat.categories.rows.map((c) => ({
+                value: c.id,
+                label: c.name,
+              }))}
               onChange={(e) => setCategoryId(e.target.value)}
             />
           </div>
@@ -70,22 +90,60 @@ function ApuList() {
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/apu/${r.id}`)}
               empty={
-                <Empty title="Todavía no hay APU" action={edit && <Button onClick={() => router.push('/apu/nuevo')}>Crear el primero</Button>}>
-                  Un APU define qué materiales y cuánta mano de obra lleva una unidad de trabajo.
+                <Empty
+                  title="Todavía no hay actividades"
+                  action={
+                    edit && (
+                      <Button onClick={() => router.push('/apu/nuevo')}>
+                        Crear la primera
+                      </Button>
+                    )
+                  }
+                >
+                  Una actividad define qué materiales, mano de obra y costo por
+                  unidad lleva un trabajo.
                 </Empty>
               }
               columns={[
-                { key: 'code', header: 'Código', render: (r) => <span className="mono">{r.code ?? '—'}</span> },
+                {
+                  key: 'code',
+                  header: 'Código',
+                  render: (r) => <span className="mono">{r.code ?? '—'}</span>,
+                },
                 { key: 'name', header: 'Ítem', render: (r) => <b>{r.name}</b> },
                 { key: 'cat', header: 'Rubro', render: (r) => r.category.name },
-                { key: 'unit', header: 'Unidad', render: (r) => unitSymbol(r.unit) },
+                {
+                  key: 'unit',
+                  header: 'Unidad',
+                  render: (r) => unitSymbol(r.unit),
+                },
                 {
                   key: 'mat',
                   header: 'Materiales',
-                  render: (r) => (r.components.length ? `${r.components.length}` : <Pill tone="blue">Sólo mano de obra</Pill>),
+                  render: (r) =>
+                    r.components.length ? (
+                      `${r.components.length}`
+                    ) : (
+                      <Pill tone="blue">Sólo mano de obra</Pill>
+                    ),
                 },
-                { key: 'mo', header: 'Mano de obra / u.', align: 'r', render: (r) => `${labor(r)} · ${TAX_LABEL[r.laborTaxBasis]}`, hideMobile: true },
-                { key: 'st', header: 'Estado', render: (r) => (r.active ? <Pill tone="ok">Activo</Pill> : <Pill>Inactivo</Pill>) },
+                {
+                  key: 'mo',
+                  header: 'Mano de obra / u.',
+                  align: 'r',
+                  render: (r) => `${labor(r)} · ${TAX_LABEL[r.laborTaxBasis]}`,
+                  hideMobile: true,
+                },
+                {
+                  key: 'st',
+                  header: 'Estado',
+                  render: (r) =>
+                    r.active ? (
+                      <Pill tone="ok">Activo</Pill>
+                    ) : (
+                      <Pill>Inactivo</Pill>
+                    ),
+                },
               ]}
               mobile={(r) => (
                 <div className="stack" style={{ gap: 4 }}>
@@ -96,11 +154,20 @@ function ApuList() {
                   <span className="small muted">
                     {r.category.name} · {unitSymbol(r.unit)}
                   </span>
-                  <span className="small">{r.components.length ? `${r.components.length} materiales` : 'Sólo mano de obra'} · MO {labor(r)}</span>
+                  <span className="small">
+                    {r.components.length
+                      ? `${r.components.length} materiales`
+                      : 'Sólo mano de obra'}{' '}
+                    · MO {labor(r)}
+                  </span>
                 </div>
               )}
             />
-            <PagerBar pagination={list.pagination} page={list.page} setPage={list.setPage} />
+            <PagerBar
+              pagination={list.pagination}
+              page={list.page}
+              setPage={list.setPage}
+            />
           </>
         )}
       </Card>

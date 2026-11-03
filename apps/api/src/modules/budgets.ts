@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { db, transaction } from "../core/db";
+import { db, transaction, schemaCapabilities } from "../core/db";
 import { codeForCreate, AUTO_CODE } from "./automatic-codes";
 import { Actor, requireRoles, requireWork } from "../core/auth";
 import { audit } from "../core/audit";
@@ -50,6 +50,7 @@ export interface SnapshotLine {
   unit: string;
   quantity: string;
   laborUnitCost: string;
+  directUnitCost?: string;
   materials: SnapshotMaterial[];
 }
 export interface BudgetSnapshotInput {
@@ -82,10 +83,13 @@ export function calculateBudget(input: BudgetSnapshotInput) {
       name: string;
       materialCost: Prisma.Decimal;
       laborCost: Prisma.Decimal;
+      directCost: Prisma.Decimal;
     }
   >();
   let materialTotal = new Decimal(0);
   let laborTotal = new Decimal(0);
+  let directTotal = new Decimal(0);
+  const hasDirect = input.lines.some((l) => l.directUnitCost !== undefined);
   const lines = input.lines.map((source) => {
     const line = structuredClone(source);
     const quantity = new Decimal(line.quantity);
@@ -120,23 +124,35 @@ export function calculateBudget(input: BudgetSnapshotInput) {
     );
     materialTotal = materialTotal.add(materialCost);
     laborTotal = laborTotal.add(laborCost);
+    const directCost = new Decimal(
+      money(new Decimal(line.directUnitCost ?? "0").mul(quantity)),
+    );
+    directTotal = directTotal.add(directCost);
     const category = categories.get(line.categoryId) ?? {
       categoryId: line.categoryId,
       name: line.category,
       materialCost: new Decimal(0),
       laborCost: new Decimal(0),
+      directCost: new Decimal(0),
     };
     category.materialCost = category.materialCost.add(materialCost);
     category.laborCost = category.laborCost.add(laborCost);
+    category.directCost = category.directCost.add(directCost);
     categories.set(line.categoryId, category);
     return {
       ...line,
       materials,
       materialUnitCost: materialUnitCost.toFixed(),
-      totalUnitCost: materialUnitCost.add(line.laborUnitCost).toFixed(),
+      totalUnitCost: materialUnitCost
+        .add(line.laborUnitCost)
+        .add(line.directUnitCost ?? "0")
+        .toFixed(),
       materialCost: money(materialCost),
       laborCost: money(laborCost),
-      totalCost: money(materialCost.add(laborCost)),
+      ...(line.directUnitCost !== undefined
+        ? { directCost: money(directCost) }
+        : {}),
+      totalCost: money(materialCost.add(laborCost).add(directCost)),
     };
   });
   const consolidated = new Map<
@@ -170,10 +186,14 @@ export function calculateBudget(input: BudgetSnapshotInput) {
     roundingBoundary: "EXTENDED_LINE_COMPONENTS" as const,
     lines,
     categories: [...categories.values()].map((group) => ({
-      ...group,
+      categoryId: group.categoryId,
+      name: group.name,
       materialCost: money(group.materialCost),
       laborCost: money(group.laborCost),
-      totalCost: money(group.materialCost.add(group.laborCost)),
+      ...(hasDirect ? { directCost: money(group.directCost) } : {}),
+      totalCost: money(
+        group.materialCost.add(group.laborCost).add(group.directCost),
+      ),
     })),
     materialsByCategory: [...bom.values()].map((material) => ({
       ...material,
@@ -185,7 +205,8 @@ export function calculateBudget(input: BudgetSnapshotInput) {
     })),
     materialCost: money(materialTotal),
     laborCost: money(laborTotal),
-    totalCost: money(materialTotal.add(laborTotal)),
+    ...(hasDirect ? { directCost: money(directTotal) } : {}),
+    totalCost: money(materialTotal.add(laborTotal).add(directTotal)),
   };
 }
 
@@ -220,6 +241,7 @@ export const itemSchema = z
     categoryId: identifier,
     unitId: identifier,
     laborCost: amount,
+    directCost: amount.optional(),
     laborCurrency: currency,
     laborTaxBasis: taxBasis,
     active: z.boolean().optional(),
@@ -234,7 +256,7 @@ export const itemSchema = z
     )
       ctx.addIssue({
         code: "custom",
-        message: "Material repetido en el APU",
+        message: "Material repetido en la actividad",
         path: ["components"],
       });
   });
@@ -293,6 +315,7 @@ const lineOverride = z
     lineId: identifier,
     quantity: positive.optional(),
     laborUnitCost: amount.optional(),
+    directUnitCost: amount.optional(),
     materials: z
       .array(
         z
@@ -431,7 +454,7 @@ async function snapshotLines(
       throw new ApiError(
         422,
         "INVALID_OVERRIDE",
-        "Material repetido o ajeno al APU",
+        "Material repetido o ajeno a la actividad",
       );
     if (
       override?.laborUnitCost === undefined &&
@@ -444,6 +467,17 @@ async function snapshotLines(
         "INCOMPARABLE_LABOR",
         "Informe mano de obra explícita para la moneda y base impositiva elegidas",
       );
+    if (
+      override?.directUnitCost === undefined &&
+      item.directCost?.gt(0) &&
+      (item.laborCurrency !== valuation.currency ||
+        item.laborTaxBasis !== valuation.taxBasis)
+    )
+      throw new ApiError(
+        422,
+        "INCOMPARABLE_DIRECT_COST",
+        "Informá costos directos explícitos para la moneda y base impositiva elegidas.",
+      );
     return {
       sourceLineId: line.id,
       itemId: item.id,
@@ -455,6 +489,12 @@ async function snapshotLines(
       unit: item.unit.code,
       quantity: override?.quantity ?? line.quantity.toString(),
       laborUnitCost: override?.laborUnitCost ?? item.laborCost!.toString(),
+      ...(override?.directUnitCost !== undefined || item.directCost != null
+        ? {
+            directUnitCost:
+              override?.directUnitCost ?? item.directCost!.toFixed(),
+          }
+        : {}),
       materials: item.components.map((component) => {
         const materialOverride = override?.materials?.find(
           (value) => value.materialId === component.materialId,
@@ -546,7 +586,9 @@ export async function handlerBudgets(
         materials: {
           include: {
             material: { select: { id: true, code: true, name: true } },
-            unit: { select: { id: true, code: true, name: true, symbol: true } },
+            unit: {
+              select: { id: true, code: true, name: true, symbol: true },
+            },
             category: { select: { id: true, code: true, name: true } },
           },
         },
@@ -622,10 +664,23 @@ export async function handlerBudgets(
     if (!id && method === "POST") {
       requireWriter(actor);
       const input = parse(itemSchema, await json(request));
+      if (
+        input.directCost !== undefined &&
+        !(await schemaCapabilities()).activities
+      )
+        throw new ApiError(
+          503,
+          "FEATURE_NOT_ENABLED",
+          "Los costos directos reutilizables requieren la migración de aplicación.",
+        );
       const result = await transaction(async (tx) => {
         const { components, ...data } = input;
         const item = await tx.apuItem.create({
-          data: { ...data, code: await codeForCreate(tx, "apu-items", data.code ?? AUTO_CODE), components: { create: components } },
+          data: {
+            ...data,
+            code: await codeForCreate(tx, "apu-items", data.code ?? AUTO_CODE),
+            components: { create: components },
+          },
           include: itemInclude,
         });
         await audit(tx, actor, "CREATE", "ApuItem", item.id, input);
@@ -638,13 +693,23 @@ export async function handlerBudgets(
         where: { id },
         include: itemInclude,
       });
-      if (!item) throw new ApiError(404, "NOT_FOUND", "APU inexistente");
+      if (!item)
+        throw new ApiError(404, "NOT_FOUND", "Actividad de obra inexistente");
       return response({ data: item });
     }
     if (id && !action && method === "PATCH") {
       requireWriter(actor);
       // A full replacement makes component removals explicit and auditable.
       const input = parse(itemSchema, await json(request));
+      if (
+        input.directCost !== undefined &&
+        !(await schemaCapabilities()).activities
+      )
+        throw new ApiError(
+          503,
+          "FEATURE_NOT_ENABLED",
+          "Los costos directos reutilizables requieren la migración de aplicación.",
+        );
       const result = await transaction(async (tx) => {
         const { components, ...data } = input;
         await tx.apuMaterial.deleteMany({ where: { itemId: id } });
@@ -665,7 +730,8 @@ export async function handlerBudgets(
           where: { id },
           include: itemInclude,
         });
-        if (!item) throw new ApiError(404, "NOT_FOUND", "APU inexistente");
+        if (!item)
+          throw new ApiError(404, "NOT_FOUND", "Actividad de obra inexistente");
         const lines = await snapshotLines(
           tx,
           [{ id, item, quantity: new Decimal(1) }],
@@ -918,7 +984,7 @@ export async function handlerBudgets(
       return response({ data: version });
     }
     if (action === "reference" && method === "POST") {
-      requireRoles(actor, "GERENCIA");
+      requireRoles(actor, "GERENCIA", "COMPUTO");
       const result = await transaction(async (tx) => {
         const version = await tx.budgetVersion.findUnique({
           where: { id },

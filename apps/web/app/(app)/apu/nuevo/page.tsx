@@ -10,8 +10,14 @@ export default function NewApuPage() {
   const router = useRouter();
   return (
     <RequirePerm ok={can('editBudget')}>
-      <Page title="Nuevo APU" crumb={<Link href="/apu">APU</Link>}>
-        <ApuForm onSaved={(a) => router.push(`/apu/${a.id}`)} onCancel={() => router.push('/apu')} />
+      <Page
+        title="Nueva actividad de obra"
+        crumb={<Link href="/apu">Actividades de obra</Link>}
+      >
+        <ApuForm
+          onSaved={(a) => router.push(`/apu/${a.id}`)}
+          onCancel={() => router.push('/apu')}
+        />
       </Page>
     </RequirePerm>
   );

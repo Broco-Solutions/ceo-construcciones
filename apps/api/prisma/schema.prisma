@@ -12,6 +12,7 @@ enum Role {
   COMPRAS
   COMPUTO
   JEFE_OBRA
+  ADMINISTRACION
 }
 
 enum WorkStatus {
@@ -77,27 +78,29 @@ enum TaxBasis {
 }
 
 model User {
-  id                             String              @id @default(cuid())
-  email                          String              @unique
+  id                             String                @id @default(cuid())
+  email                          String                @unique
   name                           String
   passwordHash                   String
   role                           Role
-  active                         Boolean             @default(true)
-  createdAt                      DateTime            @default(now())
-  updatedAt                      DateTime            @updatedAt
+  active                         Boolean               @default(true)
+  createdAt                      DateTime              @default(now())
+  updatedAt                      DateTime              @updatedAt
   sessions                       Session[]
   assignments                    WorkAssignment[]
   managedWorks                   Work[]
   auditLogs                      AuditLog[]
-  BudgetVersioncreatedById       BudgetVersion[]     @relation("BudgetVersioncreatedById")
-  MaterialRequestrequestedById   MaterialRequest[]   @relation("MaterialRequestrequestedById")
-  QuotationselectedById          Quotation[]         @relation("QuotationselectedById")
-  PurchaseOrdercreatedById       PurchaseOrder[]     @relation("PurchaseOrdercreatedById")
-  PurchaseOrderinvoiceLoadedById PurchaseOrder[]     @relation("PurchaseOrderinvoiceLoadedById")
-  ReceiptreceivedById            Receipt[]           @relation("ReceiptreceivedById")
-  ReservationcreatedById         Reservation[]       @relation("ReservationcreatedById")
-  StockMovementcreatedById       StockMovement[]     @relation("StockMovementcreatedById")
-  IdempotencyRecordactorId       IdempotencyRecord[] @relation("IdempotencyRecordactorId")
+  BudgetVersioncreatedById       BudgetVersion[]       @relation("BudgetVersioncreatedById")
+  MaterialRequestrequestedById   MaterialRequest[]     @relation("MaterialRequestrequestedById")
+  QuotationselectedById          Quotation[]           @relation("QuotationselectedById")
+  PurchaseOrdercreatedById       PurchaseOrder[]       @relation("PurchaseOrdercreatedById")
+  PurchaseOrderinvoiceLoadedById PurchaseOrder[]       @relation("PurchaseOrderinvoiceLoadedById")
+  ReceiptreceivedById            Receipt[]             @relation("ReceiptreceivedById")
+  ReservationcreatedById         Reservation[]         @relation("ReservationcreatedById")
+  StockMovementcreatedById       StockMovement[]       @relation("StockMovementcreatedById")
+  IdempotencyRecordactorId       IdempotencyRecord[]   @relation("IdempotencyRecordactorId")
+  receptionDelegations           ReceptionDelegation[]
+  invoiceInfoChanges             OrderInvoiceInfo[]
 }
 
 model Session {
@@ -124,6 +127,10 @@ model Work {
   id             String            @id @default(cuid())
   code           String            @unique
   name           String
+  /// Nullable only for records created before client relationships existed.
+  clientId       String?
+  client         Client?           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  address        String?
   status         WorkStatus        @default(ACTIVE)
   managerId      String?
   manager        User?             @relation(fields: [managerId], references: [id], onDelete: Restrict)
@@ -137,6 +144,26 @@ model Work {
   purchaseOrders PurchaseOrder[]
   reservations   Reservation[]
   movements      StockMovement[]
+
+  @@index([clientId])
+}
+
+/// Commercial counterparty. It is deliberately independent from a work: one
+/// client can have several works and can be registered before the first one.
+model Client {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  taxId     String?  @unique
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  works     Work[]
 }
 
 model WorkAssignment {
@@ -151,21 +178,44 @@ model WorkAssignment {
 }
 
 model Location {
-  id             String          @id @default(cuid())
-  code           String          @unique
-  name           String
-  kind           LocationKind
-  workId         String?         @unique
-  work           Work?           @relation(fields: [workId], references: [id], onDelete: Restrict)
-  active         Boolean         @default(true)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  purchaseOrders PurchaseOrder[]
-  receipts       Receipt[]
-  balances       StockBalance[]
-  reservations   Reservation[]
-  outgoing       StockMovement[] @relation("MovementSource")
-  incoming       StockMovement[] @relation("MovementDestination")
+  id                   String                @id @default(cuid())
+  code                 String                @unique
+  name                 String
+  kind                 LocationKind
+  workId               String?               @unique
+  work                 Work?                 @relation(fields: [workId], references: [id], onDelete: Restrict)
+  active               Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  purchaseOrders       PurchaseOrder[]
+  receipts             Receipt[]
+  balances             StockBalance[]
+  reservations         Reservation[]
+  outgoing             StockMovement[]       @relation("MovementSource")
+  incoming             StockMovement[]       @relation("MovementDestination")
+  receptionDelegations ReceptionDelegation[]
+}
+
+model ReceptionDelegation {
+  userId     String
+  locationId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now())
+
+  @@id([userId, locationId])
+  @@index([locationId])
+}
+
+model OrderInvoiceInfo {
+  orderId       String        @id
+  order         PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  amount        Decimal?      @db.Decimal(24, 8)
+  currency      String?       @db.VarChar(3)
+  paymentStatus String        @default("PENDING")
+  changedById   String
+  changedBy     User          @relation(fields: [changedById], references: [id], onDelete: Restrict)
+  changedAt     DateTime      @default(now())
 }
 
 model Unit {
@@ -274,6 +324,7 @@ model ApuItem {
   unitId           String
   unit             Unit              @relation(fields: [unitId], references: [id], onDelete: Restrict)
   laborCost        Decimal?          @db.Decimal(24, 8)
+  directCost       Decimal?          @db.Decimal(24, 8)
   laborCurrency    String?           @db.VarChar(3)
   laborTaxBasis    TaxBasis          @default(UNSPECIFIED)
   active           Boolean           @default(true)
@@ -321,6 +372,35 @@ model Budget {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   versions  BudgetVersion[]
+  draft     BudgetDraft?
+}
+
+model BudgetDraft {
+  budgetId  String   @id
+  budget    Budget   @relation(fields: [budgetId], references: [id], onDelete: Restrict)
+  revision  Int      @default(1)
+  content   Json
+  updatedAt DateTime @updatedAt
+}
+
+model BudgetTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  content   Json
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+/// Commercial issuance metadata is separate from the V1 cost snapshot so old
+/// versions never acquire a fabricated sale amount or issue date.
+model BudgetIssue {
+  versionId       String        @id
+  version         BudgetVersion @relation(fields: [versionId], references: [id], onDelete: Restrict)
+  contentHash     String
+  issuedAt        DateTime      @default(now())
+  commercialTotal Decimal       @db.Decimal(36, 16)
+
+  @@index([contentHash])
 }
 
 model BudgetVersion {
@@ -338,6 +418,7 @@ model BudgetVersion {
   createdAt    DateTime         @default(now())
   materials    BudgetMaterial[]
   createdBy    User             @relation("BudgetVersioncreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+  issue        BudgetIssue?
 
   @@unique([budgetId, number])
 }
@@ -448,6 +529,16 @@ model PurchaseOrder {
   receipts          Receipt[]
   createdBy         User                @relation("PurchaseOrdercreatedById", fields: [createdById], references: [id], onDelete: Restrict)
   invoiceLoadedBy   User?               @relation("PurchaseOrderinvoiceLoadedById", fields: [invoiceLoadedById], references: [id], onDelete: Restrict)
+  invoiceInfo       OrderInvoiceInfo?
+  amountPolicy      OrderAmountPolicy?
+}
+
+model OrderAmountPolicy {
+  orderId      String        @id
+  order        PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  precision    Int           @default(2)
+  roundingMode String        @default("HALF_UP")
+  boundary     String        @default("EXTENDED_LINE")
 }
 
 model PurchaseOrderLine {
@@ -487,6 +578,7 @@ model ReceiptLine {
   orderLine   PurchaseOrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
   quantity    Decimal           @db.Decimal(24, 8)
   movement    StockMovement?
+  coverage    ReceiptCoverage?
 
   @@unique([receiptId, orderLineId])
 }
@@ -523,8 +615,16 @@ model Reservation {
   updatedAt         DateTime          @updatedAt
   movements         StockMovement[]
   createdBy         User              @relation("ReservationcreatedById", fields: [createdById], references: [id], onDelete: Restrict)
+  receiptCoverage   ReceiptCoverage?
 
   @@index([sourceId, materialId, status])
+}
+
+model ReceiptCoverage {
+  receiptLineId String      @id
+  receiptLine   ReceiptLine @relation(fields: [receiptLineId], references: [id], onDelete: Restrict)
+  reservationId String      @unique
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Restrict)
 }
 
 model StockMovement {
