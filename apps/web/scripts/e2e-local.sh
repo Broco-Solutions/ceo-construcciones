@@ -9,4 +9,5 @@ export E2E_GERENCIA_EMAIL="${E2E_GERENCIA_EMAIL:-gerencia@demo.local}" E2E_GEREN
 export E2E_COMPRAS_EMAIL="${E2E_COMPRAS_EMAIL:-compras@demo.local}" E2E_COMPRAS_PASSWORD="$(rd compras.pw)"
 export E2E_COMPUTO_EMAIL="${E2E_COMPUTO_EMAIL:-computo@demo.local}" E2E_COMPUTO_PASSWORD="$(rd computo.pw)"
 export E2E_JEFE_OBRA_EMAIL="${E2E_JEFE_OBRA_EMAIL:-jefe@demo.local}" E2E_JEFE_OBRA_PASSWORD="$(rd jefe.pw)"
+export E2E_ADMINISTRACION_EMAIL="${E2E_ADMINISTRACION_EMAIL:-administracion@demo.local}" E2E_ADMINISTRACION_PASSWORD="$(rd administracion.pw)"
 exec pnpm exec playwright test "$@"

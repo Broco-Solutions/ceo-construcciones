@@ -4,7 +4,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
-import { Card, DataTable, Empty, ErrorBox, Loading, PagerBar, SelectField } from '@/components/ui';
+import {
+  Card,
+  DataTable,
+  Empty,
+  ErrorBox,
+  Loading,
+  PagerBar,
+  SelectField,
+} from '@/components/ui';
 import { useSession } from '@/lib/session';
 import { usePaged } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
@@ -28,7 +36,9 @@ function ComputosList() {
   const sp = useSearchParams();
   const workId = sp.get('workId') ?? '';
   const works = useWorks();
-  const list = usePaged<Schemas['Computation']>('/computations', { workId: workId || undefined });
+  const list = usePaged<Schemas['Computation']>('/computations', {
+    workId: workId || undefined,
+  });
   const workName = (id: string) => {
     const w = works.workById.get(id);
     return w ? `${w.code} · ${w.name}` : '—';
@@ -39,7 +49,10 @@ function ComputosList() {
       crumb="Presupuestos / Cómputos"
       actions={
         can('editBudget') && (
-          <Link href={`/computos/nuevo${workId ? `?workId=${workId}` : ''}`} className="btn">
+          <Link
+            href={`/computos/nuevo${workId ? `?workId=${workId}` : ''}`}
+            className="btn"
+          >
             <Plus size={16} /> Nuevo cómputo
           </Link>
         )
@@ -57,8 +70,17 @@ function ComputosList() {
               label="Obra"
               value={workId}
               placeholder="Todas"
-              options={works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))}
-              onChange={(e) => router.replace(e.target.value ? `/computos?workId=${e.target.value}` : '/computos')}
+              options={works.rows.map((w) => ({
+                value: w.id,
+                label: `${w.code} · ${w.name}`,
+              }))}
+              onChange={(e) =>
+                router.replace(
+                  e.target.value
+                    ? `/computos?workId=${e.target.value}`
+                    : '/computos',
+                )
+              }
             />
           </div>
         }
@@ -73,11 +95,29 @@ function ComputosList() {
               rows={list.rows}
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/computos/${r.id}`)}
-              empty={<Empty title="Sin cómputos">Un cómputo registra las cantidades medidas de cada ítem APU en una obra.</Empty>}
+              empty={
+                <Empty title="Sin cómputos">
+                  Un cómputo registra las cantidades medidas de cada actividad
+                  de obra.
+                </Empty>
+              }
               columns={[
-                { key: 'name', header: 'Cómputo', render: (r) => <b>{r.name}</b> },
-                { key: 'work', header: 'Obra', render: (r) => workName(r.workId) },
-                { key: 'upd', header: 'Actualizado', render: (r) => formatDateTime(r.updatedAt), hideMobile: true },
+                {
+                  key: 'name',
+                  header: 'Cómputo',
+                  render: (r) => <b>{r.name}</b>,
+                },
+                {
+                  key: 'work',
+                  header: 'Obra',
+                  render: (r) => workName(r.workId),
+                },
+                {
+                  key: 'upd',
+                  header: 'Actualizado',
+                  render: (r) => formatDateTime(r.updatedAt),
+                  hideMobile: true,
+                },
               ]}
               mobile={(r) => (
                 <div className="stack" style={{ gap: 4 }}>
@@ -87,7 +127,11 @@ function ComputosList() {
                 </div>
               )}
             />
-            <PagerBar pagination={list.pagination} page={list.page} setPage={list.setPage} />
+            <PagerBar
+              pagination={list.pagination}
+              page={list.page}
+              setPage={list.setPage}
+            />
           </>
         )}
       </Card>

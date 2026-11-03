@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "../src/core/db";
 import { sessionHash } from "../src/core/auth";
 import { dispatch } from "../src/router";
+import { workClientBody } from "./work-client-fixture";
 
 const tag = `filters-${randomUUID()}`;
 let adminId: string, chiefId: string, admin: string, chief: string;
@@ -18,6 +19,7 @@ async function call(
   body?: unknown,
   token = admin,
 ) {
+  body = await workClientBody(path, method, body);
   return dispatch(
     new Request(`${origin}/api/v1/${path}`, {
       method,

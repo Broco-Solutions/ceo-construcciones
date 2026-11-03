@@ -440,10 +440,13 @@ describe.skipIf(!enabled)(
         ],
       });
       await run(`purchase-orders/${order.id}/status`, { status: "ISSUED" });
-      await run(`purchase-orders/${order.id}/receipts`, {
+      const receipt = await run(`purchase-orders/${order.id}/receipts`, {
         locationId: warehouse.id,
         deliveryNote: "Remito flujo completo",
         lines: [{ orderLineId: order.lines[0].id, quantity: "350" }],
+      });
+      const receivedCoverage = await db.receiptCoverage.findUniqueOrThrow({
+        where: { receiptLineId: receipt.lines[0].id },
       });
       await run("movements", {
         type: "TRANSFER",
@@ -459,6 +462,7 @@ describe.skipIf(!enabled)(
         quantity: "350",
         sourceId: warehouse.id,
         destinationId: location.id,
+        reservationId: receivedCoverage.reservationId,
       });
       await run(
         "movements",

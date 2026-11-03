@@ -75,13 +75,15 @@ await ensure('/suppliers', '/suppliers', byCode('PROV-DEMO-1'), { code: 'PROV-DE
 await ensure('/suppliers', '/suppliers', byCode('PROV-DEMO-CMP2'), { code: 'PROV-DEMO-CMP2', name: 'Proveedor Demo Oeste' });
 await ensure('/locations', '/locations', byCode('GAL-01'), { code: 'GAL-01', name: 'Galpón Demo Central', kind: 'WAREHOUSE' });
 await ensure('/locations', '/locations', byCode('PAT-01'), { code: 'PAT-01', name: 'Patio Demo', kind: 'YARD' });
-const work = await ensure('/works', '/works', byCode('OBR-DEMO-01'), { code: 'OBR-DEMO-01', name: 'Obra Demo Norte', status: 'ACTIVE' });
+const client = await ensure('/clients', '/clients', byCode('CLI-DEMO-01'), { code: 'CLI-DEMO-01', name: 'Cliente Demo', contact: 'Contacto sintético' });
+const work = await ensure('/works', '/works', byCode('OBR-DEMO-01'), { code: 'OBR-DEMO-01', name: 'Obra Demo Norte', status: 'ACTIVE', clientId: client.id });
 
 const users = await all('/users');
 for (const [file, email, name, role] of [
   ['compras.pw', 'compras@demo.local', 'Compras Demo', 'COMPRAS'],
   ['computo.pw', 'computo@demo.local', 'Cómputo Demo', 'COMPUTO'],
   ['jefe.pw', 'jefe@demo.local', 'Jefe Demo', 'JEFE_OBRA'],
+  ['administracion.pw', 'administracion@demo.local', 'Administración Demo', 'ADMINISTRACION'],
 ]) {
   let u = users.find((x) => x.email === email);
   if (!u) u = (await call('POST', '/users', { email, name, role, password: secret(file) })).data;

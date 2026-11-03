@@ -2,21 +2,61 @@
 import { useMemo, useRef, useState } from 'react';
 import { Download, FileUp, Upload } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
-import { Button, Card, Confirm, ErrorBox, Pill, Tabs, useToast } from '@/components/ui';
+import {
+  Button,
+  Card,
+  Confirm,
+  ErrorBox,
+  Pill,
+  Tabs,
+  useToast,
+} from '@/components/ui';
 import { api, ApiError } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { parseCsv } from '@/components/admin/csv';
 import { exportFilename, templateFilename } from '@/lib/download-names';
 
-type Kind = 'works' | 'suppliers' | 'materials' | 'prices' | 'purchase-orders' | 'initial-stock';
+type Kind =
+  | 'clients'
+  | 'works'
+  | 'suppliers'
+  | 'materials'
+  | 'prices'
+  | 'purchase-orders'
+  | 'initial-stock';
 const KINDS: { key: Kind; label: string; dep: string }[] = [
-  { key: 'works', label: 'Obras', dep: 'Sin dependencias. Crea también la ubicación de cada obra.' },
+  {
+    key: 'clients',
+    label: 'Clientes',
+    dep: 'Identidad recuperada de la fuente; no se inventa CUIT.',
+  },
+  {
+    key: 'works',
+    label: 'Obras históricas',
+    dep: 'clientCode enlaza el cliente exacto si existe. Sin vínculo, conserva Cliente sin vincular. Crea ubicación propia.',
+  },
   { key: 'suppliers', label: 'Proveedores', dep: 'Sin dependencias.' },
-  { key: 'materials', label: 'Materiales', dep: 'Requiere unidades y rubros cargados (Catálogo).' },
-  { key: 'prices', label: 'Precios', dep: 'Requiere materiales y proveedores.' },
-  { key: 'purchase-orders', label: 'OC abiertas', dep: 'Requiere proveedores, obras, ubicaciones y materiales.' },
-  { key: 'initial-stock', label: 'Stock inicial', dep: 'Requiere materiales y ubicaciones (galpones/patios en Administración > Ubicaciones).' },
+  {
+    key: 'materials',
+    label: 'Materiales',
+    dep: 'Requiere unidades y rubros cargados (Catálogo).',
+  },
+  {
+    key: 'prices',
+    label: 'Precios',
+    dep: 'Requiere materiales y proveedores.',
+  },
+  {
+    key: 'purchase-orders',
+    label: 'OC abiertas',
+    dep: 'Requiere proveedores, obras, ubicaciones y materiales.',
+  },
+  {
+    key: 'initial-stock',
+    label: 'Stock inicial',
+    dep: 'Requiere materiales y ubicaciones (galpones/patios en Administración > Ubicaciones).',
+  },
 ];
 const EXPORTS: { path: string; label: string }[] = [
   { path: '/exports/works', label: 'Obras' },
@@ -27,7 +67,12 @@ const EXPORTS: { path: string; label: string }[] = [
   { path: '/exports/purchase-orders', label: 'Órdenes de compra' },
 ];
 
-type Preview = { valid: boolean; rowCount: number; errors: { row: number; message: string }[]; confirmationHash: string };
+type Preview = {
+  valid: boolean;
+  rowCount: number;
+  errors: { row: number; message: string }[];
+  confirmationHash: string;
+};
 
 export default function ImportacionesPage() {
   const { can } = useSession();
@@ -59,20 +104,45 @@ function Importaciones() {
       <Card title="Orden recomendado de carga">
         <ol className="small" style={{ margin: 0, paddingLeft: 18 }}>
           {KINDS.map((k) => (
-            <li key={k.key}><b>{k.label}</b>: {k.dep}</li>
+            <li key={k.key}>
+              <b>{k.label}</b>: {k.dep}
+            </li>
           ))}
         </ol>
       </Card>
       <Card bodyClass="">
-        <Tabs tabs={KINDS.map((k) => ({ key: k.key, label: k.label }))} value={kind} onChange={setKind} />
+        <Tabs
+          tabs={KINDS.map((k) => ({ key: k.key, label: k.label }))}
+          value={kind}
+          onChange={setKind}
+        />
         <div className="bd">
-          <ImportKind key={kind} kind={kind} onTemplate={() => download(`/imports/${kind}/template`, templateFilename(kind))} templateBusy={busy === `/imports/${kind}/template`} onDone={(n) => toast.success('Importación completada', { description: n === 1 ? 'Se cargó 1 fila.' : `Se cargaron ${n} filas.` })} />
+          <ImportKind
+            key={kind}
+            kind={kind}
+            onTemplate={() =>
+              download(`/imports/${kind}/template`, templateFilename(kind))
+            }
+            templateBusy={busy === `/imports/${kind}/template`}
+            onDone={(n) =>
+              toast.success('Importación completada', {
+                description:
+                  n === 1 ? 'Se cargó 1 fila.' : `Se cargaron ${n} filas.`,
+              })
+            }
+          />
         </div>
       </Card>
       <Card title="Exportaciones">
         <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
           {EXPORTS.map((e) => (
-            <Button key={e.path} variant="sec" loading={busy === e.path} disabled={!!busy && busy !== e.path} onClick={() => download(e.path, exportFilename(e.path))}>
+            <Button
+              key={e.path}
+              variant="sec"
+              loading={busy === e.path}
+              disabled={!!busy && busy !== e.path}
+              onClick={() => download(e.path, exportFilename(e.path))}
+            >
               <Download /> {e.label}
             </Button>
           ))}
@@ -83,24 +153,58 @@ function Importaciones() {
   );
 }
 
-function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; onTemplate: () => void; templateBusy: boolean; onDone: (n: number) => void }) {
+function ImportKind({
+  kind,
+  onTemplate,
+  templateBusy,
+  onDone,
+}: {
+  kind: Kind;
+  onTemplate: () => void;
+  templateBusy: boolean;
+  onDone: (n: number) => void;
+}) {
   const input = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<{ name: string; text: string } | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [confirm, setConfirm] = useState(false);
-  const [result, setResult] = useState<{ importedRows: number; createdIds: string[]; confirmationHash?: string } | null>(null);
+  const [result, setResult] = useState<{
+    importedRows: number;
+    createdIds: string[];
+    confirmationHash?: string;
+  } | null>(null);
   const [readErr, setReadErr] = useState<string | null>(null);
-  const prev = useMutation(async (_k: string, csv: string) => (await api.post<{ data: Preview }>(`/imports/${kind}/preview`, { csv })).data);
-  const commit = useMutation(async (key: string, csv: string, hash: string) =>
-    (await api.post<{ data: { importedRows: number; createdIds: string[]; confirmationHash: string } }>(`/imports/${kind}/commit`, { csv, confirmationHash: hash }, { idempotencyKey: key })).data,
+  const prev = useMutation(
+    async (_k: string, csv: string) =>
+      (await api.post<{ data: Preview }>(`/imports/${kind}/preview`, { csv }))
+        .data,
+  );
+  const commit = useMutation(
+    async (key: string, csv: string, hash: string) =>
+      (
+        await api.post<{
+          data: {
+            importedRows: number;
+            createdIds: string[];
+            confirmationHash: string;
+          };
+        }>(
+          `/imports/${kind}/commit`,
+          { csv, confirmationHash: hash },
+          { idempotencyKey: key },
+        )
+      ).data,
   );
   const table = useMemo(() => (file ? parseCsv(file.text) : []), [file]);
   const errByRow = useMemo(() => {
     const m = new Map<number, string[]>();
-    for (const e of preview?.errors ?? []) m.set(e.row, [...(m.get(e.row) ?? []), e.message]);
+    for (const e of preview?.errors ?? [])
+      m.set(e.row, [...(m.get(e.row) ?? []), e.message]);
     return m;
   }, [preview]);
-  const general = (preview?.errors ?? []).filter((e) => e.row < 1 || e.row > table.length - 1);
+  const general = (preview?.errors ?? []).filter(
+    (e) => e.row < 1 || e.row > table.length - 1,
+  );
 
   const onFile = (f: File | undefined) => {
     setPreview(null);
@@ -135,45 +239,105 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
   return (
     <div className="stack">
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-        <Button variant="sec" onClick={onTemplate} loading={templateBusy}><Download /> Descargar plantilla CSV</Button>
-        <Button onClick={() => input.current?.click()} loading={prev.pending}><FileUp /> Cargar CSV</Button>
-        <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ''))} />
+        <Button variant="sec" onClick={onTemplate} loading={templateBusy}>
+          <Download /> Descargar plantilla CSV
+        </Button>
+        <Button onClick={() => input.current?.click()} loading={prev.pending}>
+          <FileUp /> Cargar CSV
+        </Button>
+        <input
+          ref={input}
+          type="file"
+          accept=".csv,text/csv"
+          hidden
+          onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ''))}
+        />
         {file && <span className="small muted">{file.name}</span>}
       </div>
       {readErr && <div className="alert bad">{readErr}</div>}
       <ErrorBox error={prev.error} />
       <div className="note small" data-testid="import-preview-note">
-        La vista previa muestra el archivo tal como lo cargaste. Antes de importar, el sistema revisa cada fila e indica cuáles tienen errores;
-        no corrige ni completa datos. La fila 1 es la primera fila de datos (el encabezado no se cuenta).
+        La vista previa muestra el archivo tal como lo cargaste. Antes de
+        importar, el sistema revisa cada fila e indica cuáles tienen errores; no
+        corrige ni completa datos. La fila 1 es la primera fila de datos (el
+        encabezado no se cuenta).
       </div>
-      {commit.pending && <div className="note" role="status" data-testid="import-commit-status">Importando… no cierres la página.</div>}
+      {commit.pending && (
+        <div className="note" role="status" data-testid="import-commit-status">
+          Importando… no cierres la página.
+        </div>
+      )}
       {commit.error && !confirm && <ErrorBox error={commit.error} />}
       {result && (
-        <div className="alert ok" role="status" data-testid="import-commit-result">
-          <b>Importación confirmada:</b> {result.importedRows} filas importadas · {result.createdIds.length} registros creados.
-          {result.confirmationHash && <div className="small mono">Huella: {result.confirmationHash.slice(0, 16)}…</div>}
+        <div
+          className="alert ok"
+          role="status"
+          data-testid="import-commit-result"
+        >
+          <b>Importación confirmada:</b> {result.importedRows} filas importadas
+          · {result.createdIds.length} registros creados.
+          {result.confirmationHash && (
+            <div className="small mono">
+              Huella: {result.confirmationHash.slice(0, 16)}…
+            </div>
+          )}
         </div>
       )}
       {preview && (
         <>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {preview.valid ? <Pill tone="ok">Archivo válido</Pill> : <Pill tone="bad">Con errores</Pill>}
-            <span className="small" data-testid="import-preview-summary">Resultado de la revisión: {preview.rowCount} filas · {preview.rowCount - errByRow.size} válidas · {errByRow.size} con errores</span>
-            <span className="small muted mono">Huella {preview.confirmationHash.slice(0, 12)}…</span>
+            {preview.valid ? (
+              <Pill tone="ok">Archivo válido</Pill>
+            ) : (
+              <Pill tone="bad">Con errores</Pill>
+            )}
+            <span className="small" data-testid="import-preview-summary">
+              Resultado de la revisión: {preview.rowCount} filas ·{' '}
+              {preview.rowCount - errByRow.size} válidas · {errByRow.size} con
+              errores
+            </span>
+            <span className="small muted mono">
+              Huella {preview.confirmationHash.slice(0, 12)}…
+            </span>
             <span style={{ flex: 1 }} />
-            <Button variant="ok" disabled={!preview.valid} onClick={() => setConfirm(true)}><Upload /> Confirmar importación</Button>
+            <Button
+              variant="ok"
+              disabled={!preview.valid}
+              onClick={() => setConfirm(true)}
+            >
+              <Upload /> Confirmar importación
+            </Button>
           </div>
-          {!preview.valid && <div className="note">Corregí el archivo y volvé a cargarlo. No se importa nada mientras haya errores.</div>}
+          {!preview.valid && (
+            <div className="note">
+              Corregí el archivo y volvé a cargarlo. No se importa nada mientras
+              haya errores.
+            </div>
+          )}
           {general.length > 0 && (
-            <div className="alert bad"><ul>{general.map((e, i) => <li key={i}>{e.row ? `Fila ${e.row}: ` : ''}{e.message}</li>)}</ul></div>
+            <div className="alert bad">
+              <ul>
+                {general.map((e, i) => (
+                  <li key={i}>
+                    {e.row ? `Fila ${e.row}: ` : ''}
+                    {e.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
           {table.length > 1 && (
-            <div className="tblwrap" style={{ maxHeight: '55vh', overflow: 'auto' }}>
+            <div
+              className="tblwrap"
+              style={{ maxHeight: '55vh', overflow: 'auto' }}
+            >
               <table className="t">
                 <thead>
                   <tr>
                     <th>Fila</th>
-                    {table[0].map((h, i) => <th key={i}>{h}</th>)}
+                    {table[0].map((h, i) => (
+                      <th key={i}>{h}</th>
+                    ))}
                     <th>Validación</th>
                   </tr>
                 </thead>
@@ -183,14 +347,28 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
                     return (
                       <tr key={i}>
                         <td className="mono">{i + 1}</td>
-                        {table[0].map((_, j) => <td key={j}>{r[j] ?? ''}</td>)}
-                        <td>{errs ? <span style={{ color: 'var(--bad)' }}>{errs.join('; ')}</span> : <Pill tone="ok">OK</Pill>}</td>
+                        {table[0].map((_, j) => (
+                          <td key={j}>{r[j] ?? ''}</td>
+                        ))}
+                        <td>
+                          {errs ? (
+                            <span style={{ color: 'var(--bad)' }}>
+                              {errs.join('; ')}
+                            </span>
+                          ) : (
+                            <Pill tone="ok">OK</Pill>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
-              {table.length > 501 && <div className="small muted bd">Se muestran las primeras 500 filas.</div>}
+              {table.length > 501 && (
+                <div className="small muted bd">
+                  Se muestran las primeras 500 filas.
+                </div>
+              )}
             </div>
           )}
         </>
@@ -205,8 +383,13 @@ function ImportKind({ kind, onTemplate, templateBusy, onDone }: { kind: Kind; on
         onClose={() => setConfirm(false)}
         onConfirm={doCommit}
       >
-        Se van a importar {preview?.rowCount} filas de <b>{file?.name}</b>. La operación queda registrada en auditoría.
-        {stale && <div className="note">Los datos cambiaron desde la validación: volvé a cargar el archivo.</div>}
+        Se van a importar {preview?.rowCount} filas de <b>{file?.name}</b>. La
+        operación queda registrada en auditoría.
+        {stale && (
+          <div className="note">
+            Los datos cambiaron desde la validación: volvé a cargar el archivo.
+          </div>
+        )}
       </Confirm>
     </div>
   );

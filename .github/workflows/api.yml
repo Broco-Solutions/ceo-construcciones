@@ -11,7 +11,7 @@ on:
         ".github/workflows/api.yml",
       ]
   push:
-    branches: ["codex/ceo-v1-backend"]
+    branches: ["main", "codex/ceo-v1-backend"]
 permissions:
   contents: read
 jobs:
@@ -47,4 +47,6 @@ jobs:
       - run: pnpm --dir apps/api typecheck
       - run: pnpm --dir apps/api test
       - run: pnpm --dir apps/api build
+      - name: Artefacto nuevo sobre V1 poblada y migraciones ampliadas
+        run: pnpm --dir apps/api exec tsx scripts/check-release-compatibility.ts --runtime
       - run: pnpm --dir apps/api test:runtime

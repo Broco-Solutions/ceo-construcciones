@@ -321,7 +321,7 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         expect(JSON.stringify(safe)).not.toContain(field);
       expect(JSON.stringify(order)).not.toContain("email");
     });
-    it("devuelve null y aviso cuando el importe requiere una política de redondeo no validada", async () => {
+    it("T54: OC nueva redondea por renglón; OC histórica sin política conserva aviso", async () => {
       const presentation = await db.presentation.create({
         data: {
           materialId: material,
@@ -351,9 +351,25 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
           await call("purchase-orders", "POST", body, admin, randomUUID()),
         )
       ).data;
-      expect(order.lines[0].lineAmount).toBeNull();
-      expect(order.totalAmount).toBeNull();
-      expect(order.amountWarning).toBe("ROUNDING_POLICY_REQUIRED");
+      expect(order.lines[0].lineAmount).toBe("0.33");
+      expect(order.totalAmount).toBe("0.33");
+      expect(order.amountWarning).toBeNull();
+      const historical = await db.purchaseOrder.create({
+        data: {
+          supplierId: supplier,
+          workId: work,
+          destinationId: location,
+          currency: "ARS",
+          taxBasis: "INCLUDED",
+          createdById: users[0],
+          lines: { create: body.lines },
+        },
+      });
+      const legacy = (
+        await success(await call(`purchase-orders/${historical.id}`))
+      ).data;
+      expect(legacy.totalAmount).toBeNull();
+      expect(legacy.amountWarning).toBe("ROUNDING_POLICY_REQUIRED");
     });
     it("vincula recepciones en historia de OC e identifica actores sin emails", async () => {
       const receipt = (

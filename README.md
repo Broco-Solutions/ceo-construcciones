@@ -6,7 +6,7 @@ Monorepo del sistema de obras, presupuestos, compras e inventario de CEO Constru
 
 - Node.js 24, pnpm 10.18.3, TypeScript y Next.js App Router.
 - `apps/api`: API REST `/api/v1`, Prisma/PostgreSQL y Railway.
-- `apps/web`: frontend Next.js en Vercel, desarrollado por Claude Code.
+- `apps/web`: frontend Next.js en Vercel. Durante el cierre de Etapa 1 puede ser implementado por Codex junto al contrato API.
 - Sesiones seguras, autorización por rol/obra y auditoría en backend.
 - Stock físico, reservas y disponibilidad separados; operaciones transaccionales.
 - Sin microservicios, Redis, colas, IA integrada ni servicios externos nuevos.
@@ -60,4 +60,4 @@ No aplicar migraciones, mergear ni desplegar producción sin revisión y autoriz
 - [Estado del proyecto](docs/ESTADO-PROYECTO.md): hechos verificados y pendientes reales.
 - [Instrucciones globales](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md) y [AGENTS.md](AGENTS.md): continuidad y responsabilidades.
 
-Codex mantiene dominio, API, datos e integridad. Claude Code integra el frontend a los contratos versionados sin crear endpoints ni modelos paralelos. No modificar `apps/web` durante esta misión backend.
+El cierre funcional de Etapa 1 está regido por `CEO_PLAN_MAESTRO_CODEX.md`: incluye clientes/obras, Actividades de obra, costos y presentación comercial, compras, importaciones e indicadores. No modifica infraestructura ni ejecuta cambios sobre producción.

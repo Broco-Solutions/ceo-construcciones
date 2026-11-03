@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { Prisma, Role } from "@prisma/client";
-import { db, transaction } from "../core/db";
+import { db, transaction, schemaCapabilities } from "../core/db";
 import { ApiError } from "../core/errors";
 import {
   Actor,
@@ -116,6 +116,12 @@ async function updateUser(
   id: string,
   input: Record<string, unknown>,
 ) {
+  if (input.role === "ADMINISTRACION" && !(await schemaCapabilities()).clients)
+    throw new ApiError(
+      503,
+      "FEATURE_NOT_ENABLED",
+      "Administración restringida requiere la migración de aplicación.",
+    );
   return transaction(async (tx) => {
     const existing = await tx.user.findUnique({ where: { id } });
     if (!existing)
@@ -232,6 +238,15 @@ export async function identity(
   if (!id && request.method === "POST") {
     const input = await body(request),
       passwordHash = await hashPassword(passwordInput(input.password));
+    if (
+      input.role === "ADMINISTRACION" &&
+      !(await schemaCapabilities()).clients
+    )
+      throw new ApiError(
+        503,
+        "FEATURE_NOT_ENABLED",
+        "Administración restringida requiere la migración de aplicación.",
+      );
     const result = await transaction(async (tx) => {
       const user = await tx.user.create({
         data: {

@@ -9,6 +9,7 @@ const EXPORT_NAME: Record<string, string> = {
 };
 
 const TEMPLATE_NAME: Record<string, string> = {
+  clients: 'clientes',
   works: 'obras',
   suppliers: 'proveedores',
   materials: 'materiales',

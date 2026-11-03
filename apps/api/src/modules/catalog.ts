@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
-import { db, transaction } from "../core/db";
+import { db, transaction, schemaCapabilities } from "../core/db";
 import { audit } from "../core/audit";
 import { codeForCreate } from "./automatic-codes";
 import { type Actor, requireRoles, requireWork } from "../core/auth";
@@ -20,13 +20,30 @@ import {
   found,
   conflict,
   presentationCheck,
+  canonicalTaxId,
+  duplicateClientTaxId,
 } from "./shared";
 export const named = z.object({ code: text, name: text }).strict();
 /** Unidad de medida: el símbolo es opcional; null lo quita. */
-export const unitSchema = named.extend({ symbol: z.string().trim().min(1).max(20).nullable().optional() });
+export const unitSchema = named.extend({
+  symbol: z.string().trim().min(1).max(20).nullable().optional(),
+});
 export const workSchema = named.extend({
   status: z.enum(["ACTIVE", "PAUSED", "COMPLETED"]).optional(),
   managerId: id.nullable().optional(),
+  // Kept optional in the schema so legacy records and migration tooling can be
+  // read/updated. New work creation below requires it explicitly.
+  clientId: id.optional(),
+  address: text.nullable().optional(),
+});
+export const clientSchema = named.extend({
+  taxId: text.nullable().optional(),
+  contact: text.nullable().optional(),
+  phone: text.nullable().optional(),
+  email: z.string().email().nullable().optional(),
+  address: text.nullable().optional(),
+  notes: z.string().max(4000).nullable().optional(),
+  active: z.boolean().optional(),
 });
 export const supplierSchema = named.extend({
   taxId: text.nullable().optional(),
@@ -59,7 +76,7 @@ export const priceSchema = z
     materialId: id,
     supplierId: id.nullable().optional(),
     presentationId: id.nullable().optional(),
-    price: decimal,
+    price: nonnegative,
     baseQuantity: decimal,
     currency,
     taxBasis,
@@ -77,6 +94,7 @@ export async function handlerCatalog(
   if (
     ![
       "works",
+      "clients",
       "locations",
       "units",
       "categories",
@@ -148,6 +166,7 @@ export async function handlerCatalog(
             where: { id: key },
             include: {
               location: true,
+              client: { select: { id: true, code: true, name: true } },
               assignments: { select: { userId: true } },
             },
           }),
@@ -157,7 +176,13 @@ export async function handlerCatalog(
           orderBy: [{ createdAt: "desc" }, { id: "desc" }],
           select: { id: true },
         });
-        return ok({ ...work, referenceVersionId: reference?.id ?? null });
+        return ok({
+          ...work,
+          clientId: work.clientId ?? null,
+          address: work.address ?? null,
+          client: work.client ?? null,
+          referenceVersionId: reference?.id ?? null,
+        });
       }
       const where: Prisma.WorkWhereInput =
         actor.role === "JEFE_OBRA"
@@ -172,23 +197,72 @@ export async function handlerCatalog(
         where.status = z
           .enum(["ACTIVE", "PAUSED", "COMPLETED"])
           .parse(q.get("status"));
+      if (q.get("clientId")) {
+        if (!(await schemaCapabilities()).clients)
+          throw new ApiError(
+            503,
+            "FEATURE_NOT_ENABLED",
+            "Los filtros por cliente aún no están habilitados.",
+          );
+        where.clientId = q.get("clientId")!;
+      }
       const [data, total] = await db.$transaction([
         db.work.findMany({
           where,
-          include: { location: true },
+          include: {
+            location: true,
+            client: { select: { id: true, code: true, name: true } },
+          },
           skip: p.skip,
           take: p.take,
           orderBy: { code: "asc" },
         }),
         db.work.count({ where }),
       ]);
-      return listed(data, total, p);
+      return listed(
+        data.map((w) => ({
+          ...w,
+          clientId: w.clientId ?? null,
+          address: w.address ?? null,
+          client: w.client ?? null,
+        })),
+        total,
+        p,
+      );
     }
     requireRoles(actor, "GERENCIA");
     if (method === "POST" && !key) {
       const b = await parse(request, workSchema);
+      const enabled = (await schemaCapabilities()).clients;
+      if (!enabled && ("clientId" in b || "address" in b))
+        throw new ApiError(
+          503,
+          "FEATURE_NOT_ENABLED",
+          "Los datos de cliente aún no están habilitados en este entorno.",
+        );
       return ok(
         await transaction(async (tx) => {
+          if (enabled && !b.clientId)
+            throw new ApiError(
+              422,
+              "VALIDATION_ERROR",
+              "Debe seleccionar un cliente para la obra.",
+              {
+                fieldErrors: { clientId: ["Completá este campo"] },
+                formErrors: [],
+              },
+            );
+          if (enabled) {
+            const client = await tx.client.findUnique({
+              where: { id: b.clientId! },
+            });
+            if (!client?.active)
+              throw new ApiError(
+                422,
+                "INVALID_CLIENT",
+                "Seleccioná un cliente activo.",
+              );
+          }
           const code = await codeForCreate(tx, "works", b.code);
           const w = await tx.work.create({
             data: {
@@ -207,6 +281,15 @@ export async function handlerCatalog(
     }
     if (method === "PATCH" && key) {
       const b = await parse(request, workSchema.partial());
+      if (
+        !(await schemaCapabilities()).clients &&
+        ("clientId" in b || "address" in b)
+      )
+        throw new ApiError(
+          503,
+          "FEATURE_NOT_ENABLED",
+          "Los datos de cliente aún no están habilitados en este entorno.",
+        );
       return ok(
         await transaction(async (tx) => {
           const before = found(
@@ -224,6 +307,98 @@ export async function handlerCatalog(
           );
           return w;
         }),
+      );
+    }
+  }
+  if (resource === "clients") {
+    if (method === "GET") {
+      requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
+      if (key) {
+        return ok(
+          found(
+            await db.client.findUnique({
+              where: { id: key },
+              include: {
+                works: {
+                  include: {
+                    location: true,
+                    client: { select: { id: true, code: true, name: true } },
+                    budgets: true,
+                  },
+                  orderBy: { code: "asc" },
+                },
+              },
+            }),
+          ),
+        );
+      }
+      const where: Prisma.ClientWhereInput = {
+        active,
+        ...(search
+          ? {
+              OR: [
+                { code: { contains: search, mode: "insensitive" } },
+                { name: { contains: search, mode: "insensitive" } },
+                {
+                  taxId: {
+                    contains: canonicalTaxId(search),
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {}),
+      };
+      const [data, total] = await db.$transaction([
+        db.client.findMany({
+          where,
+          skip: p.skip,
+          take: p.take,
+          orderBy: { code: "asc" },
+          include: { _count: { select: { works: true } } },
+        }),
+        db.client.count({ where }),
+      ]);
+      return listed(data, total, p);
+    }
+    requireRoles(actor, "GERENCIA", "COMPUTO");
+    if ((method === "POST" && !key) || (method === "PATCH" && key)) {
+      const b = await parse(
+        request,
+        key ? clientSchema.partial() : clientSchema,
+      );
+      if (b.taxId) b.taxId = canonicalTaxId(b.taxId);
+      return ok(
+        await transaction(async (tx) => {
+          if (b.taxId && (await duplicateClientTaxId(tx, b.taxId, key ?? "")))
+            throw new ApiError(
+              409,
+              "DUPLICATE_TAX_ID",
+              "Ya existe un cliente con ese CUIT.",
+            );
+          const row = key
+            ? await tx.client.update({ where: { id: key }, data: b })
+            : await tx.client.create({
+                data: {
+                  ...(b as z.infer<typeof clientSchema>),
+                  code: await codeForCreate(
+                    tx,
+                    "clients",
+                    (b as z.infer<typeof clientSchema>).code,
+                  ),
+                },
+              });
+          await audit(
+            tx,
+            actor,
+            key ? "UPDATE" : "CREATE",
+            "Client",
+            row.id,
+            b,
+          );
+          return row;
+        }),
+        key ? 200 : 201,
       );
     }
   }
@@ -294,7 +469,9 @@ export async function handlerCatalog(
       const b = await parse(request, schema);
       return ok(
         await transaction(async (tx) => {
-          const l = await tx.location.create({ data: { ...b, code: await codeForCreate(tx, "locations", b.code) } });
+          const l = await tx.location.create({
+            data: { ...b, code: await codeForCreate(tx, "locations", b.code) },
+          });
           await audit(tx, actor, "CREATE", "Location", l.id);
           return l;
         }),
@@ -358,16 +535,24 @@ export async function handlerCatalog(
                 ? await tx.unit.update({ where: { id: key }, data: b })
                 : await tx.unit.create({
                     data: {
-                      ...b as z.infer<typeof unitSchema>,
-                      code: await codeForCreate(tx, "units", (b as z.infer<typeof unitSchema>).code),
+                      ...(b as z.infer<typeof unitSchema>),
+                      code: await codeForCreate(
+                        tx,
+                        "units",
+                        (b as z.infer<typeof unitSchema>).code,
+                      ),
                     },
                   })
               : key
                 ? await tx.category.update({ where: { id: key }, data: b })
                 : await tx.category.create({
                     data: {
-                      ...b as z.infer<typeof named>,
-                      code: await codeForCreate(tx, "categories", (b as z.infer<typeof named>).code),
+                      ...(b as z.infer<typeof named>),
+                      code: await codeForCreate(
+                        tx,
+                        "categories",
+                        (b as z.infer<typeof named>).code,
+                      ),
                     },
                   });
           await audit(
@@ -431,8 +616,12 @@ export async function handlerCatalog(
             ? await tx.material.update({ where: { id: key }, data: b })
             : await tx.material.create({
                 data: {
-                  ...b as z.infer<typeof materialSchema>,
-                  code: await codeForCreate(tx, "materials", (b as z.infer<typeof materialSchema>).code),
+                  ...(b as z.infer<typeof materialSchema>),
+                  code: await codeForCreate(
+                    tx,
+                    "materials",
+                    (b as z.infer<typeof materialSchema>).code,
+                  ),
                 },
               });
           await audit(
@@ -489,8 +678,12 @@ export async function handlerCatalog(
             ? await tx.supplier.update({ where: { id: key }, data: b })
             : await tx.supplier.create({
                 data: {
-                  ...b as z.infer<typeof supplierSchema>,
-                  code: await codeForCreate(tx, "suppliers", (b as z.infer<typeof supplierSchema>).code),
+                  ...(b as z.infer<typeof supplierSchema>),
+                  code: await codeForCreate(
+                    tx,
+                    "suppliers",
+                    (b as z.infer<typeof supplierSchema>).code,
+                  ),
                 },
               });
           await audit(
@@ -578,6 +771,15 @@ export async function handlerCatalog(
     }
     if (method === "POST" && !key) {
       const b = await parse(request, priceSchema);
+      if (
+        new Prisma.Decimal(b.price).isZero() &&
+        !(await schemaCapabilities()).coverage
+      )
+        throw new ApiError(
+          503,
+          "FEATURE_NOT_ENABLED",
+          "El precio cero explícito requiere la migración de precios de aplicación.",
+        );
       return ok(
         await transaction(async (tx) => {
           await presentationCheck(tx, b, b.supplierId || "");

@@ -189,7 +189,9 @@ export async function materialReport(actor: Actor, filter: Filter) {
           // Abreviatura visible; el código automático UNI-### no se muestra al usuario.
           unit:
             material.unit.symbol ??
-            (/^UNI-\d+$/.test(material.unit.code) ? material.unit.name : material.unit.code),
+            (/^UNI-\d+$/.test(material.unit.code)
+              ? material.unit.name
+              : material.unit.code),
           planned: version ? q.planned.toFixed() : null,
           requested: q.requested.toFixed(),
           purchased: q.purchased.toFixed(),
@@ -239,7 +241,7 @@ export async function materialReport(actor: Actor, filter: Filter) {
         available:
           "Físico menos reservado en la ubicación de la obra; sin existencias de galpón/patio",
         categoryAttribution:
-          "APU para previsto; rubro del pedido para solicitado/comprado/recibido; rubro explícito del movimiento para consumo. Registros sin rubro sólo en el total de obra.",
+          "Actividad de obra para previsto; rubro del pedido para solicitado/comprado/recibido; rubro explícito del movimiento para consumo. Registros sin rubro sólo en el total de obra.",
       },
       rows,
     };

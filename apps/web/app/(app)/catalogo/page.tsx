@@ -21,7 +21,13 @@ export default function CatalogoPage() {
           onChange={setTab}
         />
         {tab === 'cat' ? (
-          <NamedCatalog key="cat" path="/categories" title="Rubros" singular="rubro" canEdit={canEdit} />
+          <NamedCatalog
+            key="cat"
+            path="/categories"
+            title="Rubros"
+            singular="rubro"
+            canEdit={canEdit}
+          />
         ) : (
           <NamedCatalog
             key="unit"
@@ -30,7 +36,7 @@ export default function CatalogoPage() {
             singular="unidad"
             fem
             canEdit={canEdit}
-            hint="Cambiar el nombre o el símbolo de una unidad no modifica las cantidades ya cargadas en materiales ni APU."
+            hint="Cambiar el nombre o el símbolo de una unidad no modifica las cantidades ya cargadas en materiales ni actividades de obra."
           />
         )}
       </div>

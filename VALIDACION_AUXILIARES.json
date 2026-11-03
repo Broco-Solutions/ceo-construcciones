@@ -1,0 +1,16 @@
+{
+  "checks": "passed",
+  "kind": "mocked control-flow, not real Docker/application tests",
+  "coverage": [
+    "preserves modified and untracked files",
+    "no commits or push",
+    "recovery archive contains increment",
+    "private env mode 600",
+    "credentials not printed",
+    "repeat setup reuses labeled test container",
+    "fresh API and E2E databases",
+    "remote Docker refused",
+    "wrong worktree refused",
+    "nonlocal DB refused"
+  ]
+}
