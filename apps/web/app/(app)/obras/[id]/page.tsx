@@ -250,12 +250,19 @@ export default function ObraDetalle() {
                   },
                 ]}
                 empty={
-                  <Empty title="Sin usuarios asignados">
+                  <Empty
+                    title="Sin usuarios asignados"
+                    action={manage ? (
+                      <Link href="/admin/usuarios" className="btn sec sm">
+                        Gestionar asignaciones
+                      </Link>
+                    ) : undefined}
+                  >
                     {manage && 'Asigná obras desde Administración > Usuarios.'}
                   </Empty>
                 }
               />
-              {manage && (
+              {manage && assigned.length > 0 && (
                 <div className="bd">
                   <Link href="/admin/usuarios" className="btn sec sm">
                     Gestionar asignaciones

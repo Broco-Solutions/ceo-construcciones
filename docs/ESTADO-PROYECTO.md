@@ -1,5 +1,7 @@
 # Estado del proyecto — CEO Construcciones
 
+**03/11/2026 · Pulido visual previo a pruebas manuales:** páginas 404/error en español, títulos de pestaña, toasts de escritorio al pie, enlaces y pestañas móviles legibles, acción centrada en obras vacías, isotipo compacto e íconos cuadrados de la app. `apps/web` exclusivamente; 47 unitarias, typecheck, build y 71 E2E locales aprobados contra API/PostgreSQL aislados. [Capturas a 1440 y 360 px, más favicon en navegador](../apps/web/docs/evidencia/pulido/). Integración y checks remotos en el PR de `codex/pulido-ui-pre-pruebas`.
+
 **03/11/2026 · UX de navegación:** sidebar y menú móvil con logo, grupos con iconos y barra persistente para la sección activa, tarjeta de usuario y encabezados sin perfil duplicado; sin cambios de permisos, API ni login. Typecheck, 47 unitarias y 70 E2E locales aprobados; capturas de `/pedidos` a [1440 px](../apps/web/docs/evidencia/sidebar/pedidos-1440.png) y [360 px](../apps/web/docs/evidencia/sidebar/pedidos-360.png) con otro grupo abierto. Integración y checks remotos en el PR de `codex/sidebar-ux`.
 
 ## Corrección técnica posterior al PR8 — validación local aprobada

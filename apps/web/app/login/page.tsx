@@ -75,6 +75,10 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  useEffect(() => {
+    document.title = 'Ingresar · CEO Construcciones';
+  }, []);
+
   return (
     <Suspense>
       <LoginForm />
