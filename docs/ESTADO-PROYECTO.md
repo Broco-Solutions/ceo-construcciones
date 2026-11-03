@@ -1,5 +1,7 @@
 # Estado del proyecto — CEO Construcciones
 
+**03/11/2026 · UX de navegación:** sidebar y menú móvil con logo, grupos con iconos y barra persistente para la sección activa, tarjeta de usuario y encabezados sin perfil duplicado; sin cambios de permisos, API ni login. Typecheck, 47 unitarias y 70 E2E locales aprobados; capturas de `/pedidos` a [1440 px](../apps/web/docs/evidencia/sidebar/pedidos-1440.png) y [360 px](../apps/web/docs/evidencia/sidebar/pedidos-360.png) con otro grupo abierto. Integración y checks remotos en el PR de `codex/sidebar-ux`.
+
 ## Corrección técnica posterior al PR8 — validación local aprobada
 
 Base remota revalidada `121264563b73f141e118a2a9f8093c727cc907b8`; rama `codex/cierre-tecnico-manual-20261103`. H01–H05 reproducidos y corregidos; API, web, E2E, compatibilidad y smoke manual aprobados. Integración y checks remotos registrados en [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9); consultar allí el SHA definitivo y el smoke del código integrado. API actual: 174 + 3 runtime aprobadas. DG: 57 casos originales clasificados 2 A/32 B/23 C; diferencia comercial explicada −15,69. Ver el checkpoint vigente en [estado del cierre](ESTADO-CIERRE-ETAPA-1.md), [conciliación](DG-1153-RECONCILIACION.md) y [guía manual](PRUEBAS-MANUALES-ETAPA-1.md). No se declara habilitación productiva; infraestructura intacta.

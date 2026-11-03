@@ -18,6 +18,7 @@ import {
   ScrollText,
   Upload,
   Bell,
+  Settings,
   Tags,
   type LucideIcon,
 } from 'lucide-react';
@@ -30,11 +31,12 @@ export type NavItem = {
   perm?: Perm;
   mobile?: boolean;
 };
-export type NavGroup = { label: string; items: NavItem[] };
+export type NavGroup = { label: string; icon: LucideIcon; items: NavItem[] };
 
 export const NAV: NavGroup[] = [
   {
     label: 'General',
+    icon: LayoutDashboard,
     items: [
       { href: '/', label: 'Inicio', icon: LayoutDashboard, mobile: true },
       {
@@ -48,6 +50,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Catálogo',
+    icon: Package,
     items: [
       { href: '/materiales', label: 'Materiales', icon: Package },
       {
@@ -66,6 +69,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Presupuesto',
+    icon: Calculator,
     items: [
       {
         href: '/apu',
@@ -89,6 +93,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Compras',
+    icon: ShoppingCart,
     items: [
       { href: '/pedidos', label: 'Pedidos', icon: ShoppingCart, mobile: true },
       {
@@ -120,6 +125,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Inventario',
+    icon: Warehouse,
     items: [
       { href: '/stock', label: 'Stock', icon: Warehouse, mobile: true },
       {
@@ -133,6 +139,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Informes',
+    icon: BarChart3,
     items: [
       {
         href: '/reportes',
@@ -149,6 +156,7 @@ export const NAV: NavGroup[] = [
   },
   {
     label: 'Administración',
+    icon: Settings,
     items: [
       {
         href: '/admin/usuarios',
