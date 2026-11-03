@@ -1,5 +1,6 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api, ApiError, type Schemas } from '@/lib/api';
 import { useSession } from '@/lib/session';
@@ -48,7 +49,7 @@ function LoginForm() {
   return (
     <div className="login">
       <div className="brand">
-        <div style={{ color: '#fff', fontWeight: 800, fontSize: 22 }}>CEO Construcciones</div>
+        <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
         <h1>Obras, presupuestos, compras e inventario en un solo lugar.</h1>
         <p>Del cómputo al material en obra, con trazabilidad de cada pedido, orden y movimiento de stock.</p>
         <ul>
