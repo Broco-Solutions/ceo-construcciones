@@ -157,7 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </a>
       <aside className="side">
         <Link href="/" className="logo">
-          <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
+          <Image src="/brand/ceo-isotipo-blanco.png" alt="CEO Construcciones" priority width={388} height={220} />
         </Link>
         <nav className="side-nav" aria-label="Navegación principal">
           <NavLinks />
@@ -194,7 +194,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <div className="mobile-head">
               <Link href="/" className="logo" onClick={() => setMenu(false)}>
-                <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
+                <Image src="/brand/ceo-isotipo-blanco.png" alt="CEO Construcciones" priority width={388} height={220} />
               </Link>
               <button
                 type="button"
@@ -228,6 +228,10 @@ export function Page({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  useEffect(() => {
+    document.title = `${title} · CEO Construcciones`;
+  }, [title]);
+
   return (
     <>
       <header className="top">

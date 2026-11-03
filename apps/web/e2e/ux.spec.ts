@@ -27,14 +27,14 @@ test('unidades predeterminadas listas y alta de una unidad propia con notificaci
   await dlg.getByRole('button', { name: 'Guardar' }).click();
   await toast(page, 'Unidad creada correctamente');
 
-  // Esquina superior derecha, debajo del encabezado (no tapa sus acciones) y título en una sola línea.
+  // Esquina inferior derecha: no tapa el encabezado y el título queda en una sola línea.
   const n = page.locator('.toast').filter({ hasText: 'Unidad creada correctamente' });
   const box = (await n.boundingBox())!;
   const vp = page.viewportSize()!;
   const header = (await page.locator('header.top').boundingBox())!;
   expect(box.x + box.width).toBeGreaterThan(vp.width - 40);
-  expect(box.y).toBeGreaterThanOrEqual(header.y + header.height);
-  expect(box.y).toBeLessThan(200);
+  expect(box.y).toBeGreaterThan(header.y + header.height);
+  expect(box.y + box.height).toBeGreaterThan(vp.height - 40);
   expect((await n.locator('.toast-title').boundingBox())!.height).toBeLessThan(26);
   await expect(page.getByRole('status')).toContainText('Unidad creada correctamente');
   await page.screenshot({ path: `${EVID}/22-notificacion-unidad-creada.png` });

@@ -50,6 +50,7 @@ export function BudgetEditor({ id }: { id: string }) {
   const contentRef = useRef(content),
     savedRef = useRef(saved),
     revisionRef = useRef(revision);
+  const tabListRef = useRef<HTMLDivElement | null>(null);
   contentRef.current = content;
   savedRef.current = saved;
   revisionRef.current = revision;
@@ -84,6 +85,12 @@ export function BudgetEditor({ id }: { id: string }) {
     { active: true },
   );
   const dirty = content !== null && JSON.stringify(content) !== saved;
+  useEffect(() => {
+    if (window.innerWidth > 820) return;
+    tabListRef.current
+      ?.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')
+      ?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
+  }, [step]);
   useEffect(() => {
     setMaterialPicker(null);
     setMaterialError('');
@@ -600,6 +607,7 @@ export function BudgetEditor({ id }: { id: string }) {
             className="row budget-tabs"
             role="tablist"
             aria-label="Secciones del presupuesto"
+            ref={tabListRef}
           >
             {[
               'Cómputo y costos',
