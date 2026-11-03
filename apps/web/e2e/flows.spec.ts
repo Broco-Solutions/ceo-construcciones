@@ -1,12 +1,19 @@
 // Flujos V1 de punta a punta POR LA UI contra la API real (sin mocks).
 // Cada caso crea datos con sufijo único. La API directa (page.request + Origin) se usa SÓLO para
 // preparar datos que no son el objeto del caso y está marcada con "PREPARACIÓN".
-import { expect, test, type Browser, type Locator, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Browser,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import { login, ORIGIN, pickMaterial, uid, type RoleKey } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
-const SUF = `${Date.now().toString(36).slice(-4)}${uid().slice(0, 3)}`.toUpperCase();
+const SUF =
+  `${Date.now().toString(36).slice(-4)}${uid().slice(0, 3)}`.toUpperCase();
 const EVID = 'docs/evidencia';
 const JEFE_WORK = 'OBR-DEMO-01';
 const MAT = { cemento: 'CEM-001', arena: 'ARE-001' };
@@ -37,11 +44,17 @@ async function pick(select: Locator, text: string) {
   await select.selectOption((await opt.getAttribute('value'))!);
 }
 async function apiList<T>(page: Page, path: string): Promise<T[]> {
-  const r = await page.request.get(`/api/v1${path}${path.includes('?') ? '&' : '?'}pageSize=100`);
+  const r = await page.request.get(
+    `/api/v1${path}${path.includes('?') ? '&' : '?'}pageSize=100`,
+  );
   expect(r.ok()).toBe(true);
   return (await r.json()).data as T[];
 }
-async function asRole<T>(browser: Browser, role: RoleKey, fn: (p: Page) => Promise<T>): Promise<T> {
+async function asRole<T>(
+  browser: Browser,
+  role: RoleKey,
+  fn: (p: Page) => Promise<T>,
+): Promise<T> {
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
   try {
@@ -68,6 +81,9 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   const name = `Obra E2E ${SUF}`;
   const dlg = page.getByRole('dialog');
   await dlg.getByLabel('Nombre').fill(name);
+  await dlg
+    .getByLabel('Cliente principal')
+    .selectOption({ label: 'CLI-DEMO-01 · Cliente Demo' });
   await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
   await dlg.getByRole('button', { name: 'Crear obra' }).click();
   await toast(page, 'Obra creada correctamente');
@@ -83,12 +99,16 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   await page.getByText(name).locator('visible=true').first().click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
   await expect(page.getByText(code).first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Ubicación de stock' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Ubicación de stock' }),
+  ).toBeVisible();
   st.work = { id, code, name };
   await snap(page, '01-obra-detalle-gerencia');
 });
 
-test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', async ({ page }) => {
+test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', async ({
+  page,
+}) => {
   await login(page, 'COMPUTO');
   // APU con materiales
   await page.goto('/apu/nuevo');
@@ -97,16 +117,22 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await pick(page.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
   await page.getByRole('button', { name: 'Agregar material' }).click();
   await pick(page.getByLabel('Material 1', { exact: true }), MAT.cemento);
-  await page.getByLabel(/^Consumo/).nth(0).fill('4,5');
+  await page
+    .getByLabel(/^Consumo/)
+    .nth(0)
+    .fill('4,5');
   await page.getByRole('button', { name: 'Agregar material' }).click();
   await pick(page.getByLabel('Material 2', { exact: true }), MAT.arena);
-  await page.getByLabel(/^Consumo/).nth(1).fill('0,07');
+  await page
+    .getByLabel(/^Consumo/)
+    .nth(1)
+    .fill('0,07');
   await page.getByLabel('Importe de mano de obra').fill('1200,50');
   await page.getByLabel('Moneda').fill('ARS');
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
   await snap(page, '02-apu-con-materiales');
-  await page.getByRole('button', { name: 'Crear APU' }).click();
-  await toast(page, 'APU creado correctamente');
+  await page.getByRole('button', { name: 'Crear actividad' }).click();
+  await toast(page, 'Actividad creada correctamente');
   await page.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
   st.apuMat = page.url().split('/').pop()!;
   await expect(page.getByText('Cemento portland').first()).toBeVisible();
@@ -121,27 +147,43 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.getByLabel('Base impositiva').selectOption({ index: 1 });
   // Mano de obra explícita: vacío bloquea (no se envía nada), 0 se acepta.
   let posted = 0;
-  page.on('request', (r) => r.method() === 'POST' && r.url().includes('/api/v1/apu-items') && posted++);
-  await page.getByRole('button', { name: 'Crear APU' }).click();
-  await expect(page.getByText('Ingresá el importe de mano de obra (puede ser 0).')).toBeVisible();
+  page.on(
+    'request',
+    (r) =>
+      r.method() === 'POST' &&
+      r.url().includes('/api/v1/apu-items') &&
+      posted++,
+  );
+  await page.getByRole('button', { name: 'Crear actividad' }).click();
+  await expect(
+    page.getByText('Ingresá el importe de mano de obra (puede ser 0).'),
+  ).toBeVisible();
   expect(posted).toBe(0);
   await page.getByLabel('Importe de mano de obra').fill('0');
-  await page.getByRole('button', { name: 'Crear APU' }).click();
-  await toast(page, 'APU creado correctamente');
+  await page.getByRole('button', { name: 'Crear actividad' }).click();
+  await toast(page, 'Actividad creada correctamente');
   await page.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
   st.apuLabor = page.url().split('/').pop()!;
   expect(st.apuLabor).not.toBe(st.apuMat);
 });
 
-test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales consolidados', async ({ page }) => {
+test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales consolidados', async ({
+  page,
+}) => {
   test.skip(!st.work || !st.apuMat, 'requiere (a) y (b)');
   await login(page, 'GERENCIA');
   await page.goto(`/computos/nuevo?workId=${st.work!.id}`);
   await page.getByLabel('Nombre').fill(`Cómputo E2E ${SUF}`);
-  for (const [i, apu] of [`Revoque E2E ${SUF}`, `Mano de obra E2E ${SUF}`].entries()) {
+  for (const [i, apu] of [
+    `Revoque E2E ${SUF}`,
+    `Mano de obra E2E ${SUF}`,
+  ].entries()) {
     await page.getByRole('button', { name: 'Agregar ítem' }).click();
-    await pick(page.getByLabel('Ítem APU').nth(i), apu);
-    await page.getByLabel(/^Cantidad/).nth(i).fill(i === 0 ? '120,5' : '30');
+    await pick(page.getByLabel('Actividad de obra').nth(i), apu);
+    await page
+      .getByLabel(/^Cantidad/)
+      .nth(i)
+      .fill(i === 0 ? '120,5' : '30');
   }
   await page.getByRole('button', { name: 'Crear cómputo' }).click();
   await toast(page, 'Cómputo creado correctamente');
@@ -174,10 +216,19 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
   await page.getByRole('button', { name: 'Marcar como referencia' }).click();
   await confirmModal(page, 'Marcar como referencia');
   await toast(page, 'Versión 1 marcada como referencia');
-  await expect(page.getByRole('button', { name: 'Marcar como referencia' })).toHaveCount(0);
+  await expect(
+    page.getByRole('button', { name: 'Marcar como referencia' }),
+  ).toHaveCount(0);
   await snap(page, '03-presupuesto-version-referencia');
-  await page.getByRole('tab', { name: 'Materiales necesarios' }).or(page.getByRole('button', { name: 'Materiales necesarios' })).click();
-  const cons = page.locator('section.card', { has: page.getByRole('heading', { name: 'Materiales necesarios consolidados' }) });
+  await page
+    .getByRole('tab', { name: 'Materiales necesarios' })
+    .or(page.getByRole('button', { name: 'Materiales necesarios' }))
+    .click();
+  const cons = page.locator('section.card', {
+    has: page.getByRole('heading', {
+      name: 'Materiales necesarios consolidados',
+    }),
+  });
   await expect(cons.getByText('Cemento portland')).toBeVisible();
   await expect(cons.getByText('Arena fina')).toBeVisible();
   await snap(page, '04-materiales-consolidados');
@@ -213,14 +264,19 @@ test('(d) Jefe de Obra crea un pedido y lo sigue', async ({ page }) => {
   await expect(page.getByText('Enviado').first()).toBeVisible();
 });
 
-test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({ page }) => {
+test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({
+  page,
+}) => {
   test.skip(!st.requestId, 'requiere (d)');
   await login(page, 'COMPRAS');
   await page.goto(`/pedidos/${st.requestId}`);
   await page.getByRole('button', { name: 'Tomar en proceso' }).click();
   await confirmModal(page, /Confirmar|Tomar en proceso/);
   await toast(page, 'Pedido marcado en proceso');
-  await page.locator('#contenido').getByRole('link', { name: 'Cotizaciones' }).click();
+  await page
+    .locator('#contenido')
+    .getByRole('link', { name: 'Cotizaciones' })
+    .click();
   await page.waitForURL(/\/cotizaciones\//);
   for (const [supplier, prices] of [
     ['Corralón Demo Sur', ['1000', '40000']],
@@ -238,14 +294,21 @@ test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({ page }
     await toast(page, 'Cotización cargada correctamente');
     await expect(dlg).toBeHidden();
   }
-  const cmp = page.locator('section.card', { has: page.getByRole('heading', { name: 'Comparación de ofertas' }) });
+  const cmp = page.locator('section.card', {
+    has: page.getByRole('heading', { name: 'Comparación de ofertas' }),
+  });
   await expect(cmp.getByText('Corralón Demo Sur')).toBeVisible();
   await expect(cmp.getByText('Proveedor Demo Oeste')).toBeVisible();
   await snap(page, '06-comparacion-cotizaciones');
-  await cmp.getByRole('button', { name: 'Seleccionar esta oferta' }).last().click();
+  await cmp
+    .getByRole('button', { name: 'Seleccionar esta oferta' })
+    .last()
+    .click();
   await confirmModal(page, 'Confirmar');
   await toast(page, 'Cotización de Proveedor Demo Oeste seleccionada');
-  await expect(page.getByRole('link', { name: 'Generar OC con la seleccionada' })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Generar OC con la seleccionada' }),
+  ).toBeVisible();
 });
 
 test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
@@ -254,7 +317,9 @@ test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
   const locs = await apiList<Ref>(page, '/locations');
   st.jefeLoc = locs.find((l) => l.code === `OBRA-${JEFE_WORK}`)!;
   await page.goto(`/cotizaciones/${st.requestId}`);
-  await page.getByRole('link', { name: 'Generar OC con la seleccionada' }).click();
+  await page
+    .getByRole('link', { name: 'Generar OC con la seleccionada' })
+    .click();
   await page.waitForURL(/\/ordenes\/nueva/);
   await expect(page.getByLabel('Proveedor')).toHaveValue(/.+/);
   await page.getByLabel('Destino de entrega').selectOption(st.jefeLoc.id);
@@ -264,11 +329,16 @@ test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
   await page.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
   st.orderId = page.url().split('/').pop()!;
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^OC-\d+$/);
-  st.orderNumber = (await page.getByRole('heading', { level: 1 }).innerText()).trim();
+  st.orderNumber = (
+    await page.getByRole('heading', { level: 1 }).innerText()
+  ).trim();
   await page.getByRole('button', { name: 'Emitir' }).click();
   await confirmModal(page, 'Emitir');
   await toast(page, `Orden ${st.orderNumber} emitida`);
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'PDF' }).click()]);
+  const [dl] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'PDF' }).click(),
+  ]);
   expect(dl.suggestedFilename()).toMatch(/\.pdf$/);
   const path = await dl.path();
   const fs = await import('node:fs');
@@ -290,10 +360,15 @@ test('(g) Jefe registra una recepción parcial', async ({ page }) => {
   await page.getByRole('button', { name: 'Revisar recepción' }).click();
   await confirmModal(page, 'Confirmar recepción');
   await toast(page, 'Recepción registrada correctamente');
-  await expect(page.getByText(/Recibida parcial|Parcial/i).first()).toBeVisible();
+  await expect(
+    page.getByText(/Recibida parcial|Parcial/i).first(),
+  ).toBeVisible();
 });
 
-test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ page, browser }) => {
+test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({
+  page,
+  browser,
+}) => {
   // PREPARACIÓN: alta de stock en galpón por ajuste (Gerencia por API); no es el objeto del caso.
   const wh = await asRole(browser, 'GERENCIA', async (g) => {
     const locs = await apiList<Ref>(g, '/locations');
@@ -301,7 +376,14 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
     const w = locs.find((l) => l.code === 'GAL-01')!;
     const r = await g.request.post('/api/v1/movements', {
       headers: { ...ORIGIN, 'Idempotency-Key': `e2e-init-${SUF}` },
-      data: { type: 'ADJUSTMENT', direction: 'IN', reason: `Preparación E2E ${SUF}`, materialId: mats.find((m) => m.code === MAT.cemento)!.id, destinationId: w.id, quantity: '50' },
+      data: {
+        type: 'ADJUSTMENT',
+        direction: 'IN',
+        reason: `Preparación E2E ${SUF}`,
+        materialId: mats.find((m) => m.code === MAT.cemento)!.id,
+        destinationId: w.id,
+        quantity: '50',
+      },
     });
     expect(r.status(), await r.text()).toBeLessThan(300);
     return w;
@@ -320,10 +402,15 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({ 
   await toast(page, 'Reserva creada correctamente');
 
   await page.goto(`/stock/movimientos/nuevo?type=TRANSFER`);
-  await page.getByRole('button', { name: 'Transferencia', pressed: true }).waitFor().catch(() => page.getByRole('button', { name: 'Transferencia' }).click());
+  await page
+    .getByRole('button', { name: 'Transferencia', pressed: true })
+    .waitFor()
+    .catch(() => page.getByRole('button', { name: 'Transferencia' }).click());
   await pickMaterial(page, MAT.cemento);
   await page.getByLabel('Origen', { exact: true }).selectOption(wh.id);
-  await page.getByLabel('Destino', { exact: true }).selectOption(st.jefeLoc!.id);
+  await page
+    .getByLabel('Destino', { exact: true })
+    .selectOption(st.jefeLoc!.id);
   await page.getByLabel(/^Cantidad/).fill('5');
   await pick(page.getByLabel('Satisfacer reserva (opcional)'), 'Reservado 5');
   await snap(page, '09-transferencia-con-reserva');
@@ -346,37 +433,73 @@ test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
   await toast(page, 'Movimiento registrado correctamente', 'Consumo en obra');
-  await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
+  await expect(page.getByTestId('movement-created-actor')).toHaveText(
+    'Jefe Demo',
+  );
 
   // Devolución por el propio Jefe: ve galpones/patios activos (sólo id/código/nombre) como destino.
   await page.getByRole('button', { name: 'Devolución' }).click();
   await pickMaterial(page, MAT.cemento);
   const rsrc = page.getByLabel('Obra (origen)');
   if (!(await rsrc.inputValue())) await rsrc.selectOption(st.jefeLoc!.id);
-  await page.getByLabel('Devolver a (galpón o patio)').selectOption(st.warehouse?.id ?? { index: 1 });
+  await page
+    .getByLabel('Devolver a (galpón o patio)')
+    .selectOption(st.warehouse?.id ?? { index: 1 });
   await page.getByLabel(/^Cantidad/).fill('1');
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
   await toast(page, 'Movimiento registrado correctamente', 'Devolución');
-  await expect(page.getByTestId('movement-created-source')).toContainText('Obra Demo Norte');
-  await expect(page.getByTestId('movement-created-destination')).toContainText('Galpón Demo Central');
-  await expect(page.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
+  await expect(page.getByTestId('movement-created-source')).toContainText(
+    'Obra Demo Norte',
+  );
+  await expect(page.getByTestId('movement-created-destination')).toContainText(
+    'Galpón Demo Central',
+  );
+  await expect(page.getByTestId('movement-created-actor')).toHaveText(
+    'Jefe Demo',
+  );
 });
 
-test('(j) Gerencia consulta el seguimiento de materiales y descarga Excel', async ({ page }) => {
+test('(j) Gerencia consulta el seguimiento de materiales y descarga Excel', async ({
+  page,
+}) => {
   await login(page, 'GERENCIA');
   await page.goto('/reportes');
   await pick(page.getByLabel('Obra'), JEFE_WORK);
-  await expect(page.locator('#contenido table, #contenido .t').getByText('Cemento portland').locator('visible=true').first()).toBeVisible();
+  await expect(
+    page
+      .locator('#contenido table, #contenido .t')
+      .getByText('Cemento portland')
+      .locator('visible=true')
+      .first(),
+  ).toBeVisible();
   await snap(page, '10-reporte-seguimiento');
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar Excel' }).click()]);
+  const [dl] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Exportar Excel' }).click(),
+  ]);
   expect(dl.suggestedFilename()).toMatch(/\.xlsx$/);
   const fs = await import('node:fs');
-  expect(fs.readFileSync(await dl.path()).subarray(0, 2).toString()).toBe('PK');
+  expect(
+    fs
+      .readFileSync(await dl.path())
+      .subarray(0, 2)
+      .toString(),
+  ).toBe('PK');
 });
 
-test('(k) Jefe de Obra no ve ni solicita información económica', async ({ page }) => {
-  const forbidden = [/\/api\/v1\/users/, /\/api\/v1\/prices/, /\/api\/v1\/suppliers/, /\/api\/v1\/quotations/, /\/api\/v1\/apu-items/, /\/api\/v1\/budgets/, /\/api\/v1\/purchase-orders\/[^/]+\/pdf/];
+test('(k) Jefe de Obra no ve ni solicita información económica', async ({
+  page,
+}) => {
+  const forbidden = [
+    /\/api\/v1\/users/,
+    /\/api\/v1\/prices/,
+    /\/api\/v1\/suppliers/,
+    /\/api\/v1\/quotations/,
+    /\/api\/v1\/apu-items/,
+    /\/api\/v1\/budgets/,
+    /\/api\/v1\/purchase-orders\/[^/]+\/pdf/,
+  ];
   const hits: string[] = [];
   page.on('request', (r) => {
     if (forbidden.some((f) => f.test(r.url()))) hits.push(r.url());
@@ -385,9 +508,13 @@ test('(k) Jefe de Obra no ve ni solicita información económica', async ({ page
   const screens: [string, boolean][] = [
     ['/', false],
     ['/pedidos', true],
-    ...(st.requestId ? ([[`/pedidos/${st.requestId}`, true]] as [string, boolean][]) : []),
+    ...(st.requestId
+      ? ([[`/pedidos/${st.requestId}`, true]] as [string, boolean][])
+      : []),
     ['/ordenes', true],
-    ...(st.orderId ? ([[`/ordenes/${st.orderId}`, true]] as [string, boolean][]) : []),
+    ...(st.orderId
+      ? ([[`/ordenes/${st.orderId}`, true]] as [string, boolean][])
+      : []),
     ['/recepciones', false],
     ['/stock', true],
     ['/stock/movimientos', false],

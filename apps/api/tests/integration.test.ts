@@ -5,9 +5,10 @@ import { hashPassword, sessionHash } from "../src/core/auth";
 import { dispatch } from "../src/router";
 import { PDFDocument } from "pdf-lib";
 import ExcelJS from "exceljs";
+import { workClientBody } from "./work-client-fixture";
 const enabled = process.env.RUN_INTEGRATION === "1";
 const tag = randomUUID();
-const origin = "http://localhost:3001";
+const origin = process.env.APP_ORIGIN ?? "http://localhost:3001";
 let admin: string,
   chief: string,
   buyer: string,
@@ -29,6 +30,7 @@ async function call(
   cookie = admin,
   key?: string,
 ) {
+  body = await workClientBody(path, method, body);
   return dispatch(
     new Request(`${origin}/api/v1/${path}`, {
       method,
@@ -299,6 +301,14 @@ describe.skipIf(!enabled)(
         (await db.purchaseOrder.findUniqueOrThrow({ where: { id: order } }))
           .status,
       ).toBe("PARTIALLY_RECEIVED");
+      const purchasingUser = await db.user.findFirstOrThrow({
+        where: { email: `buyer-${tag}@test.invalid` },
+      });
+      await data(
+        await call(`reception-delegations/${purchasingUser.id}`, "PUT", {
+          locationIds: [loc],
+        }),
+      );
       const retryOtherActor = await data(
         await call(
           `purchase-orders/${order}/receipts`,

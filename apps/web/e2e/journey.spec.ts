@@ -3,8 +3,25 @@
 // → Recepción (Jefe) → Reserva → Transferencia → Consumo (Jefe) → Devolución (Jefe) → Reporte.
 // El reporte se verifica contra las cantidades realizadas, leyendo valores de la UI y de la API (sin recalcular economía).
 // La API directa se usa SÓLO para PREPARACIÓN (asignación del Jefe y stock inicial de galpón) y lectura.
-import { expect, test, type Browser, type Locator, type Page } from '@playwright/test';
-import { apiAs, assignJefe, byCode, confirmModal, login, pickMaterial, SUFFIX, toast, type Api, type RoleKey } from './helpers';
+import {
+  expect,
+  test,
+  type Browser,
+  type Locator,
+  type Page,
+} from '@playwright/test';
+import {
+  apiAs,
+  assignJefe,
+  byCode,
+  confirmModal,
+  login,
+  pickMaterial,
+  SUFFIX,
+  toast,
+  type Api,
+  type RoleKey,
+} from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 test.setTimeout(300_000);
@@ -13,15 +30,27 @@ const SUF = SUFFIX();
 const W = { code: '', name: `Obra Recorrido ${SUF}` };
 const APU = `Revoque recorrido ${SUF}`;
 const COMP = `Cómputo recorrido ${SUF}`;
-const day = (d: number) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
-const st: { workId?: string; locId?: string; whId?: string; requestId?: string; orderId?: string; orderNumber?: string } = {};
+const day = (d: number) =>
+  new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
+const st: {
+  workId?: string;
+  locId?: string;
+  whId?: string;
+  requestId?: string;
+  orderId?: string;
+  orderNumber?: string;
+} = {};
 
 async function pick(select: Locator, text: string) {
   const opt = select.locator('option').filter({ hasText: text }).first();
   await expect(opt).toBeAttached();
   await select.selectOption((await opt.getAttribute('value'))!);
 }
-async function as(browser: Browser, role: RoleKey, fn: (p: Page) => Promise<void>) {
+async function as(
+  browser: Browser,
+  role: RoleKey,
+  fn: (p: Page) => Promise<void>,
+) {
   const ctx = await browser.newContext();
   const p = await ctx.newPage();
   try {
@@ -45,6 +74,9 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByRole('button', { name: 'Nueva obra' }).click();
     const dlg = p.getByRole('dialog');
     await dlg.getByLabel('Nombre').fill(W.name);
+    await dlg
+      .getByLabel('Cliente principal')
+      .selectOption({ label: 'CLI-DEMO-01 · Cliente Demo' });
     await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
     await dlg.getByRole('button', { name: 'Crear obra' }).click();
     await toast(p, 'Obra creada correctamente');
@@ -55,8 +87,16 @@ test('recorrido completo de una obra', async ({ browser }) => {
   });
   // PREPARACIÓN: asignar la obra al Jefe (conserva sus obras actuales) y leer ubicaciones.
   await assignJefe(admin, st.workId!);
-  st.locId = (await byCode<{ id: string; code: string }>(admin, '/locations', `OBRA-${W.code}`)).id;
-  st.whId = (await byCode<{ id: string; code: string }>(admin, '/locations', 'GAL-01')).id;
+  st.locId = (
+    await byCode<{ id: string; code: string }>(
+      admin,
+      '/locations',
+      `OBRA-${W.code}`,
+    )
+  ).id;
+  st.whId = (
+    await byCode<{ id: string; code: string }>(admin, '/locations', 'GAL-01')
+  ).id;
 
   // 2. APU (Cómputo): 2 kg de cemento por m², mano de obra explícita.
   await as(browser, 'COMPUTO', async (p) => {
@@ -66,20 +106,26 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await pick(p.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
     await p.getByRole('button', { name: 'Agregar material' }).click();
     await pick(p.getByLabel('Material 1', { exact: true }), 'CEM-001');
-    await p.getByLabel(/^Consumo/).first().fill('2');
+    await p
+      .getByLabel(/^Consumo/)
+      .first()
+      .fill('2');
     await p.getByLabel('Importe de mano de obra').fill('150');
     await p.getByLabel('Moneda').fill('ARS');
     await p.getByLabel('Base impositiva').selectOption({ index: 1 });
-    await p.getByRole('button', { name: 'Crear APU' }).click();
-    await toast(p, 'APU creado correctamente');
+    await p.getByRole('button', { name: 'Crear actividad' }).click();
+    await toast(p, 'Actividad creada correctamente');
     await p.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
 
     // 3. Cómputo: 10 m² → 20 kg previstos.
     await p.goto(`/computos/nuevo?workId=${st.workId}`);
     await p.getByLabel('Nombre').fill(COMP);
     await p.getByRole('button', { name: 'Agregar ítem' }).click();
-    await pick(p.getByLabel('Ítem APU').first(), APU);
-    await p.getByLabel(/^Cantidad/).first().fill('10');
+    await pick(p.getByLabel('Actividad de obra').first(), APU);
+    await p
+      .getByLabel(/^Cantidad/)
+      .first()
+      .fill('10');
     await p.getByRole('button', { name: 'Crear cómputo' }).click();
     await toast(p, 'Cómputo creado correctamente');
     await p.waitForURL(/\/computos\/(?!nuevo)[^/]+$/);
@@ -87,7 +133,13 @@ test('recorrido completo de una obra', async ({ browser }) => {
 
   // 4. Presupuesto con versión y referencia (Gerencia).
   await as(browser, 'GERENCIA', async (p) => {
-    await p.goto(`/presupuestos/nuevo?workId=${st.workId}`);
+    const computations = await admin.list<{ id: string; name: string }>(
+      `/computations?workId=${st.workId}`,
+    );
+    const computation = computations.data.find((c) => c.name === COMP)!;
+    await p.goto(
+      `/presupuestos/nuevo?workId=${st.workId}&computationId=${computation.id}`,
+    );
     await p.getByLabel('Nombre').fill(`Presupuesto recorrido ${SUF}`);
     await p.getByRole('button', { name: 'Crear presupuesto' }).click();
     await p.waitForURL(/\/presupuestos\/(?!nuevo)[^/?]+\?/);
@@ -97,8 +149,14 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await dlg.getByLabel('Base impositiva').selectOption({ index: 1 });
     await dlg.getByLabel('Decimales (precisión)').selectOption({ index: 1 });
     await dlg.getByLabel('Modo de redondeo').selectOption({ index: 1 });
-    await dlg.locator('select:has(option[value="manual"])').first().selectOption('manual');
-    await dlg.getByLabel(/^Precio por/).first().fill('1000');
+    await dlg
+      .locator('select:has(option[value="manual"])')
+      .first()
+      .selectOption('manual');
+    await dlg
+      .getByLabel(/^Precio por/)
+      .first()
+      .fill('1000');
     await dlg.getByTestId('crear-version').click();
     await toast(p, 'Versión 1 creada correctamente');
     await p.waitForURL(/\/presupuestos\/versiones\//);
@@ -133,15 +191,25 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto(`/cotizaciones/${st.requestId}`);
     await p.getByRole('button', { name: 'Cargar cotización' }).click();
     const dlg = p.getByRole('dialog');
-    await dlg.getByLabel('Proveedor').selectOption({ label: 'Corralón Demo Sur' });
+    await dlg
+      .getByLabel('Proveedor')
+      .selectOption({ label: 'Corralón Demo Sur' });
     await dlg.getByLabel('Válida hasta').fill(day(30));
-    await dlg.getByLabel(/^Precio \(ARS\)/).first().fill('1000');
+    await dlg
+      .getByLabel(/^Precio \(ARS\)/)
+      .first()
+      .fill('1000');
     await dlg.getByRole('button', { name: 'Guardar cotización' }).click();
     await toast(p, 'Cotización cargada correctamente');
-    await p.getByRole('button', { name: 'Seleccionar esta oferta' }).first().click();
+    await p
+      .getByRole('button', { name: 'Seleccionar esta oferta' })
+      .first()
+      .click();
     await confirmModal(p, 'Confirmar');
     await toast(p, 'Cotización de Corralón Demo Sur seleccionada');
-    await p.getByRole('link', { name: 'Generar OC con la seleccionada' }).click();
+    await p
+      .getByRole('link', { name: 'Generar OC con la seleccionada' })
+      .click();
     await p.waitForURL(/\/ordenes\/nueva/);
     await p.getByLabel('Destino de entrega').selectOption(st.locId!);
     await p.getByRole('button', { name: 'Revisar y crear' }).click();
@@ -150,7 +218,9 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.waitForURL(/\/ordenes\/(?!nueva)[^/]+$/);
     st.orderId = p.url().split('/').pop()!;
     await expect(p.getByRole('heading', { level: 1 })).toHaveText(/^OC-\d+$/);
-    st.orderNumber = (await p.getByRole('heading', { level: 1 }).innerText()).trim();
+    st.orderNumber = (
+      await p.getByRole('heading', { level: 1 }).innerText()
+    ).trim();
     await p.getByRole('button', { name: 'Emitir' }).click();
     await confirmModal(p, 'Emitir');
     await toast(p, `Orden ${st.orderNumber} emitida`);
@@ -164,7 +234,9 @@ test('recorrido completo de una obra', async ({ browser }) => {
     const loc = p.getByLabel('Ubicación que recibe');
     if (!(await loc.inputValue())) await loc.selectOption(st.locId!);
     await p.getByTestId('receive-all-pending').click();
-    await expect(p.getByLabel(/^Cantidad recibida de Cemento portland/)).toHaveValue('20');
+    await expect(
+      p.getByLabel(/^Cantidad recibida de Cemento portland/),
+    ).toHaveValue('20');
     await p.getByRole('button', { name: 'Revisar recepción' }).click();
     await confirmModal(p, 'Confirmar recepción');
     await toast(p, 'Recepción registrada correctamente');
@@ -173,7 +245,25 @@ test('recorrido completo de una obra', async ({ browser }) => {
   });
 
   // PREPARACIÓN: stock en galpón para reservar y transferir.
-  await admin.send('POST', '/movements', { type: 'ADJUSTMENT', direction: 'IN', reason: `Preparación recorrido ${SUF}`, materialId: (await byCode<{ id: string; code: string }>(admin, '/materials', 'CEM-001')).id, destinationId: st.whId, quantity: '10' }, `e2e-jrn-${SUF}`);
+  await admin.send(
+    'POST',
+    '/movements',
+    {
+      type: 'ADJUSTMENT',
+      direction: 'IN',
+      reason: `Preparación recorrido ${SUF}`,
+      materialId: (
+        await byCode<{ id: string; code: string }>(
+          admin,
+          '/materials',
+          'CEM-001',
+        )
+      ).id,
+      destinationId: st.whId,
+      quantity: '10',
+    },
+    `e2e-jrn-${SUF}`,
+  );
 
   // 9-10. Reserva y transferencia (Compras): 5 kg galpón → obra.
   await as(browser, 'COMPRAS', async (p) => {
@@ -217,15 +307,23 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');
     await toast(p, 'Movimiento registrado correctamente', 'Devolución');
-    await expect(p.getByTestId('movement-created-actor')).toHaveText('Jefe Demo');
-    await expect(p.getByTestId('movement-created-source')).toContainText(W.name);
+    await expect(p.getByTestId('movement-created-actor')).toHaveText(
+      'Jefe Demo',
+    );
+    await expect(p.getByTestId('movement-created-source')).toContainText(
+      W.name,
+    );
   });
 
   // 13. Reporte (Gerencia): coherente con lo realizado.
-  const rep = await admin.get<{ version: { number: number } | null; rows: Record<string, string | null>[] }>(`/reports/materials?workId=${st.workId}`);
+  const rep = await admin.get<{
+    version: { number: number } | null;
+    rows: Record<string, string | null>[];
+  }>(`/reports/materials?workId=${st.workId}`);
   const row = rep.rows.find((r) => r.code === 'CEM-001')!;
   expect(rep.version?.number).toBe(1);
-  const n = (v: string | null) => (v === null ? null : v.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1'));
+  const n = (v: string | null) =>
+    v === null ? null : v.replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
   expect(n(row.planned)).toBe('20');
   expect(n(row.requested)).toBe('20');
   expect(n(row.purchased)).toBe('20');
@@ -234,12 +332,27 @@ test('recorrido completo de una obra', async ({ browser }) => {
   expect(n(row.physical)).toBe('14'); // 20 recibidos + 5 transferidos − 8 consumidos − 3 devueltos
   await as(browser, 'GERENCIA', async (p) => {
     await p.goto(`/reportes?workId=${st.workId}`);
-    await expect(p.getByTestId('report-reference-version')).toContainText('versión 1');
-    const tr = p.locator('#contenido table tbody tr').filter({ hasText: 'CEM-001' }).locator('visible=true');
+    await expect(p.getByTestId('report-reference-version')).toContainText(
+      'versión 1',
+    );
+    const tr = p
+      .locator('#contenido table tbody tr')
+      .filter({ hasText: 'CEM-001' })
+      .locator('visible=true');
     await expect(tr).toHaveCount(1);
     const cells = await tr.locator('td').allInnerTexts();
     // Previsto, Pedido, Comprado, Recibido, Consumido, Físico obra
-    expect(cells.slice(1, 7)).toEqual(['20 kg', '20 kg', '20 kg', '20 kg', '8 kg', '14 kg']);
-    await p.screenshot({ path: 'docs/evidencia/10-reporte-seguimiento.png', fullPage: true });
+    expect(cells.slice(1, 7)).toEqual([
+      '20 kg',
+      '20 kg',
+      '20 kg',
+      '20 kg',
+      '8 kg',
+      '14 kg',
+    ]);
+    await p.screenshot({
+      path: 'docs/evidencia/10-reporte-seguimiento.png',
+      fullPage: true,
+    });
   });
 });

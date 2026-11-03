@@ -75,6 +75,8 @@ jobs:
         env:
           E2E_SKIP_BUILD: "1"
           E2E_SECRETS_DIR: ${{ runner.temp }}/e2e-secrets
+      - name: Compatibilidad de artefactos y navegador con V1 y esquema ampliado
+        run: pnpm --dir apps/api exec tsx scripts/check-release-compatibility.ts --runtime --browser
       - if: failure()
         uses: actions/upload-artifact@v4
         with:

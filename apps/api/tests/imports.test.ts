@@ -18,7 +18,7 @@ describe("plantillas de importación controladas", () => {
     for (const csv of ['a,b\n"x,y', "a,b\nx", "a,a\nx,y"])
       expect(() => parseCsv(csv)).toThrow();
   });
-  it("reporta precios cero, cantidades numéricas y referencias incompletas", () => {
+  it("acepta cero explícito y rechaza cantidades numéricas sin precisión textual", () => {
     expect(
       normalizeImport("prices", [
         {
@@ -30,7 +30,7 @@ describe("plantillas de importación controladas", () => {
           effectiveAt: "2026-10-22T00:00:00Z",
         },
       ]).errors,
-    ).toHaveLength(1);
+    ).toHaveLength(0);
     expect(
       normalizeImport("initial-stock", [
         {
