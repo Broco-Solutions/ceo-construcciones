@@ -1,20 +1,40 @@
 # Aceptación ejecutada del cierre de Etapa 1
 
-Verificación local del 03/11/2026 sobre PostgreSQL 18 aislado. Los comandos cargan `local.env` privado sin imprimirlo. Los verificadores crean bases nuevas, conservan las existentes y esperan los procesos hasta su código de salida. El CI del candidato y la integración se registran en [estado](ESTADO-CIERRE-ETAPA-1.md).
+## Correcciones posteriores al PR8 — 03/11/2026
 
-## Suites completas
+Base remota revalidada `121264563b73f141e118a2a9f8093c727cc907b8`. Los resultados siguientes son de esta pasada, no conteos reutilizados del PR8. PostgreSQL 18 y API reales; credenciales y evidencias sensibles fuera de Git.
 
-| Verificación | Resultado comprobado | Evidencia privada |
+| Hallazgo | Reproducción confirmada | Corrección y regresión |
 |---|---|---|
-| `bash CEO_Verificar_Local.sh api` | 163 aprobadas, build/typecheck y 3 runtime aprobadas; salida 0 | `logs/final-api-pdf.log`, corrida `20261103_141545_2-api` |
-| `bash CEO_Verificar_Local.sh web` | 47 unitarias, typecheck y build aprobados; salida 0 | `logs/final-web-verified.log`, corrida `20261103_140910_3-web` |
-| E2E anterior al último caso BASE | 52/52 contra API standalone, web de producción y PostgreSQL reales; salida 0 | corrida `20261103_135330_3-e2e` |
-| E2E candidato con BASE real | **53/53 aprobados**, builds API/web y salida 0 | `logs/final-e2e-verified.log` |
-| Migración V1 poblada → ampliada | Código fuente, datos preservados y diff sin diferencias aprobados | `logs/release-compatibility-activities.log` |
-| Binarios HTTP y navegador V1 → ampliada | **Aprobado**, esquema previo/ampliado, alta web y diff sin diferencias; salida 0 | `logs/release-compatibility-binary-browser.log` |
-| DG REV C real → PostgreSQL → R1/R2/PDF/necesidades | Aprobado con diferencias y composición física parcial expresamente señaladas | `logs/dg-postgresql-release.log`; `dg-postgresql-release/verification.json` |
+| H01 | Breadcrumb salía sin decisión; corrida ampliada detectó doble redirect al logout | Intención única en navegación existente, tres decisiones, guardado del cuerpo exacto; conflicto y ediciones tardías impiden salir. E2E con breadcrumb, menú/móvil, historial, logout sin POST al cancelar, recarga/cierre nativos, foco y persistencia real |
+| H02 | Unidad sin importe con cantidad cero; consumo cero producía error de precisión | Cálculo unitario independiente en servidor, pendiente distinto de cero; pruebas de dominio y BASE grande, precios faltantes y foco |
+| H03 | Selector descartaba costos sin aviso | Confirmación previa, revisión reversible en memoria y confirmación antes de guardar. Cancelar/restaurar conservan costos, cantidades y procedencia; ningún tipo de cambio/IVA supuesto |
+| H04 | Faltaba alta/reemplazo contextual de materiales | Catálogo, consumo/precio, duplicados, unidades/procedencia, auditoría y sustitución explícita del agregado sin doble suma. API y E2E; borrador local e históricos preservados |
+| H05 | Dos diálogos activos al comparar | Comparador como subvista del mismo Modal. Una capa, Tab/Escape, selección y restauración de foco comprobados |
 
-En la primera fase API aparecen tres runtime omitidas por su guard de entorno; después se ejecutan y pasan por separado en el mismo verificador. No son tres integraciones faltantes. Las pruebas de dominio/API no se sustituyen por mocks. La suite web unitaria y algunos casos existentes de error/transporte simulado comprueban únicamente esos límites; los recorridos positivos del cierre recorren API y base reales.
+Reproducciones privadas: `logs/review-repro-confirmed.log` (cinco fallas específicas) y `logs/review-fixed-first.log` (cinco aprobadas). Se corrigió antes una clave idempotente omitida del fixture: no se la presentó como defecto del producto. La ampliación inicial dio 64 aprobadas/3 fallas: selector ambiguo del test de historial y doble redirect real de logout en 1440/360; se conservaron assertions y se corrigieron las causas.
+
+Una reproducción API adicional confirmó que, al omitir la evidencia y quitar materiales, la retención de evidencia podía guardar una composición VERIFIED inválida. Se revalida el contenido después de conservar evidencia; ahora devuelve 422 sin modificar la revisión. Evidencia: `logs/review-evidence-integrity-repro.log` y `logs/review-evidence-integrity-fixed.log`. En la reproducción aislada también agotó 5 s la instalación BASE bajo build concurrente; el verificador completo se ejecuta secuencialmente. No se eliminó ni relajó esa prueba.
+
+## Suites completas de esta pasada
+
+| Verificación | Resultado real | Evidencia privada |
+|---|---|---|
+| API completo anterior al último refuerzo |174 aprobadas + 3 runtime, tipos/build, salida 0 | `logs/technical-api-final-2.log` |
+| API con el último refuerzo | 174 aprobadas + 3 runtime, tipos/build y salida 0; incluye conservación y revalidación de evidencia | `logs/technical-api-final-3.log` |
+| Web |47 aprobadas, tipos/build y salida 0 | `logs/technical-web-final.log`, corrida `20261103_181943_2-web` |
+| E2E completo |68/68 aprobados, builds API/web, salida 0; incluye 15 casos H01–H05 | `logs/technical-e2e-final.log`, corrida `20261103_182124_2-e2e` |
+| V1 poblada → ampliada, binario/HTTP/navegador | Aprobado, salida 0; datos preservados y diff sin diferencias | `logs/technical-release-final.log` |
+| DG → PostgreSQL → R1/R2/PDF/necesidades | Aprobado; demanda histórica incompleta explícita | `logs/dg-technical-postgresql.log`, `dg-technical-postgresql/verification.json` |
+| Manual persistente | Arranque, health/login, cinco perfiles, edición descartada y parada aprobados; reinicio del código integrado pendiente | `manual/evidence/`, guía de pruebas manuales |
+
+Las tres runtime se omiten intencionadamente en el primer grupo y después se ejecutan por separado: no faltan tres integraciones. Persistencia, permisos y recorridos del cierre usan API/PostgreSQL reales. El caso de respuesta demorada retiene una respuesta de un PUT que sí llegó a la API; no reemplaza la persistencia por un mock. Los tests unitarios web y los casos preexistentes de error de transporte conservan sus simulaciones acotadas.
+
+## Revisión visual y PDF
+
+BASE de 146 actividades inspeccionada a 1440/1280/768/390/360: cantidades, costo unitario conocido antes de cantidad, subtotales, pendiente y avisos legibles; controles conservan foco y no hay desborde horizontal. Se reutilizan componentes, estilos y notificaciones existentes. Capturas privadas en `visual-technical-final/cierre/base-revision-*.png`; los screenshots sintéticos históricos de Git no se sustituyen por datos privados.
+
+PDF sintético extenso y DG: siete páginas cada uno, renderizados e inspeccionados en primera/intermedia/última página. Comprobación de todas las páginas sin texto fuera del papel, m²/m³, 28 nombres largos, condiciones extensas, incluidos/excluidos y ausencia de etiquetas internas de costo/recargo/composición. R1 permanece byte idéntico después de cambiar borrador y maestros. Evidencia privada en `pdf-technical-final/inspection.json` y sus PNG/PDF. La API no ha cambiado el renderer de PDF en esta corrección. También se inspeccionó DG en el entorno manual, a 1440/360: composición, comparación como subvista, condiciones, resumen comercial e historial (vacío antes de primera emisión); capturas privadas `manual/evidence/`. El historial con R1/R2 emitidas se comprueba en E2E.
 
 ## Escenarios del plan y evidencia
 
@@ -34,7 +54,7 @@ En la primera fase API aparecen tres runtime omitidas por su guard de entorno; d
 | T39–T40 | Factura y pago/reversión con actor/fecha sin cambiar stock; `closure.spec` Administración real; stock100 → traslado30 → consumo5, devoluciones y mínimos en regresión |
 | T41–T44 | `management-reports.integration`, `reports.integration` y `closure.spec`: dos obras, R1/R2 sin duplicar, OC multilínea/general, monedas/IVA, legado sin valorización, filtros antes de paginar, corte argentino y Excel de total completo |
 | T45/T47 | `transition.integration` dry-run/ejecución/repetición, OC sólo saldo pendiente; `check-release-compatibility` V1 poblada conserva versiones de costo, stock y OC parcial; no se ejecutó transición productiva |
-| T46 | Fuente real DG/XLS/PDF, factores por fórmula y costos por partida; ver [conciliación](DG-1153-RECONCILIACION.md). Diferencia comercial −18,58 y 57 agregados sin composición física verificable, sin compensación ficticia |
+| T46 | Fuente real DG/XLS/PDF, factores por fórmula y costos por partida; ver [conciliación](DG-1153-RECONCILIACION.md). 57 casos originales revisados: 2 A/32 B/23 C; diferencia comercial publicada −15,69 conciliada por precisión, sin compensación ficticia |
 | T48–T50 | `closure.spec`, `zz-base.spec`, `visual.spec`, regresión móvil: flujo completo de cliente a indicadores, nombres largos, teclado/foco, 1440/1280/768/390/360, navegación/formularios/notificaciones; inspección visual de PNG y PDF |
 | T51–T52 | Sesiones, origen/CSRF, validación, allowlists, exportaciones y artefacto runtime; compatibilidad binaria/navegador aprobada antes de merge |
 | T53–T54 | Versiones V1 se mantienen como costos y no venta; directos no fabrican materiales; OC nuevas con política explícita y antiguas sin reinterpretación, incluidas fracciones recurrentes |
