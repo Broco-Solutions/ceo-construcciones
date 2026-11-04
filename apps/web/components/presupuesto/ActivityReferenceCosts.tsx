@@ -262,7 +262,7 @@ function CostingForm({
             }
           />
           <SelectField
-            label="IVA informado de las referencias"
+            label="IVA comercial y de mano de obra"
             value={content.taxBasis}
             options={[
               { value: 'UNSPECIFIED', label: 'No informado' },
@@ -283,7 +283,8 @@ function CostingForm({
           Cambiar la valoración deja las referencias pendientes. No se
           convierten importes; Cancelar conserva la configuración anterior. Los
           importes directos deben coincidir con la valoración guardada en la
-          actividad.
+          actividad. Cada material conserva el IVA informado de su referencia
+          de origen, sin convertirlo a esta valoración.
         </p>
         <SelectField
           label="Modalidad de mano de obra"
@@ -447,7 +448,7 @@ function CostingForm({
                 )
                 .map((p) => ({
                   value: p.id,
-                  label: `${p.price} / ${p.baseQuantity} · ${p.source ?? 'Sin fuente'}`,
+                  label: `${formatMoney(p.price, p.currency)} / ${p.baseQuantity} · ${p.taxBasis === 'INCLUDED' ? 'IVA incluido' : p.taxBasis === 'EXCLUDED' ? 'Sin IVA' : 'IVA no informado'} · ${(p.source ?? 'Sin fuente').split(' · ').filter(part => !/^[\w -]+![A-Z]+\d+(?::\w+)?$/.test(part)).join(' · ')}`,
                 }))}
               onChange={(e) =>
                 change({

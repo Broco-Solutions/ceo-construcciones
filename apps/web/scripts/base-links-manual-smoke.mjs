@@ -51,15 +51,19 @@ try {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto('/apu/' + item.id);
     await expect(page.getByText('Materiales calculados', { exact: true })).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await expect(page.getByText(/Cargando precios/)).toHaveCount(0);
     await page.screenshot({ path: join(output, `actividad-${width}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Editar referencias y mano de obra', exact: true }).click();
     await expect(page.getByLabel('Referencia de', { exact: false }).first()).toBeVisible();
     await expect(page.getByLabel('Referencia de', { exact: false }).first()).not.toHaveValue('');
+    await page.waitForLoadState('networkidle');
     await page.screenshot({ path: join(output, `referencias-${width}.png`), fullPage: true });
     await page.getByRole('button', { name: 'Cancelar', exact: true }).click();
     await page.goto('/presupuestos/' + marker.id);
     await expect(page.getByRole('button', { name: 'Revisar costos de referencia', exact: true })).toBeVisible();
-    await page.screenshot({ path: join(output, `base-${width}.png`), fullPage: true });
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: join(output, `base-${width}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   for (const width of [1440, 360]) {
