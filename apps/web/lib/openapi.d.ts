@@ -4121,6 +4121,8 @@ export interface components {
                     coefficient: string | null;
                     unitPrice: string | null;
                     sourcePriceId: string | null;
+                    sourcePriceBasis?: string;
+                    sourcePriceFactor?: string;
                 }[];
                 materialReview?: {
                     /** @enum {string} */
@@ -4180,6 +4182,8 @@ export interface components {
                         coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
+                        sourcePriceBasis?: string;
+                        sourcePriceFactor?: string;
                     }[];
                     materialReview?: {
                         /** @enum {string} */
@@ -4250,6 +4254,8 @@ export interface components {
                         coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
+                        sourcePriceBasis?: string;
+                        sourcePriceFactor?: string;
                     }[];
                     materialReview?: {
                         /** @enum {string} */
@@ -4285,6 +4291,8 @@ export interface components {
                 coefficient: string | null;
                 unitPrice: string | null;
                 sourcePriceId: string | null;
+                sourcePriceBasis?: string;
+                sourcePriceFactor?: string;
                 /** @description Decimal serializado como texto, nunca float. */
                 quantity?: string;
                 unitCost?: string | null;
@@ -4996,6 +5004,8 @@ export interface components {
                         coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
+                        sourcePriceBasis?: string;
+                        sourcePriceFactor?: string;
                     }[];
                     materialReview?: {
                         /** @enum {string} */
@@ -5057,6 +5067,8 @@ export interface components {
                         coefficient: string | null;
                         unitPrice: string | null;
                         sourcePriceId: string | null;
+                        sourcePriceBasis?: string;
+                        sourcePriceFactor?: string;
                     }[];
                     materialReview?: {
                         /** @enum {string} */
@@ -5073,11 +5085,32 @@ export interface components {
             selected: string[];
             planHash: string;
         };
+        CompositionReplacement: {
+            materials: {
+                materialId: string;
+                name: string;
+                unitId: string;
+                unit: string;
+                coefficient: string | null;
+                unitPrice: string | null;
+                sourcePriceId: string | null;
+                sourcePriceBasis?: string;
+                sourcePriceFactor?: string;
+            }[];
+            directUnitCost: string | null;
+            materialsIncludedInDirect?: boolean;
+            materialReview?: {
+                /** @enum {string} */
+                status: "DIRECT" | "VERIFIED" | "UNRESOLVED";
+                detail: string;
+                evidence: string;
+            };
+        };
         ReferenceCostChange: {
             key: string;
             lineKey: string;
             /** @enum {unknown} */
-            kind: "MATERIAL" | "LABOR";
+            kind: "MATERIAL" | "LABOR" | "COMPOSITION";
             index: number;
             name: string;
             previous: string | null;
@@ -5088,6 +5121,7 @@ export interface components {
             dateLabel: string | null;
             datePrecision: string;
             manual: boolean;
+            replacement?: components["schemas"]["CompositionReplacement"];
         };
         ReferenceCostReview: {
             revision: number;
@@ -5125,6 +5159,8 @@ export interface components {
                 materials: {
                     materialId: string;
                     priceId: string;
+                    sourcePriceBasis?: string;
+                    sourcePriceFactor?: string;
                 }[];
                 /** @default false */
                 materialsIncludedInDirect: boolean;
@@ -5155,6 +5191,8 @@ export interface components {
                 materials: {
                     materialId: string;
                     priceId: string;
+                    sourcePriceBasis?: string;
+                    sourcePriceFactor?: string;
                 }[];
                 /** @default false */
                 materialsIncludedInDirect: boolean;
@@ -5183,6 +5221,8 @@ export interface components {
                 coefficient: string;
                 unitPrice: string | null;
                 sourcePriceId: string | null;
+                sourcePriceBasis?: string;
+                sourcePriceFactor?: string;
             }[];
             laborCost: string | null;
             materialCost: string | null;
@@ -5238,6 +5278,8 @@ export interface components {
             materials: {
                 materialId: string;
                 priceId: string;
+                sourcePriceBasis?: string;
+                sourcePriceFactor?: string;
             }[];
             /** @default false */
             materialsIncludedInDirect: boolean;
