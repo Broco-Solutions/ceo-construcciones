@@ -342,6 +342,8 @@ export function BudgetEditor({ id }: { id: string }) {
           ...m,
           unitPrice: null,
           sourcePriceId: null,
+          sourcePriceBasis: undefined,
+          sourcePriceFactor: undefined,
         })),
       })),
     });
@@ -453,7 +455,7 @@ export function BudgetEditor({ id }: { id: string }) {
       line.materialsIncludedInDirect=reference.content.materialsIncludedInDirect;
       line.materialReview=reference.content.materialReview;
       if(reference.content.laborMode==='CALCULATED' && reference.labor.every(r=>r.value!==null))line.laborReferences=reference.labor.map(r=>({...r,value:r.value!,source:r.source??''}));
-      line.materials=line.materials.map(m=>{const selected=reference.materials.find(p=>p.materialId===m.materialId);return selected?.sourcePriceId?{...m,unitPrice:selected.unitPrice,sourcePriceId:selected.sourcePriceId}:m;});
+      line.materials=line.materials.map(m=>{const selected=reference.materials.find(p=>p.materialId===m.materialId);return selected?.sourcePriceId?{...m,unitPrice:selected.unitPrice,sourcePriceId:selected.sourcePriceId,...(selected.sourcePriceBasis?{sourcePriceBasis:selected.sourcePriceBasis}:{}),...(selected.sourcePriceFactor?{sourcePriceFactor:selected.sourcePriceFactor}:{})}:m;});
     }
     set({ lines: [...current.lines, line] });
     setPick(false);
@@ -1036,7 +1038,7 @@ export function BudgetEditor({ id }: { id: string }) {
                 setLine(selected.key, {
                   materials: selected.materials.map((m) =>
                     m.materialId === comparisonMaterial
-                      ? { ...m, unitPrice: normalized, sourcePriceId: price.id }
+                      ? { ...m, unitPrice: normalized, sourcePriceId: price.id, sourcePriceBasis: undefined, sourcePriceFactor: undefined }
                       : m,
                   ),
                 });
@@ -1251,6 +1253,8 @@ export function BudgetEditor({ id }: { id: string }) {
                                   ...x,
                                   unitPrice: input(e.target.value),
                                   sourcePriceId: null,
+                                  sourcePriceBasis: undefined,
+                                  sourcePriceFactor: undefined,
                                 }
                               : x,
                           ),
@@ -1470,16 +1474,16 @@ export function BudgetEditor({ id }: { id: string }) {
                   onChange={(e) => void changeCostSelection(e.target.checked ? [...acceptedPrices, key] : acceptedPrices.filter(x => x !== key))}
                 />
                 <span>
-                  {c.kind === 'LABOR' ? 'Mano de obra' : 'Materiales'} · {c.name}: {c.previous === null ? 'Sin precio' : formatMoney(c.previous, content?.currency)} → {formatMoney(c.next, content?.currency)} ·{' '}
+                  {c.kind === 'COMPOSITION' ? 'Sustituir suministro histórico por composición BASE (cambio de receta separado)' : c.kind === 'LABOR' ? 'Mano de obra' : 'Materiales'} · {c.name}: {c.previous === null ? 'Sin precio' : formatMoney(c.previous, content?.currency)} → {formatMoney(c.next, content?.currency)} ·{' '}
                   {formatReferenceDate(c.dateLabel, c.datePrecision)} · {c.source}
-                  {c.manual
+                  {c.kind === 'COMPOSITION' ? ' · Desmarcado: requiere aceptación expresa; no es un cambio de tarifa' : c.manual
                     ? ' · Ajuste manual: conservar salvo selección expresa'
                     : ''}
                 </span>
               </label>
             );
           })}
-          <div className="note">La vista previa conserva cantidades, consumos y rentabilidad. Costo: {formatMoney(priceChanges?.before.totalCost, content?.currency)} → {formatMoney(priceChanges?.after.totalCost, content?.currency)}. Venta: {formatMoney(priceChanges?.before.commercialTotal, content?.currency)} → {formatMoney(priceChanges?.after.commercialTotal, content?.currency)}.</div>
+          <div className="note">La actualización de precios conserva cantidades, consumos y rentabilidad. Las sustituciones de composición se ofrecen por separado y sólo se aplican si las seleccionás. Costo: {formatMoney(priceChanges?.before.totalCost, content?.currency)} → {formatMoney(priceChanges?.after.totalCost, content?.currency)}. Venta: {formatMoney(priceChanges?.before.commercialTotal, content?.currency)} → {formatMoney(priceChanges?.after.commercialTotal, content?.currency)}.</div>
           {previewCostSelection.error && <ErrorBox error={previewCostSelection.error} />}
           {applyCosts.error && <ErrorBox error={applyCosts.error} />}
           <Button disabled={applyCosts.pending || previewCostSelection.pending || !!previewCostSelection.error} onClick={acceptPrices}>Aplicar selección al borrador</Button>

@@ -19,6 +19,8 @@ export const editorMaterialSchema = z
     coefficient: nonnegative.nullable(),
     unitPrice: nonnegative.nullable(),
     sourcePriceId: id.nullable(),
+    sourcePriceBasis: id.optional(),
+    sourcePriceFactor: nonnegative.optional(),
   })
   .strict();
 export const editorLineSchema = z

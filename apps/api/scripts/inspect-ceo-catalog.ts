@@ -9,6 +9,7 @@ import {
   type SourceSheet,
 } from "./historical-composition";
 import { linearCost } from "./source-linear-cost";
+import { inspectMaterialLinkage } from './base-material-linkage';
 
 export function cached(value: ExcelJS.CellValue): string | number | null {
   if (typeof value === "string" || typeof value === "number") return value;
@@ -370,6 +371,10 @@ export async function inspectCeoCatalog(path: string) {
         return { ...m, priceSourceKey: unique.length === 1 ? unique[0] : null };
       }),
     };
+    const exact = extractComposition(sourceSheets, 'COSTO', row, 5, true);
+    activity.materialLinkage = inspectMaterialLinkage(book, { key: String(activity.key), name: String(activity.name), direct: activity.direct as string | null, materialComposition: {
+      ...exact, materials: exact.materials.map(m => ({ ...m, coefficient: new Prisma.Decimal(m.coefficient).toDecimalPlaces(8).toFixed(), priceSourceKey: null }))
+    } }, prices);
   }
   return {
     format: "ceo-catalog-inventory-v1",

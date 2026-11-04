@@ -49,7 +49,10 @@ export function extractComposition(
   sheetName: string,
   row: number,
   column = 5,
+  exactCoefficients = false,
 ) {
+  const number = (v: unknown) => typeof v === 'number' && Number.isFinite(v)
+    ? exactCoefficients ? new D(String(v)) : new D(v).toDecimalPlaces(8, D.ROUND_HALF_UP) : null;
   const used = new Set<string>(),
     visiting = new Set<string>();
   let visits = 0;
@@ -62,10 +65,7 @@ export function extractComposition(
     scalar: v.scalar.mul(f),
     materials: v.materials.map((m) => ({
       ...m,
-      coefficient: new D(m.coefficient)
-        .mul(f)
-        .toDecimalPlaces(8, D.ROUND_HALF_UP)
-        .toFixed(),
+      coefficient: (exactCoefficients ? new D(m.coefficient).mul(f) : new D(m.coefficient).mul(f).toDecimalPlaces(8, D.ROUND_HALF_UP)).toFixed(),
     })),
   });
   const add = (a: Value, b: Value): Value => ({
@@ -304,7 +304,7 @@ export function extractComposition(
         value.warnings.push("Consumo negativo no recuperable");
       continue;
     }
-    const key = JSON.stringify([m.name.toUpperCase().trim(), m.unit]),
+    const key = JSON.stringify([m.name.toUpperCase().trim(), m.unit, ...(exactCoefficients ? [m.cells[0]] : [])]),
       old = grouped.get(key);
     if (old) {
       const q = new D(old.coefficient).add(m.coefficient);

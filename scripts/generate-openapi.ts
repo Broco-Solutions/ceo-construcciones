@@ -9,6 +9,7 @@ import {
 import {
   costReviewSchema,
   costApplySchema,
+  compositionReplacementSchema,
 } from "../apps/api/src/modules/budget-cost-updates";
 import { resolve } from "node:path";
 import { Prisma } from "../apps/api/node_modules/@prisma/client";
@@ -1332,12 +1333,13 @@ zod("LaborResourceInput", laborResourceSchema);
 zod("LaborResourcePatch", laborResourcePatchSchema);
 zod("CostReviewInput", costReviewSchema);
 zod("CostApplyInput", costApplySchema);
+zod('CompositionReplacement', compositionReplacementSchema);
 add(
   "ReferenceCostChange",
   obj({
     key: str,
     lineKey: id,
-    kind: { enum: ["MATERIAL", "LABOR"] },
+    kind: { enum: ["MATERIAL", "LABOR", "COMPOSITION"] },
     index: integer,
     name: str,
     previous: nullable(dec),
@@ -1347,7 +1349,8 @@ add(
     dateLabel: nullable(str),
     datePrecision: str,
     manual: bool,
-  }),
+    replacement: ref('CompositionReplacement'),
+  }, ['key', 'lineKey', 'kind', 'index', 'name', 'previous', 'next', 'sourceId', 'source', 'dateLabel', 'datePrecision', 'manual']),
 );
 add(
   "ReferenceCostReview",

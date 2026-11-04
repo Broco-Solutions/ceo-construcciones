@@ -2,7 +2,9 @@
 
 Fuente principal BASE, SHA256 `5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21dbd1e03b5b243e9e`. DG aporta diez tarifas históricas de julio a las categorías BASE y permanece como complemento histórico privado, con el hash y límites de [su conciliación](DG-1153-RECONCILIACION.md); no se convierte en padrón operativo ni sobreescribe BASE.
 
-| Entidad | Resultado local |
+Las cifras de la tabla siguiente corresponden a PR14; el complemento vigente se concilia al final de este documento.
+
+| Entidad | Resultado local PR14 |
 |---|---:|
 | Rubros de BASE previa reutilizados por evidencia de instalación | 17 |
 | Unidades usadas por el catálogo activo (9 previas + 3 nuevas) | 12 |
@@ -24,7 +26,7 @@ Los 234 candidatos PRECIOS se concilian como 222 materiales y 12 servicios exclu
 
 El cemento de `PRECIOS!A5:G5` conserva presentación de 25 kg; la normalización se comprobó una sola vez. El caso real `01-TareasP!J22` se concilió con las tarifas `MO real !D11/D13` y consumos 0,20 h: **3.334,20**. Es evidencia histórica, no recomendación salarial.
 
-Los suministros agregados conservan su costo de origen sin volver a sumar los componentes. Para usar precios nuevos por insumo se exige una sustitución explícita, composición completa y evidencia del alcance retirado; no se inventan residuos. Los tratamientos de IVA contradictorios de BASE se conservan como no informados, sin convertir precios incluidos o excluidos.
+El PR14 conservó todos los suministros como agregados. La corrección focalizada posterior sustituye únicamente las composiciones físicas y económicas demostradas; el resto conserva el agregado histórico. La sustitución y el importe original quedan auditados, sin residuos ni doble suma. Se conserva el tratamiento de cada referencia (E neto/F incluido) y se distingue de la valoración comercial no informada y de MO; no se convierten importes.
 
 Se recuperaron **44 referencias** cuya fórmula explícita `F/B` demostraba la presentación, pese a diferencias de decimales en el caché G. Se conserva el original y la observación; el precio de presentación se normaliza una vez con Decimal. La fila `PRECIOS!A87` conserva un conflicto real (`G87=F87`, presentación 1000), sin equivalencia supuesta. Los valores E y F se incorporan como referencias separadas EXCLUDED/INCLUDED, sin aplicar una alícuota.
 
@@ -53,7 +55,7 @@ Once pares de nombres coincidentes entre CAS y La Elena quedan separados: H8/H13
 
 La última reejecución crea cero y reutiliza todas las correspondencias sin conflictos. Los avisos se cuentan por registro y pueden coexistir con una entidad cargada; no son rechazos globales ni ceros supuestos. `catalog-counts-final.json`, manifiestos, runs y verificación de destinos privados permiten conciliar estas cifras.
 
-## Faltantes y límites por registro
+## Avisos y límites registrados en PR14 (antecedente)
 
 Manifiesto y cadenas privadas: `~/.local/state/ceo-construcciones-codex/catalog-inventory-v3.json`, `catalog-dg-complement-final.json`, `catalog-source-verification.json` y `catalog-load-*.json`. Se publican claves y causas, sin originales, listados económicos ni credenciales. **164 avisos** BASE: 36 precios, 12 servicios excluidos del stock, 53 casos de MO (51 sin tarifa y 2 combinados) y 63 actividades con faltantes o composición por revisar. Un aviso no equivale a una entidad rechazada.
 
@@ -223,3 +225,187 @@ Manifiesto y cadenas privadas: `~/.local/state/ceo-construcciones-codex/catalog-
 | activity | `COSTO!B203` | F sin costo numérico: MO pendiente; E sin costo numérico: directo pendiente |
 | activity | `COSTO!B204` | F sin costo numérico: MO pendiente; E sin costo numérico: directo pendiente; COSTO!E204: expresión no admitida para extracción física (SUM(K11:K198)*4%/4) |
 | activity | `COSTO!B205` | F sin costo numérico: MO pendiente; E sin costo numérico: directo pendiente; COSTO!E205: expresión no admitida para extracción física (SUM(K11:K198)*4%/4) |
+
+## Cierre de vinculación material real posterior al PR14 — 04/11/2026
+
+Reproducción ejecutada sobre main `7dbc7b1`: una base nueva con el cargador/original BASE creó 146 actividades, **0** con materiales vinculados y **0** referencias materiales elegidas. La base manual persistida también tenía 146/0/0; la verificación de sus 1.429 correspondencias previas no detectó ediciones divergentes. La prueba sintética anterior no acreditaba propagación en BASE. Evidencia privada `base-link-before-isolated.json`, `base-link-before-manual.json` y `base-link-manual-before-verification.json`.
+
+La clasificación cubre cada actividad del archivo confirmado, sin imponer estos conteos a fuentes futuras:
+
+| Clase final | Actividades | Criterio |
+|---|---:|---|
+| A | 3 | Directos legítimos, sin materiales de stock: obrador/movilidad, baño químico y colocación de ménsulas. No se fabrica consumo. |
+| B | 67 | Expresión económica y consumo físico comprobados; identidades/presentaciones y referencias elegidas. Suministro calculado, agregado retirado una sola vez. |
+| C | 76 | Datos parciales, identidad/unidad o alcance sin respaldo suficiente; conservan importes históricos conocidos y el faltante concreto. |
+| D pendiente | 0 | No se deja una receta comprobada bloqueada sólo por la regla fiscal global. Las reglas resueltas se incorporan a B. |
+
+MO calculada permanece en 74 actividades; esa condición puede solaparse con A/B/C y no acredita completitud material. La matriz privada `base-link-inventory.json` contiene para las 146: celdas/cadenas, identidad, unidad, presentación, precio y procedencia, agregado original, suma reconstruida, diferencia y límites físicos/económicos por separado. No se publican listas económicas ni originales.
+
+Se resolvieron restricciones técnicas concretas: referencias E/F/G; precio de presentación normalizado una vez; equivalencias explícitas de bolsón=1 m³ y placa 1000×1000 mm=1 m²; consumos redondeados sólo al final; celdas vacías dentro de SUM; factores económicos explícitos de receta que **no** se transforman en rendimiento ni se clasifican como alícuotas. Los promedios entre productos distintos no prueban identidad física única. Amortizaciones y recargos sobre un subtotal sin alcance físico no se convierten en consumos.
+
+Los precios sin fecha conservan su importe y precisión UNKNOWN, quedan fijados a la referencia histórica seleccionada y fuera de comparaciones/selección automática como última cotización. MaterialPrice V1 exige timestamp: se usa epoch técnico, documentado como **no fecha de cotización**, y UI/exportación muestran “Fecha no informada”. Las referencias nuevas del usuario permanecen append-only. La regla de origen está anclada en correspondencias privadas verificadas; el cliente API no puede inventar un factor o mezclar IVA/proveedor/presentación.
+
+La BASE operativa se completa en la misma plantilla y en los mismos IDs de actividad, sólo cuando las huellas de instalación siguen coincidiendo. Identidades antiguas y plantillas particulares se conservan. Presupuestos/snapshots no se reescriben. Un borrador previo agregado recibe una propuesta **COMPOSITION**, separada, desmarcada y condicionada a que la receta/importe previo sigan siendo los comprobados. Cambios particulares no se convierten al actualizar precios.
+
+Prueba privada ejecutada: `verify-base-material-links.ts`, salida0, original verificado y PostgreSQL/API reales. Verifica todas las B y casos `COSTO!B27` (simple), `B35` (varios insumos/bolsa25kg y bolsón1m³), `B65` (varios insumos), directo `B13` e incompleto `B170`. Registra un precio de prueba en la misma serie/presentación del cemento importado `PRECIOS!A5`; cambia actividad y presupuesto nuevo, conserva consumo particular 6, ajuste manual 999, recargo 37,5%, demanda y R1/PDF. El borrador anterior sólo cambia al aceptar; R2 se emite después. Repetición sin duplicados/reversión; edición de usuario preservada. Los importes de prueba sólo se agregan a la base aislada del escenario, no al catálogo manual real.
+
+Prueba publicable: `base-material-links.integration.test.ts` crea un XLSX sanitizado con la estructura/fórmulas originales y lo extrae/aplica; no inserta una receta preconectada. Cubre concurrencia, corrección PR14→composición, plantilla congelada, borrador previo y rechazo de factores/valoraciones sin prueba. La prueba sintética 6100→6500→6900 se conserva.
+
+### Correspondencia de las actividades de esta fuente
+
+Las causas se sanitizan; la matriz privada conserva los valores y la cadena completa. “Histórico conocido” no equivale a ausencia numérica.
+
+| Actividad / celda COSTO | Clase | Resultado o causa concreta |
+|---|---|---|
+| `COSTO!B12` | C | 01-TareasP!G13: unidad m contradice PRECIOS!C230 (un); no se supone equivalencia; 01-TareasP!G15: unidad un contradice PRECIOS!C184 (m); no se supone equivalencia; 01-TareasP!G13: unidad m distinta de PRECIOS!A230 (un); equivalencia ausente.; 01-TareasP!G15: unidad un distinta de PRECIOS!A184 (m); equivalencia ausente. |
+| `COSTO!B13` | A | Directo legítimo sin insumos de stock. |
+| `COSTO!B14` | A | Directo legítimo sin insumos de stock. |
+| `COSTO!B15` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B16` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B19` | C | COSTO!B19: suministro sin composición verificable; importe ausente. |
+| `COSTO!B20` | C | COSTO!B20: suministro sin composición verificable; importe ausente. |
+| `COSTO!B21` | C | COSTO!B21: suministro sin composición verificable; importe ausente. |
+| `COSTO!B22` | C | COSTO!B22: suministro sin composición verificable; importe ausente. |
+| `COSTO!B23` | C | COSTO!B23: suministro sin composición verificable; importe ausente. |
+| `COSTO!B24` | C | COSTO!B24: suministro sin composición verificable; importe ausente. |
+| `COSTO!B27` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B28` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B29` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B30` | C | COSTO!E30: importe fijo histórico sin desglose físico |
+| `COSTO!B31` | C | COSTO!E31: importe fijo histórico sin desglose físico |
+| `COSTO!B32` | C | COSTO!E32: importe fijo histórico sin desglose físico |
+| `COSTO!B33` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B34` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B35` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B36` | C | 03-Aisl!G167: 03-Aisl!G167: valor numérico ausente; importe histórico ausente, sin inventar referencia.; 03-Aisl!G168: 03-Aisl!G168: valor numérico ausente; importe histórico ausente, sin inventar referencia.; 03-Aisl!G169: 03-Aisl!G169: valor numérico ausente; importe histórico ausente, sin inventar referencia.; 03-Aisl!G171: 03-Aisl!G171: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B37` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B38` | C | 03-Aisl!G157: unidad L contradice PRECIOS!C138 (kg); no se supone equivalencia; 03-Aisl!G157: unidad L distinta de PRECIOS!A138 (kg); equivalencia ausente. |
+| `COSTO!B39` | C | COSTO!E39: importe fijo histórico sin desglose físico |
+| `COSTO!B40` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B44` | C | COSTO!B44: suministro sin composición verificable; importe ausente. |
+| `COSTO!B45` | C | 04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico; 04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G54: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B46` | C | 04-EstructHE!I57: división de costo por 2 (reutilización/amortización); cantidad física D57 conservada como orientativa, falta definir uso físico; 04-EstructHE!J59: factor 1.2 del subtotal sin regla física; no se transforma en rendimiento; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G54: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B47` | C | 04-EstructHE!I91: división de costo por 2 (reutilización/amortización); cantidad física D91 conservada como orientativa, falta definir uso físico; 04-EstructHE!I92: división de costo por 2 (reutilización/amortización); cantidad física D92 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G88: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia.; 04-EstructHE!G92: identidad de precio no recuperada; importe histórico conocido, sin inventar referencia. |
+| `COSTO!B48` | C | 04-EstructHE!I74: división de costo por 2 (reutilización/amortización); cantidad física D74 conservada como orientativa, falta definir uso físico; 04-EstructHE!I75: división de costo por 2 (reutilización/amortización); cantidad física D75 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G69: [7]PRECIOS!E192: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G70: 04-EstructHE!G70: valor numérico ausente; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G72: [7]PRECIOS!G59: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G73: [7]PRECIOS!G58: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G74: [7]PRECIOS!G179: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G75: [7]PRECIOS!E177: celda no disponible; importe histórico ausente, sin inventar referencia.; COSTO!B48: agregado original ausente; no se inventa un costo completo. |
+| `COSTO!B49` | C | 04-EstructHE!I141: división de costo por 2 (reutilización/amortización); cantidad física D141 conservada como orientativa, falta definir uso físico; 04-EstructHE!I144: división de costo por 2 (reutilización/amortización); cantidad física D144 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G140: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia.; 04-EstructHE!G141: unidad un distinta de PRECIOS!A184 (m); equivalencia ausente. |
+| `COSTO!B50` | C | 04-EstructHE!I178: división de costo por 2 (reutilización/amortización); cantidad física D178 conservada como orientativa, falta definir uso físico; 04-EstructHE!I179: división de costo por 2 (reutilización/amortización); cantidad física D179 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G175: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia.; 04-EstructHE!G178: unidad un distinta de PRECIOS!A184 (m); equivalencia ausente. |
+| `COSTO!B51` | C | 04-EstructHE!I376: división de costo por 2 (reutilización/amortización); cantidad física D376 conservada como orientativa, falta definir uso físico; 04-EstructHE!I377: división de costo por 2 (reutilización/amortización); cantidad física D377 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 04-EstructHE!G371: [7]PRECIOS!G193: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G372: [7]PRECIOS!K197: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G374: [7]PRECIOS!G59: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G375: [7]PRECIOS!G58: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G376: [7]PRECIOS!G179: celda no disponible; importe histórico ausente, sin inventar referencia.; 04-EstructHE!G377: [7]PRECIOS!G176: celda no disponible; importe histórico ausente, sin inventar referencia.; COSTO!B51: agregado original ausente; no se inventa un costo completo. |
+| `COSTO!B52` | C | COSTO!E52: importe fijo histórico sin desglose físico |
+| `COSTO!B54` | C | COSTO!E54: importe fijo histórico sin desglose físico |
+| `COSTO!B57` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B58` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B59` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B60` | C | 05-MampCA!G91: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B61` | C | 05-MampCA!G75: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B62` | C | 05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia; 05-MampCA!G48: unidad kg distinta de PRECIOS!A31 (BOLSON); equivalencia ausente.; 05-MampCA!G49: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B63` | C | 05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia; 05-MampCA!G48: unidad kg distinta de PRECIOS!A31 (BOLSON); equivalencia ausente.; 05-MampCA!G49: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B64` | C | 05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia; 05-MampCA!G48: unidad kg distinta de PRECIOS!A31 (BOLSON); equivalencia ausente.; 05-MampCA!G49: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B65` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B66` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B67` | C | 05-MampCA!G48: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia; 05-MampCA!G48: unidad kg distinta de PRECIOS!A31 (BOLSON); equivalencia ausente.; 05-MampCA!G49: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B69` | C | 05-MampC!G236: 05-MampC!G236: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B70` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B71` | C | 05-MampC!G264: 05-MampC!G264: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B73` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B74` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B75` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B76` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B77` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B78` | C | COSTO!E78: importe fijo histórico sin desglose físico |
+| `COSTO!B82` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B83` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B84` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B85` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B86` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B87` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B89` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B90` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B91` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B92` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B93` | C | COSTO!B93: suministro sin composición verificable; importe ausente. |
+| `COSTO!B94` | C | COSTO!E94: importe fijo histórico sin desglose físico |
+| `COSTO!B95` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B96` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B100` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B101` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B102` | C | 07-ContrapC!G26: unidad m² contradice PRECIOS!C86 (); no se supone equivalencia |
+| `COSTO!B103` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B104` | C | 07-CarpetC!G10: 07-CarpetC!G10: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B105` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B107` | C | 07-ContrapC!G164: 07-ContrapC!G164: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B108` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B109` | C | 08-09-PisosRev!G265: unidad kg contradice PRECIOS!C31 (m³); no se supone equivalencia; 08-09-PisosRev!G265: unidad kg distinta de PRECIOS!A31 (BOLSON); equivalencia ausente. |
+| `COSTO!B110` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B112` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B113` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B114` | C | COSTO!E114: importe fijo histórico sin desglose físico |
+| `COSTO!B115` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B116` | C | 08-09-PisosRev!I229: división de costo por 2 (reutilización/amortización); cantidad física D229 conservada como orientativa, falta definir uso físico; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose.; 08-09-PisosRev!G230: PRECIOS: fórmula no soportada: +AVERAGE(G47:G53); importe histórico conocido, sin inventar referencia. |
+| `COSTO!B117` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B118` | C | 07-CarpetC!G10: 07-CarpetC!G10: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B119` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B122` | C | 08-09-PisosRev!G160: 08-09-PisosRev!G160: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B123` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B124` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B125` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B126` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B127` | C | COSTO!E127: importe fijo histórico sin desglose físico |
+| `COSTO!B128` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B129` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B130` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B131` | C | COSTO!B131: suministro sin composición verificable; importe ausente. |
+| `COSTO!B132` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B134` | C | COSTO!B134: suministro sin composición verificable; importe ausente. |
+| `COSTO!B135` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B138` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B139` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B140` | C | COSTO!B140: suministro sin composición verificable; importe ausente. |
+| `COSTO!B143` | C | 10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose. |
+| `COSTO!B144` | C | 10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose. |
+| `COSTO!B145` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B146` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B147` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B148` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B149` | C | 10-Yeso!J62: factor 1.5 del subtotal sin regla física; no se transforma en rendimiento; El alcance económico no coincide con el consumo físico: factor, amortización o constante independiente sin desglose. |
+| `COSTO!B150` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B151` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B152` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B156` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B157` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B158` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B159` | C | 07-ContrapCA!G81: unidad m³ contradice PRECIOS!C202 (un); no se supone equivalencia; PRECIOS!A202: servicio, no insumo de stock. |
+| `COSTO!B160` | C | COSTO!E160: importe fijo histórico sin desglose físico |
+| `COSTO!B161` | C | 07-CarpetC!G10: 07-CarpetC!G10: valor numérico ausente; importe histórico ausente, sin inventar referencia. |
+| `COSTO!B162` | C | COSTO!E162: importe fijo histórico sin desglose físico |
+| `COSTO!B163` | C | COSTO!E163: importe fijo histórico sin desglose físico |
+| `COSTO!B164` | C | COSTO!B164: suministro sin composición verificable; importe ausente. |
+| `COSTO!B166` | C | COSTO!B166: suministro sin composición verificable; importe ausente. |
+| `COSTO!B170` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B171` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B172` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B173` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B174` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B175` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B176` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B177` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B178` | C | PRECIOS!A12: importe F o presentación B ausente; el valor conocido de receta se conserva como histórico. |
+| `COSTO!B181` | A | Directo legítimo sin insumos de stock. |
+| `COSTO!B182` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B183` | B | Composición y referencias vinculables; prueba lineal y presentación explícita. |
+| `COSTO!B187` | C | COSTO!B187: suministro sin composición verificable; importe ausente. |
+| `COSTO!B188` | C | COSTO!B188: suministro sin composición verificable; importe ausente. |
+| `COSTO!B190` | C | COSTO!B190: suministro sin composición verificable; importe ausente. |
+| `COSTO!B192` | C | COSTO!B192: suministro sin composición verificable; importe ausente. |
+| `COSTO!B193` | C | COSTO!B193: suministro sin composición verificable; importe ausente. |
+| `COSTO!B196` | C | COSTO!B196: suministro sin composición verificable; importe ausente. |
+| `COSTO!B199` | C | COSTO!B199: suministro sin composición verificable; importe ausente. |
+| `COSTO!B202` | C | COSTO!B202: suministro sin composición verificable; importe ausente. |
+| `COSTO!B203` | C | COSTO!B203: suministro sin composición verificable; importe ausente. |
+| `COSTO!B204` | C | COSTO!E204: expresión no admitida para extracción física (SUM(K11:K198)*4%/4) |
+| `COSTO!B205` | C | COSTO!E205: expresión no admitida para extracción física (SUM(K11:K198)*4%/4) |
+
+### Complemento aplicado en la base manual
+
+Aplicación `cmw222m5600fb721tnuvs6xyd`: 67 vinculadas, cero conflictos; cero materiales/actividades/plantillas nuevos y ninguna operación creada. Se agregaron 12 referencias y 12 presentaciones comprobadas sobre identidades existentes; 9 correspondencias de equivalencia reutilizan identidades previas y 2 documentan factores económicos. Total de correspondencias 1.531, verificación sin discrepancias. Referencias PRECIOS anteriores 372 conservadas, más 12 referencias de composición; no se borraron las 62 provisionales archivadas.
+
+La reejecución final crea cero y conserva las67 conexiones, con cero conflictos. Se normaliza el orden de claves JSON antes de comparar la definición; PostgreSQL JSONB no se interpreta como edición de usuario por reordenar claves. Las pruebas exigen ausencia de estos falsos conflictos y preservación de conflictos reales. Evidencias privadas `base-link-manual-apply.json`, `base-link-manual-repeat-final.json`, `base-link-manual-verification.json`.

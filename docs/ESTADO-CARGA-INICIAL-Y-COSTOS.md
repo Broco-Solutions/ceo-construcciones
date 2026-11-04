@@ -2,7 +2,20 @@
 
 Encargo recibido el 04/11/2026. El archivo `CEO_PLAN_CARGA_INICIAL_Y_COSTOS_CODEX.md` no estaba en el árbol al iniciar; se usa el texto completo adjunto por el usuario (P0–P7, CI-01…CI-48), que autoriza este incremento full stack. El plan maestro anterior es contexto histórico.
 
-## Evidencia vigente
+## Corrección focalizada de vinculación material — candidato verificado
+
+Rama `codex/vinculacion-materiales-base`, base remota `7dbc7b1`. Reproducción real aislada y lectura manual: 146 actividades, cero vínculos materiales en PR14. Se conserva el avance anterior; la evidencia sintética no se presenta como prueba de BASE. Corrección: 3 A / 67 B conectadas / 76 C específicas / 0 D pendiente; MO calculada 74, sin cambiar históricos ni operaciones. Prueba privada real y regresión sanitizada aprobadas. Verificadores finales con salida 0: API 187 + runtime 3 (`20261104_115624_2-api`), web 49/typecheck/build (`20261104_121005_2-web`), E2E 72 (`20261104_115839_2-e2e`). Compatibilidad binaria/navegador V1→PR9→ampliada aprobada, diff vacío (`logs/base-link-release-final.log`); no cambia el esquema. Complemento manual aplicado/repetido: 67 conexiones, cero creaciones/reversiones/conflictos en repetición y 1.531 correspondencias sin discrepancias. Smoke real y visual 1440/1280/768/390/360 aprobado; PDF 6 páginas renderizado, sin costos internos, R1 igual. [PR15](https://github.com/Broco-Solutions/ceo-construcciones/pull/15) registra candidato, checks y SHA integrado; aún no se anticipa el merge dentro de este commit. [Clasificación por actividad y reglas](CARGA-INICIAL-RESULTADOS.md#cierre-de-vinculación-material-real-posterior-al-pr14--04112026).
+
+| Hallazgo → corrección | Prueba / evidencia | Estado |
+|---|---|---|
+| Carga real agregada universal | `check-base-linkage.ts`, original con hash confirmado y lectura manual | Reproducido 146/0/0 |
+| Recetas verificables sin selección | `base-material-linkage.ts` + `base-material-links.ts`; todas las B reconstruidas y referencias comprobadas | 67 vinculadas en aislada y manual; repetición sin duplicados/conflictos |
+| Propagación real faltante | `verify-base-material-links.ts`: material BASE→actividad→nuevo presupuesto→selección de borrador→R2; demanda/R1/PDF iguales | PASS privado |
+| Actualización de receta confundida con tarifa | Cambio COMPOSITION separado y desmarcado; particular congelada/manuales preservados | Regresión PostgreSQL aprobada |
+| Edición/coexistencia/concurrencia | XLSX sanitizado extraído y cargado, fingerprints, carreras y reejecución | Aprobado; sin borrar datos |
+| Render/compatibilidad/entrega | Smoke BASE real cinco anchos, PDF 6 páginas, V1 poblada→PR9→ampliada y suites completas | API 187+3, web 49, E2E 72; PR15/checks/SHA en registro remoto |
+
+## Evidencia PR14 (antecedente)
 
 - Base real: `3df832de3633829d5f20b0f4e1cb566def83e081`; `origin/main` verificado sin commits posteriores al comenzar. Rama `codex/carga-inicial-costos`.
 - Se preservaron `apple-icon.png:Zone.Identifier`, `icon.png:Zone.Identifier` y `public/brand/ceo-logo-azul.png`, no versionados. Ningún cambio de código local previo. PR10–13 conservados.
@@ -55,7 +68,7 @@ La evidencia API usa PostgreSQL real; E2E usa API standalone y web de producció
 | CI-27 | Borrador independiente | Tarifas/precios nuevos no escriben en el borrador antes de aplicar revisión |
 | CI-28 | Preview | Preview sin escritura y selección vacía/parcial; venta 91500/97500/103500 |
 | CI-29 | Manuales | Ajustes desmarcados y conservados; sustitución sólo al seleccionar expresamente |
-| CI-30 | Receta particular | Consumo particular 5/manual999 preservado; actualización no copia receta maestra |
+| CI-30 | Receta particular | Consumo particular 5/manual 999 preservado; actualización no copia receta maestra |
 | CI-31 | Conflicto | Hash de revisión/referencias revalidado en transacción; no se pierde contenido |
 | CI-32 | Recargo | Caso comercial 50% final, sin cambio de cantidad/consumo al actualizar costos |
 | CI-33 | Históricos | R1 snapshot y bytes PDF idénticos tras actualizar; pruebas API/E2E |
@@ -72,7 +85,7 @@ La evidencia API usa PostgreSQL real; E2E usa API standalone y web de producció
 | CI-44 | Volumen | Resolver en lote; precios/recursos paginados; BASE146 con cálculo en lote y sin perder foco al tipear; revisión manual aprobada |
 | CI-45 | Esquemas | Release V1 poblada→PR9 poblado→nuevo: HTTP/browser, snapshots/PDF iguales, diff vacío |
 | CI-46 | Reinicio manual | Arranque/reinicio versionado y smokes aprobados sin reset; SHA local compilado en release.json y coincidencia con main registrada en PR14 |
-| CI-47 | Contrato/suites | OpenAPI122 rutas/161 operaciones; API186+runtime3, web49 y E2E72 con salida0 |
+| CI-47 | Contrato/suites | OpenAPI122 rutas/161 operaciones; API186+runtime 3, web 49 y E2E 72 con salida 0 |
 | CI-48 | Entrega | Informe por entidad/faltantes y guía ejecutada; PR14/checks/registro de SHA acreditan integración y smoke del mismo código |
 
 No se ejecutaron operaciones productivas ni cambios de infraestructura. El [PR14](https://github.com/Broco-Solutions/ceo-construcciones/pull/14) es el registro verificable de estado de merge/checks/SHA; no se anticipa un SHA de merge dentro de este commit.

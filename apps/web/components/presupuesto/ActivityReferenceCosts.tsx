@@ -73,9 +73,9 @@ export function ActivityReferenceCosts({
           <DefList
             items={[
               [
-                'Materiales',
+                resolved.content.materialsIncludedInDirect ? 'Materiales físicos' : 'Materiales calculados',
                 resolved.content.materialsIncludedInDirect
-                  ? 'Incluidos en el agregado histórico'
+                  ? resolved.content.materialReview?.status === 'DIRECT' ? 'No corresponde' : 'Incluidos en el agregado histórico'
                   : resolved.materialCost !== null
                     ? formatMoney(
                         resolved.materialCost,
@@ -90,7 +90,7 @@ export function ActivityReferenceCosts({
                   : 'Sin tarifa',
               ],
               [
-                'Otros costos directos',
+                resolved.content.materialsIncludedInDirect && resolved.content.materialReview?.status !== 'DIRECT' ? 'Suministro histórico agregado' : 'Otros directos',
                 resolved.directCost === null
                   ? 'Pendiente'
                   : formatMoney(resolved.directCost, resolved.content.currency),
@@ -262,7 +262,7 @@ function CostingForm({
             }
           />
           <SelectField
-            label="IVA informado de las referencias"
+            label="IVA comercial y de mano de obra"
             value={content.taxBasis}
             options={[
               { value: 'UNSPECIFIED', label: 'No informado' },
@@ -283,7 +283,8 @@ function CostingForm({
           Cambiar la valoración deja las referencias pendientes. No se
           convierten importes; Cancelar conserva la configuración anterior. Los
           importes directos deben coincidir con la valoración guardada en la
-          actividad.
+          actividad. Cada material conserva el IVA informado de su referencia
+          de origen, sin convertirlo a esta valoración.
         </p>
         <SelectField
           label="Modalidad de mano de obra"
@@ -442,12 +443,12 @@ function CostingForm({
                   (p) =>
                     p.materialId === m.materialId &&
                     p.currency === content.currency &&
-                    p.taxBasis === content.taxBasis &&
+                    p.taxBasis === (content.taxBasis === 'UNSPECIFIED' ? prices.rows.find(p => p.id === content.materials.find(mr => mr.materialId === m.materialId)?.sourcePriceBasis)?.taxBasis ?? content.taxBasis : content.taxBasis) &&
                     new Date(p.effectiveAt) <= new Date(),
                 )
                 .map((p) => ({
                   value: p.id,
-                  label: `${p.price} / ${p.baseQuantity} · ${p.source ?? 'Sin fuente'}`,
+                  label: `${formatMoney(p.price, p.currency)} / ${p.baseQuantity} · ${p.taxBasis === 'INCLUDED' ? 'IVA incluido' : p.taxBasis === 'EXCLUDED' ? 'Sin IVA' : 'IVA no informado'} · ${(p.source ?? 'Sin fuente').split(' · ').filter(part => !/^[\w -]+![A-Z]+\d+(?::\w+)?$/.test(part)).join(' · ')}`,
                 }))}
               onChange={(e) =>
                 change({
@@ -456,7 +457,7 @@ function CostingForm({
                     ...content.materials.filter(
                       (p) => p.materialId !== m.materialId,
                     ),
-                    { materialId: m.materialId, priceId: e.target.value },
+                    { materialId: m.materialId, priceId: e.target.value, ...(content.materials.find(p => p.materialId === m.materialId)?.sourcePriceBasis ? { sourcePriceBasis: content.materials.find(p => p.materialId === m.materialId)!.sourcePriceBasis } : {}), ...(content.materials.find(p => p.materialId === m.materialId)?.sourcePriceFactor ? { sourcePriceFactor: content.materials.find(p => p.materialId === m.materialId)!.sourcePriceFactor } : {}) },
                   ],
                 })
               }

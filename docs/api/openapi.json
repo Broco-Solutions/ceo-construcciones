@@ -38878,6 +38878,15 @@
                             "type": "null"
                           }
                         ]
+                      },
+                      "sourcePriceBasis": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "sourcePriceFactor": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                       }
                     },
                     "required": [
@@ -39236,6 +39245,15 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "sourcePriceBasis": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "sourcePriceFactor": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                           }
                         },
                         "required": [
@@ -39648,6 +39666,15 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "sourcePriceBasis": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "sourcePriceFactor": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                           }
                         },
                         "required": [
@@ -39857,6 +39884,15 @@
                       "type": "null"
                     }
                   ]
+                },
+                "sourcePriceBasis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "sourcePriceFactor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                 },
                 "quantity": {
                   "type": "string",
@@ -43373,6 +43409,15 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "sourcePriceBasis": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "sourcePriceFactor": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                           }
                         },
                         "required": [
@@ -43745,6 +43790,15 @@
                                 "type": "null"
                               }
                             ]
+                          },
+                          "sourcePriceBasis": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "sourcePriceFactor": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                           }
                         },
                         "required": [
@@ -43858,6 +43912,140 @@
         ],
         "additionalProperties": false
       },
+      "CompositionReplacement": {
+        "type": "object",
+        "properties": {
+          "materials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "unitId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "coefficient": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sourcePriceId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sourcePriceBasis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "sourcePriceFactor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                }
+              },
+              "required": [
+                "materialId",
+                "name",
+                "unitId",
+                "unit",
+                "coefficient",
+                "unitPrice",
+                "sourcePriceId"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 500
+          },
+          "directUnitCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "materialsIncludedInDirect": {
+            "type": "boolean"
+          },
+          "materialReview": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "DIRECT",
+                  "VERIFIED",
+                  "UNRESOLVED"
+                ]
+              },
+              "detail": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "evidence": {
+                "type": "string",
+                "maxLength": 2000
+              }
+            },
+            "required": [
+              "status",
+              "detail",
+              "evidence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "materials",
+          "directUnitCost"
+        ],
+        "additionalProperties": false
+      },
       "ReferenceCostChange": {
         "type": "object",
         "properties": {
@@ -43872,7 +44060,8 @@
           "kind": {
             "enum": [
               "MATERIAL",
-              "LABOR"
+              "LABOR",
+              "COMPOSITION"
             ]
           },
           "index": {
@@ -43928,6 +44117,9 @@
           },
           "manual": {
             "type": "boolean"
+          },
+          "replacement": {
+            "$ref": "#/components/schemas/CompositionReplacement"
           }
         },
         "required": [
@@ -44128,6 +44320,15 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 100
+                    },
+                    "sourcePriceBasis": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "sourcePriceFactor": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                     }
                   },
                   "required": [
@@ -44271,6 +44472,15 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 100
+                    },
+                    "sourcePriceBasis": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "sourcePriceFactor": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                     }
                   },
                   "required": [
@@ -44427,6 +44637,15 @@
                       "type": "null"
                     }
                   ]
+                },
+                "sourcePriceBasis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "sourcePriceFactor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                 }
               },
               "required": [
@@ -44721,6 +44940,15 @@
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 100
+                },
+                "sourcePriceBasis": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "sourcePriceFactor": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
                 }
               },
               "required": [

@@ -8,7 +8,8 @@ import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
 import { editorContentSchema, type EditorContent } from "./commercial-domain";
 import { nonnegative } from "./shared";
-import { referenceCostsEnabled } from "./cost-references";
+import { referenceCostsEnabled, activityCostingSchema } from "./cost-references";
+import { completeBaseMaterialLinks, materialLinkageSchema } from './base-material-links';
 const nullable = nonnegative.nullable();
 const inventorySchema = z.object({
   format: z.literal("ceo-catalog-inventory-v1"),
@@ -54,6 +55,7 @@ const inventorySchema = z.object({
       unit: z.string(),
       labor: nullable,
       direct: nullable,
+      materialLinkage: materialLinkageSchema.optional(),
       laborComposition: z.object({
         reconciled: z.boolean(),
         components: z.array(
@@ -679,7 +681,10 @@ export async function applyCatalogInventory(
       labor.set(l.key, { resourceId, rateId });
     }
     const lines: EditorContent["lines"] = [];
-    for (const a of source.activities) {
+    for (const entry of source.activities) {
+      // New proof is versioned independently; the PR14 origin fingerprint and
+      // its original aggregate remain comparable and unchanged.
+      const { materialLinkage: _linkage, ...a } = entry;
       const categoryId = categories.get(a.categoryKey)!,
         unitId = await unit(a.unit);
       const components: EditorContent["lines"][number]["materials"] = [];
@@ -887,7 +892,7 @@ export async function applyCatalogInventory(
             : "Composición física del original, sin doble suma del agregado."),
         evidence: a.key,
       };
-      const content = {
+      let content = {
         currency: "ARS",
         taxBasis: "UNSPECIFIED",
         laborMode: calculated ? "CALCULATED" : "DIRECT",
@@ -899,6 +904,30 @@ export async function applyCatalogInventory(
           "Suministro histórico agregado: sus materiales físicos no se suman otra vez. " +
           a.materialComposition.warnings.join("; "),
       };
+      if (entry.materialLinkage && entry.materialLinkage.classification !== 'B') {
+        const plan = entry.materialLinkage;
+        content.materialReview = {
+          status: plan.classification === 'A' ? 'DIRECT' : plan.physicalComplete ? 'VERIFIED' : 'UNRESOLVED',
+          detail: plan.classification === 'A' ? 'Costo directo de origen; no produce materiales.' : 'Suministro histórico utilizable como agregado; la actualización por insumo sigue limitada por los datos indicados.',
+          evidence: a.key,
+        };
+        content.notice = plan.classification === 'A' ? 'Costo directo legítimo de origen. No se deducen materiales.' : ('Suministro histórico agregado. ' + plan.issues.join('; ')).slice(0, 2000);
+        if (oldCosting && oldActivity && (oldActivity.evidence as { sourceSha256?: string }).sourceSha256 === source.sourceSha256) {
+          const saved = await tx.activityCosting.findUnique({ where: { itemId } });
+          const current = await tx.apuItem.findUnique({ where: { id: itemId }, include: { components: true } });
+          if (saved && current && hash(saved) === oldCosting.installedHash && hash(current) === oldActivity.installedHash && hash(saved.content) !== hash(content)) {
+            const updated = await tx.activityCosting.update({ where: { itemId }, data: { content, revision: { increment: 1 } } });
+            oldCosting.installedHash = hash(updated); oldCosting.sourceHash = hash(content);
+            oldCosting.evidence = JSON.parse(JSON.stringify({ sourceSha256: source.sourceSha256, extractorVersion: source.extractorVersion, record: content }));
+            await tx.catalogOrigin.update({ where: { id: oldCosting.id }, data: { installedHash: oldCosting.installedHash, sourceHash: oldCosting.sourceHash, evidence: oldCosting.evidence as Prisma.InputJsonValue } });
+          }
+        }
+      }
+      const installedLink = origins.find(o => o.kind === 'activity-linkage' && o.sourceKey === a.key);
+      if (installedLink && oldCosting) {
+        const saved = await tx.activityCosting.findUnique({ where: { itemId } });
+        if (saved) content = activityCostingSchema.parse(saved.content) as typeof content;
+      }
       if (correctedService && oldCosting) {
         const corrected = await tx.activityCosting.update({
           where: { itemId },
@@ -1033,6 +1062,8 @@ export async function applyCatalogInventory(
           }),
         (id) => tx.budgetTemplate.findUnique({ where: { id } }),
       );
+    const materialLinks = await completeBaseMaterialLinks(tx, source, actor);
+    summary.conflicts.push(...materialLinks.conflicts);
     // Preserve the provisional identity for traceability, but don't offer an
     // unused, proven service as a stock material. Any user usage prevents this.
     const serviceCells = new Set(
@@ -1098,7 +1129,7 @@ export async function applyCatalogInventory(
         sourceHash: source.sourceSha256,
         manifestHash: hash(source),
         actorId: actor.id,
-        summary: JSON.parse(JSON.stringify(summary)),
+        summary: JSON.parse(JSON.stringify({ ...summary, materialLinks })),
       },
     });
     await audit(tx, actor, "LOAD_REFERENCE_CATALOG", "CatalogLoadRun", run.id, {
@@ -1106,6 +1137,6 @@ export async function applyCatalogInventory(
       created: summary.created,
       reused: summary.reused,
     });
-    return { runId: run.id, ...summary };
+    return { runId: run.id, ...summary, materialLinks };
   });
 }

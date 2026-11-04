@@ -1,4 +1,5 @@
 import { retiredPriceIds } from "./price-provenance";
+import { undatedPriceIds } from './source-price-basis';
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
@@ -279,7 +280,7 @@ export async function handlerReferencePrices(
     });
     const prices = await db.materialPrice.findMany({
       where: {
-        id: { notIn: await retiredPriceIds() },
+        id: { notIn: [...await retiredPriceIds(), ...await undatedPriceIds(db)] },
         materialId,
         supplierId: { in: suppliers.map((s) => s.id) },
         effectiveAt: { lte: new Date() },

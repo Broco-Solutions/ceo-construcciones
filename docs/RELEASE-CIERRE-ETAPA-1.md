@@ -42,3 +42,7 @@ Registro de integración: [PR #8](https://github.com/Broco-Solutions/ceo-constru
 Base real PR13 `3df832de3633829d5f20b0f4e1cb566def83e081`. La migración nueva es aditiva y opcional para el binario compatible. El verificador ahora incluye un estado intermedio PR9 poblado: congela presupuesto/PDF antes de crear tablas de referencias y compara bytes/snapshot después. Se conserva la prueba de V1 poblada, API standalone y navegador, seguida por `migrate diff`. Los resultados de esta ejecución, candidato y checks están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md), sin reutilizar resultados de PR8/9/13.
 
 No se cambian configuraciones de autodespliegue. Un merge puede desplegar el código por la integración existente; no aplica este catálogo ni habilita las tablas nuevas en producción. No se ejecutaron comandos de infraestructura ni conexiones productivas.
+
+## Vinculación material BASE — PR15
+
+Corrección incremental sobre main `7dbc7b1`, sin esquema nuevo ni DDL. Campos JSON opcionales y contratos actualizados; V1 conserva proyecciones/capacidades condicionales. Compatibilidad del candidato ejecutada en `base-link-release-final.log`: V1 poblada→PR9 poblado→ampliada, HTTP y navegador, snapshots/PDF y operaciones conservados, diff vacío. Código integrado y checks se verifican en [PR15](https://github.com/Broco-Solutions/ceo-construcciones/pull/15). El complemento de datos se aplicó sólo a la base manual local; no es una migración/carga productiva ni modifica el autodespliegue existente.

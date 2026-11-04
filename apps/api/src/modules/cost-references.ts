@@ -1,4 +1,5 @@
 import { retiredPriceIds } from "./price-provenance";
+import { sourcePriceBases, sourcePriceContext, samePriceSeries, undatedPriceIds, sourcePriceFactors } from './source-price-basis';
 import {
   selectLaborReference,
   selectMaterialReference,
@@ -93,7 +94,7 @@ export const activityCostingSchema = z
       )
       .max(100),
     materials: z
-      .array(z.object({ materialId: id, priceId: id }).strict())
+      .array(z.object({ materialId: id, priceId: id, sourcePriceBasis: id.optional(), sourcePriceFactor: nonnegative.optional() }).strict())
       .max(500),
     materialsIncludedInDirect: z.boolean().default(false),
     notice: z.string().max(2000).default(""),
@@ -167,6 +168,8 @@ export const resolvedActivitySchema = z
           coefficient: nonnegative,
           unitPrice: nonnegative.nullable(),
           sourcePriceId: id.nullable(),
+          sourcePriceBasis: id.optional(),
+          sourcePriceFactor: nonnegative.optional(),
         })
         .strict(),
     ),
@@ -236,7 +239,8 @@ export async function previewActivityCosting(
             content.materials.find((m) => m.materialId === c.materialId)
               ?.priceId,
         );
-        return sum.add(p ? c.coefficient.mul(p.price).div(p.baseQuantity) : 0);
+        const factor = content.materials.find(m => m.materialId === c.materialId)?.sourcePriceFactor ?? '1';
+        return sum.add(p ? c.coefficient.mul(p.price.div(p.baseQuantity).mul(factor).toDecimalPlaces(8)) : 0);
       }, new D(0))
       .toDecimalPlaces(8)
       .toFixed();
@@ -327,6 +331,8 @@ export async function validateActivityCosting(
     where: { id: { in: content.materials.map((x) => x.priceId) } },
     include: { presentation: true, supplier: true },
   });
+  const bases = await sourcePriceBases(tx, content.materials.flatMap(m => m.sourcePriceBasis ? [m.sourcePriceBasis] : []));
+  const factors = await sourcePriceFactors(tx, [...bases.keys()]);
   for (const c of content.labor) {
     const r = rates.find((r) => r.id === c.rateId);
     if (
@@ -345,12 +351,16 @@ export async function validateActivityCosting(
   }
   for (const c of content.materials) {
     const p = prices.find((p) => p.id === c.priceId);
+    const basis = c.sourcePriceBasis ? bases.get(c.sourcePriceBasis) : undefined;
+    const valuation = sourcePriceContext(content, c.materialId, basis);
     if (
       !item.components.some((m) => m.materialId === c.materialId) ||
       !p ||
       p.materialId !== c.materialId ||
       p.currency !== content.currency ||
-      p.taxBasis !== content.taxBasis ||
+      p.taxBasis !== valuation.taxBasis ||
+      (c.sourcePriceBasis && (!basis || !samePriceSeries(basis, p))) ||
+      (c.sourcePriceFactor !== undefined && c.sourcePriceFactor !== '1' && !factors.has(`${c.sourcePriceBasis}:${c.sourcePriceFactor}`)) ||
       p.effectiveAt > new Date() ||
       !p.baseQuantity.gt(0) ||
       (p.supplier && !p.supplier.active) ||
@@ -409,6 +419,8 @@ export async function resolveActivityCosts(tx: Tx, ids: string[]) {
     include: { presentation: true, supplier: true },
     orderBy: [{ effectiveAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
   });
+  const bases = await sourcePriceBases(tx, contents.flatMap(d => d.content.materials.flatMap(m => m.sourcePriceBasis ? [m.sourcePriceBasis] : [])));
+  const undated = new Set(await undatedPriceIds(tx));
   const activityOrigins = await tx.catalogOrigin.findMany({
     where: { kind: "activity", entityId: { in: items.map((i) => i.id) } },
   });
@@ -440,9 +452,9 @@ export async function resolveActivityCosts(tx: Tx, ids: string[]) {
         selected = selectedPrices.find((p) => p.id === selection?.priceId);
       const current = selectMaterialReference(
         selected,
-        allPrices,
+        allPrices.filter(p => !undated.has(p.id) || p.id === selected?.id),
         component.materialId,
-        c,
+        sourcePriceContext(c, component.materialId, selection?.sourcePriceBasis ? bases.get(selection.sourcePriceBasis) : undefined),
       );
       if (
         !current &&
@@ -455,10 +467,12 @@ export async function resolveActivityCosts(tx: Tx, ids: string[]) {
         coefficient: component.coefficient.toFixed(),
         unitPrice:
           current?.price
-            .div(current.baseQuantity)
+            .div(current.baseQuantity).mul(selection?.sourcePriceFactor ?? '1')
             .toDecimalPlaces(8)
             .toFixed() ?? null,
         sourcePriceId: current?.id ?? null,
+        ...(selection?.sourcePriceBasis ? { sourcePriceBasis: selection.sourcePriceBasis } : {}),
+        ...(selection?.sourcePriceFactor ? { sourcePriceFactor: selection.sourcePriceFactor } : {}),
       };
     });
     const compatibleDirect =
@@ -542,6 +556,8 @@ export type ResolvedActivity = {
     coefficient: string;
     unitPrice: string | null;
     sourcePriceId: string | null;
+    sourcePriceBasis?: string;
+    sourcePriceFactor?: string;
   }[];
   laborCost: string | null;
   materialCost: string | null;
