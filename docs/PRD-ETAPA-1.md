@@ -56,6 +56,7 @@ El presupuesto contiene costos previstos, NO indicadores de rentabilidad total n
 - Definir para cada unidad ejecutada una lista de materiales y coeficientes de consumo ingresados/editados por el responsable de Cómputo. **El sistema no calcula cómo se obtienen técnicamente esos coeficientes**.
 - Costo unitario de materiales = suma de (coeficiente × precio normalizado en la unidad de consumo).
 - Mano de obra se incorpora como **importe unitario editable**, no como horas efectivas, asistencia ni cálculo de jornales.
+- Actualización autorizada del 04/11/2026: también se admite MO calculada desde referencias históricas de categorías/servicios y consumos por unidad de actividad. La modalidad calculada reemplaza al importe directo, sin sumarlos. No implica asistencia, liquidación salarial ni cálculo de aportes.
 - Costo por unidad = materiales + mano de obra + otros costos directos explícitos cuando correspondan, sin crear materiales ni salarios ficticios.
 - Usar IDs internos inmutables; el código de ítem visible en Excel no garantiza unicidad.
 - La plantilla BASE y las composiciones se reutilizan como datos, sin macros ni un motor general de Excel. El recargo comercial general y sus excepciones acotadas están confirmados por el plan maestro §5.4.

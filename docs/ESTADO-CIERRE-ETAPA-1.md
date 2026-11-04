@@ -60,3 +60,7 @@ El usuario autorizó integrar cuando pasen calidad y compatibilidad. La metadata
 Tres commits iniciales publicados: `a8f816e` (aplicación, contratos y migraciones), `a6b0a1b` (pruebas, fuentes aisladas y evidencia) y `538941d` (documentación). El [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8) es la fuente verificable de checks del candidato y del estado de merge; allí se registra el SHA final sin anticiparlo en este commit. `main` seguía en la base original al abrirlo. GitHub no devolvió reglas de rama aplicables en la consulta previa; aun así se esperan todos los checks y se verifica de nuevo antes del merge.
 
 No hay preguntas funcionales pendientes. Permanecen datos de puesta en marcha: composición física completa de los agregados históricos y export definitivo para transición. No impiden revisar/integrar la capacidad funcional implementada con sus advertencias, ni autorizan una carga productiva.
+
+## Incremento de carga inicial y costos — 04/11/2026
+
+El incremento posterior a PR13 incorpora catálogos BASE y referencias materiales/MO conectadas, sin reiniciar F0–F9. La aceptación técnica CI-01…CI-48, resultados reales, trazabilidad, visual/PDF y estado de integración están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Los resultados anteriores de este documento son históricos y no sustituyen esa matriz. No se declara aceptación de piloto ni habilitación productiva.

@@ -2,7 +2,7 @@
 
 Este entorno es local, aislado y persistente. Las pruebas manuales no equivalen a aceptación del piloto ni habilitación productiva. No se aplican migraciones ni datos a producción.
 
-Código funcional probado: `3fa7a54bf68f7266a527e8e1c3d50a6956703be0`. El smoke se ejecutó sobre estos mismos archivos antes del commit; API 174 + 3 runtime, web 47, E2E 68 y compatibilidad V1/ampliada aprobaron. La revisión posterior de integridad también pasó API completo; CI del PR vuelve a construir y probar el candidato integrado. El arranque registra el SHA realmente compilado en `release.json`; la comprobación posterior al merge se añade al registro del [PR #9](https://github.com/Broco-Solutions/ceo-construcciones/pull/9).
+El arranque registra el SHA y la huella exacta del código compilado en `release.json`; `bash CEO_Manual_Local.sh status` permite consultarlos. Los resultados de la misión de costos de referencia se registran en [su estado y matriz](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Las cifras del PR9 y PR13 son antecedentes y no sustituyen esta validación.
 
 ## Arranque desde WSL
 
@@ -31,7 +31,37 @@ Cliente `MAN-CLI`: obras Norte y Sur (`MAN-OBR-1/2`). Otro cliente: obra ajena `
 
 El presupuesto sintético tiene costo unitario 1.524 ARS: mano de obra 1.000 + directo 500 + dos unidades de material a 12. Con cantidad 2, costo 3.048; recargo 50%, venta 4.572. Son valores iniciales: conservar los cambios realizados durante pruebas. Para repetir un recorrido comercial, crear otro presupuesto desde la plantilla y usar nombres distintivos; para compras, crear nuevos documentos. No borrar ni resetear para repetir.
 
-BASE se incorpora como una plantilla versionada. DG está sólo en esta instalación privada, si existe su archivo normalizado privado; no contiene composición física íntegramente validada. Los faltantes se muestran por partida. El ejemplo sintético completo permite probar el flujo sin esos límites históricos.
+BASE CEO — Octubre 2026 tiene actividades en el catálogo normal, recursos/tarifas de MO, materiales y precios históricos. Los materiales de origen usan códigos `CEO-`; `MAN-*` identifica ejemplos sintéticos. Las plantillas BASE anteriores y los presupuestos iniciados se conservan. DG sigue siendo un documento histórico privado con limitaciones físicas por partida, no un padrón de clientes/obras/proveedores. El ejemplo sintético completo permite probar el flujo sin esas limitaciones.
+
+## Costos de referencia y catálogo inicial
+
+La preparación se ejecuta una vez de forma explícita, con los servidores manuales detenidos. No se importa de nuevo durante cada arranque. Originales, manifiestos y resultados detallados están en `~/.local/state/ceo-construcciones-codex/`, fuera de Git. El comando valida PostgreSQL loopback `ceo_manual_test`, contenedor y puerto; un destino cloud se rechaza.
+
+```bash
+bash CEO_Catalogo_Local.sh inspect "$HOME/.local/state/ceo-construcciones-codex/sources/base.xlsx" "$HOME/.local/state/ceo-construcciones-codex/catalog-inventory-v3.json"
+bash CEO_Catalogo_Local.sh apply "$HOME/.local/state/ceo-construcciones-codex/catalog-inventory-v3.json" "$HOME/.local/state/ceo-construcciones-codex/sources/base.xlsx" 5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21dbd1e03b5b243e9e
+bash CEO_Catalogo_Local.sh inspect-dg "$HOME/.local/state/ceo-construcciones-codex/sources/dg.xls" "$HOME/.local/state/ceo-construcciones-codex/catalog-dg-complement-final.json"
+bash CEO_Catalogo_Local.sh apply "$HOME/.local/state/ceo-construcciones-codex/catalog-dg-complement-final.json" "$HOME/.local/state/ceo-construcciones-codex/sources/dg.xls" 0e2e7b84dec93f910a5bd826c25bc61d05856a8952aaaea38f0c3ae2bb6facc0
+# El resultado devuelve runId; verificarlo con:
+bash CEO_Catalogo_Local.sh verify RUN_ID
+```
+
+La carga local ya fue aplicada y repetida. Se comprobaron 17 rubros reutilizados con evidencia de la BASE anterior, 146 actividades, 222 materiales activos de PRECIOS, 94 identidades activas de receta y dos provisionales inactivas que no se fusionan sin evidencia, 222 presentaciones de materiales activos y 10 conservadas de servicios inactivos, 372 referencias de precio (186 netas y 186 con IVA), 78 conceptos de MO y 37 tarifas (27 BASE y 10 DG). Hay 74 actividades con composición MO recuperada. Son referencias históricas: su fecha de origen no es la fecha de importación. Las celdas sin cotización o sin unidad/rendimiento reconciliado permanecen pendientes; los agregados históricos no se suman otra vez a materiales.
+
+| Paso | Recorrido | Comprobar |
+|---|---|---|
+| 1 | Catálogo: buscar materiales por `CEO-`, actividades y BASE CEO | Registros persistentes en catálogos; no sólo una plantilla |
+| 2 | Catálogo → Costos de referencia → Mano de obra → Registrar tarifa | Fuente, fecha, moneda/IVA y actividades vinculadas visibles; historial conservado |
+| 3 | Abrir una actividad vinculada y otra de MO directa | Cambia la calculada en la misma serie compatible; la directa conserva su importe |
+| 4 | Materiales → Actualizar esta referencia | Mantiene proveedor/canal y presentación; ingresar nuevo precio/fecha; no elegir el más barato automáticamente |
+| 5 | Nuevo presupuesto desde BASE CEO | Costos disponibles como opción inicial; cantidades cero; faltantes y referencias históricas explícitos |
+| 6 | Borrador anterior → Revisar costos de referencia | Previsualizar no escribe; manuales desmarcados; confirmar conserva cantidades, consumos particulares y recargo |
+| 7 | Guardar y luego emitir R2; descargar también R1 | Guardar no emite; R1/PDF idénticos; demanda material invariable por cambiar sólo costos |
+| 8 | Otros perfiles y reinicio con `CEO_Manual_Local.sh` | Jefe/Administración sin economía; Compras consulta MO sin editar; datos y credenciales conservados |
+
+Para sustituir un suministro agregado en una actividad, elegir composición completa, referencias compatibles y documentar evidencia del alcance que se retira. La vista previa retira el agregado completo y no crea ajustes residuales. Cancelar conserva la configuración anterior. Cambiar moneda/IVA no convierte valores.
+
+Para revisar este incremento: `node apps/web/scripts/catalog-manual-smoke.mjs` conserva las pruebas del usuario y crea una sola copia `MAN — revisión de catálogo inicial` si no existe. Guarda evidencia privada en `catalog-final/`. `node apps/web/scripts/catalog-pdf-smoke.mjs` crea una única propuesta sintética `MAN — PDF multipágina`, preserva su R1 y permite redescargarla sin emitir otra revisión. Ambos requieren el servidor local abierto; no usan la base E2E.
 
 ## Recorrido de aceptación manual
 

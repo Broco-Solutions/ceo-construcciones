@@ -62,3 +62,7 @@ PDF sintético extenso y DG: siete páginas cada uno, renderizados e inspecciona
 ## Límites de aceptación
 
 La aceptación técnica no equivale a aprobación del piloto por CEO. DG permite conciliar el importe comercial y los materiales verificables; no permite certificar toda su composición física. El export empresarial definitivo para la transición sigue siendo un dato de puesta en marcha. Los avisos correspondientes están implementados y probados. Infraestructura y datos productivos no se modificaron.
+
+## Incremento de carga inicial y costos — 04/11/2026
+
+El incremento posterior a PR13 incorpora catálogos BASE y referencias materiales/MO conectadas, sin reiniciar F0–F9. La aceptación técnica CI-01…CI-48, resultados reales, trazabilidad, visual/PDF y estado de integración están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Los resultados anteriores de este documento son históricos y no sustituyen esa matriz. No se declara aceptación de piloto ni habilitación productiva.

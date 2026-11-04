@@ -28,3 +28,11 @@ Los clientes se vinculan por `clientCode`; las coincidencias ambiguas no se resu
 `transition.integration.test.ts` prueba dry-run sin escritura, ejecución aislada y repetición, incluyendo proveedor, cliente/obra y OC con saldo pendiente. **No se dispone del export definitivo de las OC abiertas de CEO para ejecutar una transición empresarial completa**; el adaptador y su contrato están probados con manifiesto de aceptación, sin afirmar un corte real de datos.
 
 La ejecución productiva no forma parte de esta entrega. Tampoco se cambia configuración de despliegue, servicios o variables. Los originales, logs con contexto de datos y salidas de conciliación permanecen fuera de Git; la documentación pública del repositorio registra hashes, método y resultados.
+
+## Incremento de costos de referencia — 04/11/2026
+
+Se agrega `20261104000100_reference_cost_catalog`: tablas de recursos/tarifas MO, definición de costos por actividad, correspondencias y ejecuciones de carga. No altera columnas ni el significado de importes legacy. Tarifas append-only, FK de actor/recurso/actividad, revisión positiva y precisión de fecha controladas. Prisma sólo vive en API. No se modificaron migraciones anteriores.
+
+El código comprueba `schemaCapabilities.referenceCosts` por lectura. Sin las tablas, las funciones nuevas informan disponibilidad 503 y los recorridos V1 continúan con sus proyecciones. No hay DDL en requests, startup productivo ni carga automática. Los campos nuevos de snapshots son opcionales/versionados por modalidad; los emitidos anteriores no se reescriben.
+
+La carga es explícita mediante `CEO_Catalogo_Local.sh`, con manifiesto recompuesto desde el original, hash esperado, actor local y transacción serializable con bloqueo de origen. Sólo admite PostgreSQL loopback aislado. El arranque manual reconoce la plantilla conectada y conserva la base, credenciales y documentos. Ver [resultados](CARGA-INICIAL-RESULTADOS.md) y [guía](PRUEBAS-MANUALES-ETAPA-1.md). Migración/carga productivas permanecen pendientes de un procedimiento separado autorizado.
