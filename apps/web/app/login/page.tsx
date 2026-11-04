@@ -1,6 +1,7 @@
 'use client';
 import { Suspense, useEffect, useState } from 'react';
 import Image from 'next/image';
+import { ArrowBigUp, Eye, EyeOff } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api, ApiError, type Schemas } from '@/lib/api';
 import { useSession } from '@/lib/session';
@@ -15,8 +16,11 @@ function LoginForm() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [wait, setWait] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
   const next = params.get('next');
-  const target = next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  const target =
+    next && next.startsWith('/') && !next.startsWith('//') ? next : '/';
 
   useEffect(() => {
     if (user) router.replace(target);
@@ -34,13 +38,17 @@ function LoginForm() {
     setPending(true);
     setError(null);
     try {
-      const { data } = await api.post<{ data: Schemas['User'] }>('/auth/login', { email: email.trim(), password });
+      const { data } = await api.post<{ data: Schemas['User'] }>(
+        '/auth/login',
+        { email: email.trim(), password },
+      );
       setUser(data);
       router.replace(target);
     } catch (err) {
       const apiErr = err as ApiError;
       setError(apiErr);
-      if (apiErr.status === 429 && apiErr.retryAfter) setWait(apiErr.retryAfter);
+      if (apiErr.status === 429 && apiErr.retryAfter)
+        setWait(apiErr.retryAfter);
     } finally {
       setPending(false);
     }
@@ -48,28 +56,129 @@ function LoginForm() {
 
   return (
     <div className="login">
-      <div className="brand">
-        <Image src="/brand/ceo-logo-blanco.png" alt="CEO Construcciones" priority width={414} height={307} />
-        <h1>Obras, presupuestos, compras e inventario en un solo lugar.</h1>
-        <p>Del cómputo al material en obra, con trazabilidad de cada pedido, orden y movimiento de stock.</p>
-        <ul>
-          <li><b>1</b> Cómputo y presupuesto por versión</li>
-          <li><b>2</b> Pedidos, cotizaciones y órdenes de compra</li>
-          <li><b>3</b> Recepciones y stock por ubicación</li>
-        </ul>
+      <div className="login-brand">
+        <Image
+          className="login-brand-logo"
+          src="/brand/ceo-logo-blanco.png"
+          alt="CEO Construcciones"
+          priority
+          width={414}
+          height={307}
+        />
+        <div className="login-brand-copy">
+          <div className="login-eyebrow">SISTEMA DE GESTIÓN</div>
+          <h1>Gestión integral de obras.</h1>
+          <p>
+            Presupuestos, compras, stock y seguimiento de cada obra, con la
+            información siempre al día.
+          </p>
+        </div>
+        <Image
+          className="login-watermark"
+          src="/brand/ceo-isotipo-blanco.png"
+          alt=""
+          aria-hidden="true"
+          width={388}
+          height={220}
+        />
       </div>
-      <form className="form" onSubmit={submit} noValidate>
-        <div className="fieldwrap">
-          <h2>Ingresar</h2>
-          <p className="muted" style={{ margin: 0 }}>Usá el correo y la contraseña asignados por Gerencia.</p>
-          <TextField label="Correo electrónico" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextField label="Contraseña" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-          {error && <ErrorBox error={error.status === 401 ? new ApiError(401, error.code, 'Correo o contraseña incorrectos.') : error} />}
-          <Button type="submit" size="lg" loading={pending} disabled={!email || !password || wait > 0}>
+      <div className="login-side">
+        <div className="login-mobile-top">
+          <Image
+            src="/brand/ceo-logo-blanco.png"
+            alt="CEO Construcciones"
+            width={414}
+            height={307}
+          />
+          <div className="login-eyebrow">SISTEMA DE GESTIÓN</div>
+        </div>
+        <form className="login-card" onSubmit={submit} noValidate>
+          <div className="login-card-head">
+            <span className="login-card-mark" aria-hidden="true">
+              <Image
+                src="/brand/ceo-isotipo-blanco.png"
+                alt=""
+                width={388}
+                height={220}
+              />
+            </span>
+            <div>
+              <h2>Ingresá a tu cuenta</h2>
+              <p>Accedé con tu correo y contraseña.</p>
+            </div>
+          </div>
+          <TextField
+            label="Correo electrónico"
+            type="email"
+            autoComplete="username"
+            autoFocus={!email}
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <div className="login-password">
+            <TextField
+              label="Contraseña"
+              id="login-password"
+              type={visible ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+              onKeyUp={(e) => setCapsLock(e.getModifierState('CapsLock'))}
+              onBlur={() => setCapsLock(false)}
+              suffix={
+                <button
+                  className="login-password-toggle"
+                  type="button"
+                  aria-label={visible ? 'Ocultar' : 'Mostrar'}
+                  aria-pressed={visible}
+                  aria-controls="login-password"
+                  onClick={() => setVisible((v) => !v)}
+                >
+                  {visible ? (
+                    <EyeOff size={18} aria-hidden="true" />
+                  ) : (
+                    <Eye size={18} aria-hidden="true" />
+                  )}
+                </button>
+              }
+            />
+            <div aria-live="polite">
+              {capsLock && (
+                <p className="login-caps">
+                  <ArrowBigUp size={14} aria-hidden="true" />
+                  Bloq Mayús está activado
+                </p>
+              )}
+            </div>
+          </div>
+          {error && (
+            <ErrorBox
+              error={
+                error.status === 401
+                  ? new ApiError(
+                      401,
+                      error.code,
+                      'Correo o contraseña incorrectos.',
+                    )
+                  : error
+              }
+            />
+          )}
+          <Button
+            className="login-submit"
+            type="submit"
+            size="lg"
+            loading={pending}
+            disabled={!email || !password || wait > 0}
+          >
             {wait > 0 ? `Esperá ${wait} s` : 'Ingresar'}
           </Button>
-        </div>
-      </form>
+        </form>
+        <p className="login-foot">Acceso exclusivo para personal autorizado.</p>
+      </div>
     </div>
   );
 }
