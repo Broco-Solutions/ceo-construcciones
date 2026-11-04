@@ -63,6 +63,34 @@ Para sustituir un suministro agregado en una actividad, elegir composición comp
 
 Para revisar este incremento: `node apps/web/scripts/catalog-manual-smoke.mjs` conserva las pruebas del usuario y crea una sola copia `MAN — revisión de catálogo inicial` si no existe. Guarda evidencia privada en `catalog-final/`. `node apps/web/scripts/catalog-pdf-smoke.mjs` crea una única propuesta sintética `MAN — PDF multipágina`, preserva su R1 y permite redescargarla sin emitir otra revisión. La regresión `node apps/web/scripts/catalog-preview-navigation.mjs` demora una respuesta real de revisión y comprueba una sola capa de diálogo al navegar con cambios, sin escritura; ejecutarla después del smoke de catálogo. Estos auxiliares requieren el servidor local abierto; no usan la base E2E.
 
+## Vinculación real de materiales BASE — complemento posterior al PR14
+
+Código de aplicación probado: commits `b228580`, `ee24d35` y `559c909`; documentación/checks/SHA de main en [PR15](https://github.com/Broco-Solutions/ceo-construcciones/pull/15). El SHA exacto compilado del entorno manual está en `manual/release.json` privado y se verifica nuevamente tras integrar. Pruebas nuevas reales y suites: API187+3, web49, E2E72; datos y PDF preservados, sin cambios de esquema.
+
+El complemento ya se aplica explícitamente en local, no durante cada arranque. Conserva el catálogo/credenciales y presupuestos previos; 67 actividades tienen materiales calculados, 3 son directos legítimos y 76 conservan límites específicos. La MO calculada sigue en 74; estos grupos se solapan. Ver [clasificación por actividad](CARGA-INICIAL-RESULTADOS.md#cierre-de-vinculación-material-real-posterior-al-pr14--04112026).
+
+Para probar un caso real completo:
+
+1. En **Actividades de obra**, buscar **REVOQUE HIDROFUGO CAPA AISLADORA** (`COSTO!B35`). La ficha distingue **Materiales calculados**, **Mano de obra**, **Otros directos** y **Costo por unidad**. La composición incluye cemento, arena y aditivo; otros directos 0, sin sumar el suministro original otra vez.
+2. En **Costos de referencia → Materiales**, buscar **CEMENTO PORTLAND LOMA NEGRA** de BASE (`PRECIOS!A5`), fuente Orlandi/mayo 2026, presentación 25 kg. Usar **Actualizar esta referencia**, conservando canal, presentación, moneda e IVA informado; registrar una fecha y precio de prueba propios. No cambiar el IVA comercial del presupuesto para forzar compatibilidad.
+3. Volver a la actividad: cambia el costo por unidad; los consumos permanecen. La referencia histórica anterior continúa en el historial. Un valor de prueba se identifica por su registro posterior, sin alterar el precio original.
+4. Crear un presupuesto desde **BASE CEO — Octubre 2026**. Toma referencias de esa serie; cantidades iniciales 0. La copia `MAN — BASE materiales vinculados` también permite recorrer la UI sin reemplazar el borrador anterior.
+5. En un borrador creado con las composiciones nuevas, modificar un consumo o precio particular y guardar. Después de registrar otra referencia, abrir **Revisar costos de referencia**: previsualizar, seleccionar sólo el cambio deseado y aplicar. Se conservan consumos, ajustes manuales y recargo; guardar no emite.
+6. En **MAN — revisión de catálogo inicial** (anterior al complemento), el agregado se conserva. La revisión ofrece **Sustituir suministro histórico por composición BASE (cambio de receta separado)**, **desmarcado**. Sólo la aceptación expresa sustituye ese suministro. No se ofrece sustitución automática si se cambió su receta o agregado particular; las tarifas no reemplazan composiciones.
+7. Emitir R1 antes de un cambio y R2 después de aceptar. Redescargar R1: mismo PDF, sin costos internos ni composición. El cambio de precios no altera la demanda física.
+8. Comparar con **OBRADOR Y MOVILIDAD** (`B13`, directo) y **MENORES A 2m2** (`B170`, falta cotización de cal `PRECIOS!E12:F12`). Conservan su naturaleza y el faltante específico; no reciben materiales o ceros inventados.
+
+Las referencias sin fecha muestran **Fecha no informada**. Conservan importes conocidos sin presentarlos como una cotización actual ni compararlos por una fecha técnica. Los factores numéricos explícitos de receta se documentan como factores económicos, no IVA ni rendimiento.
+
+El original y el manifiesto usados en el complemento están fuera de Git. Comandos ejecutados con app manual detenida:
+
+```bash
+bash CEO_Catalogo_Local.sh inspect "$HOME/.local/state/ceo-construcciones-codex/sources/base.xlsx" "$HOME/.local/state/ceo-construcciones-codex/base-link-inventory.json"
+bash CEO_Catalogo_Local.sh apply "$HOME/.local/state/ceo-construcciones-codex/base-link-inventory.json" "$HOME/.local/state/ceo-construcciones-codex/sources/base.xlsx" 5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21dbd1e03b5b243e9e
+```
+
+La inspección es sin escritura; la aplicación se confirmó por comando explícito. Su reejecución conserva precios posteriores y ediciones; no requiere repetirla para arrancar. `node apps/web/scripts/base-links-manual-smoke.mjs` verifica los vínculos reales, crea una sola copia MAN si falta, revisa cinco anchos y descarta edición; no registra precios de prueba en el catálogo manual. Evidencia sensible en `base-link-manual/` privado. La prueba de propagación con precio nuevo se ejecuta en otra base aislada con `apps/api/scripts/verify-base-material-links.ts`; informe privado `base-link-real-verification.json`.
+
 ## Recorrido de aceptación manual
 
 | Caso | Acción | Resultado esperado |
