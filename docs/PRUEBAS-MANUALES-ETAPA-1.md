@@ -61,7 +61,7 @@ La carga local ya fue aplicada y repetida. Se comprobaron 17 rubros reutilizados
 
 Para sustituir un suministro agregado en una actividad, elegir composición completa, referencias compatibles y documentar evidencia del alcance que se retira. La vista previa retira el agregado completo y no crea ajustes residuales. Cancelar conserva la configuración anterior. Cambiar moneda/IVA no convierte valores.
 
-Para revisar este incremento: `node apps/web/scripts/catalog-manual-smoke.mjs` conserva las pruebas del usuario y crea una sola copia `MAN — revisión de catálogo inicial` si no existe. Guarda evidencia privada en `catalog-final/`. `node apps/web/scripts/catalog-pdf-smoke.mjs` crea una única propuesta sintética `MAN — PDF multipágina`, preserva su R1 y permite redescargarla sin emitir otra revisión. Ambos requieren el servidor local abierto; no usan la base E2E.
+Para revisar este incremento: `node apps/web/scripts/catalog-manual-smoke.mjs` conserva las pruebas del usuario y crea una sola copia `MAN — revisión de catálogo inicial` si no existe. Guarda evidencia privada en `catalog-final/`. `node apps/web/scripts/catalog-pdf-smoke.mjs` crea una única propuesta sintética `MAN — PDF multipágina`, preserva su R1 y permite redescargarla sin emitir otra revisión. La regresión `node apps/web/scripts/catalog-preview-navigation.mjs` demora una respuesta real de revisión y comprueba una sola capa de diálogo al navegar con cambios, sin escritura; ejecutarla después del smoke de catálogo. Estos auxiliares requieren el servidor local abierto; no usan la base E2E.
 
 ## Recorrido de aceptación manual
 

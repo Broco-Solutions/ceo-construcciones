@@ -184,8 +184,11 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
     await page.goto('/costos');
     await page.getByRole('tab', { name: 'Mano de obra', exact: true }).click();
     await page.getByLabel('Buscar concepto').fill(`Oficial ${suffix}`);
-    await page.getByRole('row').filter({ hasText: `Oficial ${suffix}` })
-      .getByRole('button', { name: 'Registrar tarifa', exact: true }).click();
+    await page
+      .getByRole('row')
+      .filter({ hasText: `Oficial ${suffix}` })
+      .getByRole('button', { name: 'Registrar tarifa', exact: true })
+      .click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Tarifa por h').fill('12000');
     await dialog
@@ -222,7 +225,73 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
       await expect(page.getByText(/6\.900/).first()).toBeVisible();
       await page.screenshot({ path: `${evidence}/actividad-${width}.png` });
     }
+    const untouchedDraft = (await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budget.id}`)).draft;
     await page.goto(`/presupuestos/editor/${budget.id}`);
+    await page
+      .getByRole('tab', { name: 'Presentación y PDF', exact: true })
+      .click();
+    await page
+      .getByLabel('Observaciones comerciales', { exact: true })
+      .fill('Prueba de respuesta tardía, sin cambios de cantidades.');
+    await page
+      .getByRole('tab', { name: 'Cómputo y costos', exact: true })
+      .click();
+    let releasePreview!: () => void, previewReceived!: () => void;
+    const previewGate = new Promise<void>(
+        (resolve) => (releasePreview = resolve),
+      ),
+      previewReady = new Promise<void>(
+        (resolve) => (previewReceived = resolve),
+      );
+    await page.route('**/cost-review', async (route) => {
+      const response = await route.fetch();
+      expect(response.status()).toBe(200);
+      previewReceived();
+      await previewGate;
+      await route.fulfill({ response });
+    });
+    await page
+      .getByRole('button', {
+        name: 'Revisar costos de referencia',
+        exact: true,
+      })
+      .click();
+    await previewReady;
+    await page
+      .locator('header.top')
+      .getByRole('link', { name: 'Presupuestos', exact: true })
+      .click();
+    await expect(
+      page.getByRole('button', { name: 'Seguir editando', exact: true }),
+    ).toBeVisible();
+    const delivered = page.waitForResponse((r) =>
+      r.url().endsWith('/cost-review'),
+    );
+    releasePreview();
+    await delivered;
+    await expect(
+      page.getByRole('button', {
+        name: 'Revisar costos de referencia',
+        exact: true,
+      }),
+    ).toBeEnabled();
+    await expect(page.getByRole('dialog')).toHaveCount(1);
+    await expect(
+      page.getByRole('dialog', {
+        name: 'Revisar costos de referencia',
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page.screenshot({path:`${evidence}/revision-navegacion-360.png`});
+    await page
+      .getByRole('button', { name: 'Seguir editando', exact: true })
+      .click();
+    await page.unroute('**/cost-review');
+    expect((await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budget.id}`)).draft).toEqual(untouchedDraft);
+    expect(
+      (await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budget.id}`))
+        .draft!.revision,
+    ).toBe(1);
     await page
       .getByRole('button', {
         name: 'Revisar costos de referencia',
@@ -248,6 +317,7 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
     );
     expect(after.versions).toHaveLength(1);
     expect(after.draft?.content.lines[0].quantity).toBe('10');
+    expect(after.draft?.content.observations).toBe('Prueba de respuesta tardía, sin cambios de cantidades.');
     const next = await api.send<Schemas['IssuedVersion']>(
       'POST',
       `/budget-editor/${budget.id}/issue`,

@@ -65,6 +65,7 @@ export function BudgetEditor({ id }: { id: string }) {
   } | null>(null);
   const initialized = useRef(false),
     sequence = useRef(0),
+    costReviewSequence = useRef(0),
     previewRef = useRef<string | null>(null);
   const [expression, setExpression] = useState(''),
     [expressionError, setExpressionError] = useState<unknown>(),
@@ -147,6 +148,7 @@ export function BudgetEditor({ id }: { id: string }) {
   }, [content, id, can]);
   useEffect(
     () => () => {
+      costReviewSequence.current++;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     },
     [],
@@ -180,10 +182,11 @@ export function BudgetEditor({ id }: { id: string }) {
       );
   });
   async function reviewPrices() {
+    const requestSequence = ++costReviewSequence.current;
     previewCostSelection.reset();
     applyCosts.reset();
     const r = await updatePrices.run();
-    if (r) {
+    if (r && requestSequence === costReviewSequence.current) {
       setPriceChanges(r.data);
       setAcceptedPrices(
         r.data.changes
@@ -196,9 +199,10 @@ export function BudgetEditor({ id }: { id: string }) {
     api.post<{ data: Schemas['ReferenceCostReview'] }>(`/budget-editor/${id}/cost-review`, { revision, content, selected }));
   async function changeCostSelection(selected: string[]) {
     if (!priceChanges) return;
+    const requestSequence = ++costReviewSequence.current;
     setAcceptedPrices(selected);
     const result = await previewCostSelection.run(selected);
-    if (!result) return;
+    if (!result || requestSequence !== costReviewSequence.current) return;
     if (result.data.planHash !== priceChanges.planHash) {
       setPriceChanges(undefined);
       toast.warning('Las referencias cambiaron. Volvé a revisar las diferencias antes de aplicarlas.');
@@ -245,6 +249,7 @@ export function BudgetEditor({ id }: { id: string }) {
       return JSON.stringify(contentRef.current) === savedRef.current;
     },
     onPrompt: () => {
+      costReviewSequence.current++;
       setContext(null);
       setComparisonMaterial(null);
       setPick(false);
@@ -283,6 +288,7 @@ export function BudgetEditor({ id }: { id: string }) {
     setPreviewBusy(true);
     try {
       const url = await api.preview(`/budget-editor/${id}/preview`, content);
+      costReviewSequence.current++;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
       previewRef.current = url;
       setPreview(url);
@@ -1445,7 +1451,7 @@ export function BudgetEditor({ id }: { id: string }) {
       </Modal>
       <Modal
         open={!!priceChanges}
-        onClose={() => setPriceChanges(undefined)}
+        onClose={() => { costReviewSequence.current++; setPriceChanges(undefined); }}
         title="Revisar costos de referencia"
         wide
       >
