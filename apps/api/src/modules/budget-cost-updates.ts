@@ -1,4 +1,5 @@
 import { retiredPriceIds } from "./price-provenance";
+import { sourcePriceBases, sourcePriceContext, undatedPriceIds } from './source-price-basis';
 import {
   selectLaborReference,
   selectMaterialReference,
@@ -15,8 +16,11 @@ import { ok, parse, found } from "./shared";
 import {
   editorContentSchema,
   calculateCommercial,
+  editorLineSchema,
+  editorMaterialSchema,
   type EditorContent,
 } from "./commercial-domain";
+export const compositionReplacementSchema = editorLineSchema.innerType().pick({ materials: true, directUnitCost: true, materialsIncludedInDirect: true, materialReview: true });
 import { referenceCostsEnabled, resolveActivityCosts } from "./cost-references";
 export const costReviewSchema = z
   .object({
@@ -36,6 +40,9 @@ export async function initialReferenceContent(tx: Tx, content: EditorContent) {
     tx,
     content.lines.flatMap((l) => (l.itemId ? [l.itemId] : [])),
   );
+  // Called only for the origin-verified operational BASE. Particular templates
+  // and copies use costReview, which never replaces physical composition.
+  const items = await tx.apuItem.findMany({ where: { id: { in: [...costs.keys()] } }, include: { components: { include: { material: { include: { unit: true } } } } } });
   return editorContentSchema.parse({
     ...content,
     lines: content.lines.map((line) => {
@@ -61,13 +68,12 @@ export async function initialReferenceContent(tx: Tx, content: EditorContent) {
                 source: l.source ?? "",
               }))
             : undefined,
-        materials: line.materials.map((m) => {
-          const p = resolved.materials.find(
-            (r) => r.materialId === m.materialId,
-          );
+        materials: resolved.materials.map((p) => {
+          const component = items.find(i => i.id === line.itemId)?.components.find(c => c.materialId === p.materialId);
+          const m = line.materials.find(m => m.materialId === p.materialId) ?? { materialId: p.materialId, name: component!.material.name, unitId: component!.material.unitId, unit: component!.material.unit.symbol ?? component!.material.unit.name, coefficient: p.coefficient, unitPrice: null, sourcePriceId: null };
           return p?.sourcePriceId
-            ? { ...m, unitPrice: p.unitPrice, sourcePriceId: p.sourcePriceId }
-            : m;
+            ? { ...m, coefficient: p.coefficient, unitPrice: p.unitPrice, sourcePriceId: p.sourcePriceId, ...(p.sourcePriceBasis ? { sourcePriceBasis: p.sourcePriceBasis } : {}), ...(p.sourcePriceFactor ? { sourcePriceFactor: p.sourcePriceFactor } : {}) }
+            : { ...m, coefficient: p.coefficient };
         }),
       };
     }),
@@ -127,20 +133,21 @@ export async function costReview(
       },
       effectiveAt: { lte: new Date() },
       currency: content.currency,
-      taxBasis: content.taxBasis,
     },
     include: { presentation: true, supplier: true },
     orderBy: [{ effectiveAt: "desc" }, { createdAt: "desc" }, { id: "desc" }],
   });
+  const bases = enabled ? await sourcePriceBases(tx, content.lines.flatMap(l => l.materials.flatMap(m => m.sourcePriceBasis ? [m.sourcePriceBasis] : []))) : new Map();
+  const undated = enabled ? new Set(await undatedPriceIds(tx)) : new Set();
   const priceOrigins = enabled
     ? await tx.catalogOrigin.findMany({
-        where: { kind: "price", entityId: { in: prices.map((p) => p.id) } },
+        where: { kind: { in: ['price', 'composition-price'] }, entityId: { in: prices.map((p) => p.id) } },
       })
     : [];
   const changes: {
     key: string;
     lineKey: string;
-    kind: "MATERIAL" | "LABOR";
+    kind: "MATERIAL" | "LABOR" | 'COMPOSITION';
     index: number;
     name: string;
     previous: string | null;
@@ -150,7 +157,31 @@ export async function costReview(
     dateLabel: string | null;
     datePrecision: string;
     manual: boolean;
+    replacement?: z.infer<typeof compositionReplacementSchema>;
   }[] = [];
+  if (enabled) {
+    const aggregateLines = content.lines.filter(l => l.itemId && l.materialsIncludedInDirect);
+    const proofs = await tx.catalogOrigin.findMany({ where: { source: 'BASE-CEO', kind: 'activity-linkage', entityId: { in: aggregateLines.map(l => l.itemId!) } } });
+    const masters = await tx.apuItem.findMany({ where: { id: { in: proofs.map(p => p.entityId) } }, include: { components: true } });
+    const eligible = aggregateLines.filter(line => {
+      const proof = proofs.find(p => p.entityId === line.itemId);
+      const evidence = proof?.evidence as { legacyMaterials?: unknown; record?: { originalAggregate?: string } } | undefined;
+      const legacy = evidence?.legacyMaterials;
+      const master = masters.find(m => m.id === line.itemId);
+      return legacy && proof && master && hash(master) === proof.installedHash && line.directUnitCost === evidence?.record?.originalAggregate && hash(z.array(editorMaterialSchema).parse(legacy)) === hash(line.materials);
+    });
+    if (eligible.length) {
+      const refreshed = await initialReferenceContent(tx, { ...content, lines: eligible });
+      for (const line of eligible) {
+        const next = refreshed.lines.find(l => l.key === line.key)!;
+        if (next.materialsIncludedInDirect || next.directUnitCost !== '0' || next.materials.some(m => m.unitPrice === null)) continue;
+        const replacement = compositionReplacementSchema.parse({ materials: next.materials, directUnitCost: next.directUnitCost, materialsIncludedInDirect: next.materialsIncludedInDirect, materialReview: next.materialReview });
+        changes.push({ key: `${line.key}:COMPOSITION`, lineKey: line.key, kind: 'COMPOSITION', index: 0, name: line.name,
+          previous: line.directUnitCost, next: next.materials.reduce((s, m) => s.add(new Prisma.Decimal(m.coefficient!).mul(m.unitPrice!)), new Prisma.Decimal(0)).toDecimalPlaces(8).toFixed(),
+          sourceId: line.itemId!, source: 'BASE: sustitución comprobada del suministro histórico. No es una actualización de tarifa.', dateLabel: null, datePrecision: 'UNKNOWN', manual: true, replacement });
+      }
+    }
+  }
   for (const line of content.lines) {
     line.laborReferences?.forEach((r, index) => {
       const selected = selectedRates.find((s) => s.id === r.rateId),
@@ -176,9 +207,9 @@ export async function costReview(
         const selected = selectedPrices.find((p) => p.id === m.sourcePriceId);
         const next = selectMaterialReference(
           selected,
-          prices,
+          prices.filter(p => !undated.has(p.id) || p.id === selected?.id),
           m.materialId,
-          content,
+          sourcePriceContext(content, m.materialId, m.sourcePriceBasis ? bases.get(m.sourcePriceBasis) : undefined),
           m.sourcePriceId === null,
         );
         if (next && next.id !== m.sourcePriceId)
@@ -190,7 +221,7 @@ export async function costReview(
             name: m.name,
             previous: m.unitPrice,
             next: next.price
-              .div(next.baseQuantity)
+              .div(next.baseQuantity).mul(m.sourcePriceFactor ?? '1')
               .toDecimalPlaces(8)
               .toFixed(),
             sourceId: next.id,
@@ -211,7 +242,7 @@ export async function costReview(
               m.sourcePriceId === null ||
               (m.unitPrice !== null &&
                 !selected!.price
-                  .div(selected!.baseQuantity)
+                  .div(selected!.baseQuantity).mul(m.sourcePriceFactor ?? '1')
                   .toDecimalPlaces(8)
                   .eq(m.unitPrice)),
           });
@@ -229,7 +260,8 @@ export function applyReviewedCosts(
     for (const c of changes.filter(
       (c) => c.lineKey === line.key && selected.includes(c.key),
     )) {
-      if (c.kind === "MATERIAL")
+      if (c.kind === 'COMPOSITION' && c.replacement) Object.assign(line, c.replacement);
+      else if (c.kind === "MATERIAL")
         line.materials[c.index] = {
           ...line.materials[c.index],
           unitPrice: c.next,

@@ -14,6 +14,7 @@ export function linearCost(
   sheet: string,
   address: string,
   leaves: Map<string, string>,
+  options: { sumBlanks?: boolean; exact?: boolean; cachedDimensions?: boolean } = {},
 ) {
   const visiting = new Set<string>(),
     evidence = new Set<string>();
@@ -28,7 +29,7 @@ export function linearCost(
       terms.set(k, (terms.get(k) ?? new D(0)).add(c));
     return { constant: a.constant.add(b.constant), terms };
   };
-  function cell(s: string, a: string, depth: number): Linear {
+  function cell(s: string, a: string, depth: number, sumMember = false): Linear {
     const key = `${s}!${a.replaceAll("$", "").toUpperCase()}`;
     if (++visits > 2000 || depth > 40 || visiting.has(key))
       throw Error(`${key}: dependencia cíclica o fuera de límite`);
@@ -39,8 +40,14 @@ export function linearCost(
     const target = book.getWorksheet(s)?.getCell(a.replaceAll("$", ""));
     if (!target) throw Error(`${key}: celda no disponible`);
     const formula = target.formula;
+    if (options.cachedDimensions && /^(C|D|N|O)\$?\d+$/i.test(a.replaceAll('$', ''))) {
+      const value = cached(target.value);
+      if (typeof value !== 'number') throw Error(`${key}: dimensión/consumo sin valor numérico`);
+      return scalar(String(value));
+    }
     if (!formula) {
       const v = cached(target.value);
+      if (options.sumBlanks && sumMember && (target.value === null || target.value === undefined || target.value === '')) return scalar(0);
       if (typeof v !== "number" || !Number.isFinite(v))
         throw Error(`${key}: valor numérico ausente`);
       return scalar(String(v));
@@ -104,7 +111,7 @@ export function linearCost(
             if (a[1] !== b[1] || +b[2] - +a[2] > 500 || +b[2] < +a[2])
               throw Error("Rango fuera de límite");
             for (let r = +a[2]; r <= +b[2]; r++)
-              result = plus(result, cell(start.sheet!, a[1] + r, depth + 1));
+              result = plus(result, cell(start.sheet!, a[1] + r, depth + 1, true));
             pos += 3;
           } else result = plus(result, add());
           if (tokens[pos]?.text === ",") pos++;
@@ -153,7 +160,7 @@ export function linearCost(
       constant: result.constant.toFixed(),
       components: [...result.terms].map(([sourceKey, coefficient]) => ({
         sourceKey,
-        coefficient: coefficient.toDecimalPlaces(8).toFixed(),
+        coefficient: (options.exact ? coefficient : coefficient.toDecimalPlaces(8)).toFixed(),
       })),
       evidence: [...evidence],
       issue: null,

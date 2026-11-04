@@ -1,4 +1,4 @@
-import { retiredPriceIds } from "./price-provenance";
+import { retiredPriceIds, priceProvenance } from "./price-provenance";
 import ExcelJS from "exceljs";
 import { Prisma } from "@prisma/client";
 import { db } from "../core/db";
@@ -121,7 +121,7 @@ export async function handlerExports(
         "Base impositiva",
         "Vigencia",
       ],
-      rows.map((r) => [
+      (await priceProvenance(rows)).map((r) => [
         r.material.code,
         r.supplier?.code || "",
         r.presentation?.name || "",
@@ -129,7 +129,7 @@ export async function handlerExports(
         r.baseQuantity.toString(),
         r.currency,
         r.taxBasis,
-        r.effectiveAt.toISOString(),
+        'referenceDate' in r ? String(r.referenceDate ?? 'Fecha no informada') : r.effectiveAt.toISOString(),
       ]),
     );
   }

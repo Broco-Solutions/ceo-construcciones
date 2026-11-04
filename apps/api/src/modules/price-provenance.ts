@@ -19,7 +19,7 @@ export async function priceProvenance<T extends { id: string }>(prices: T[]) {
     return prices;
   const origins = await db.catalogOrigin.findMany({
     where: {
-      kind: { in: ["price", "price-retired"] },
+      kind: { in: ["price", "composition-price", "price-retired"] },
       entityId: { in: prices.map((p) => p.id) },
     },
   });

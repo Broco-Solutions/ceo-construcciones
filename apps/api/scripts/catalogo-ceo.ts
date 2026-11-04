@@ -48,7 +48,7 @@ async function main() {
       where: { source: { in: ["BASE-CEO", "DG-CEO"] } },
     });
     const ids = (kind: string) =>
-      origins.filter((o) => o.kind === kind).map((o) => o.entityId);
+      origins.filter((o) => o.kind === kind || (kind === 'material' && o.kind === 'material-equivalence') || (kind === 'price' && ['composition-price', 'composition-expression'].includes(o.kind)) || (kind === 'presentation' && o.kind === 'composition-presentation')).map((o) => o.entityId);
     const groups = await Promise.all([
       db.category.findMany({ where: { id: { in: ids("category") } } }),
       db.material.findMany({
@@ -92,6 +92,10 @@ async function main() {
       const row = current.get(
         (o.kind === "recipe-material"
           ? "material"
+          : o.kind === 'material-equivalence' ? 'material'
+          : o.kind === 'composition-presentation' ? 'presentation'
+          : o.kind === 'activity-linkage' ? 'activity'
+          : ['composition-price', 'composition-expression'].includes(o.kind) ? 'price'
           : o.kind === "price-retired"
             ? "price"
             : o.kind) +

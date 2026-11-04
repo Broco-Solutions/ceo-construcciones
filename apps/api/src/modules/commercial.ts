@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
+import { sourcePriceBases, sourcePriceContext, samePriceSeries, sourcePriceFactors } from './source-price-basis';
 import { db, transaction, schemaCapabilities, type Tx } from "../core/db";
 import { type Actor, requireRoles } from "../core/auth";
 import { audit } from "../core/audit";
@@ -134,19 +135,27 @@ export async function validateReferences(tx: Tx, content: EditorContent) {
     .flatMap((l) => l.materials)
     .filter((m) => m.sourcePriceId !== null);
   if (sourced.length) {
+    const basisIds = sourced.flatMap(m => m.sourcePriceBasis ? [m.sourcePriceBasis] : []);
+    if (basisIds.length && !(await schemaCapabilities()).referenceCosts) throw new ApiError(503, 'FEATURE_NOT_ENABLED', 'Las referencias de origen aún no están habilitadas.');
+    const bases = await sourcePriceBases(tx, basisIds);
+    const factors = await sourcePriceFactors(tx, [...bases.keys()]);
     const prices = await tx.materialPrice.findMany({
       where: { id: { in: [...new Set(sourced.map((m) => m.sourcePriceId!))] } },
     });
     for (const material of sourced) {
       const price = prices.find((p) => p.id === material.sourcePriceId);
+      const basis = material.sourcePriceBasis ? bases.get(material.sourcePriceBasis) : undefined;
+      const valuation = sourcePriceContext(content, material.materialId, basis);
       const normalized = price?.price
-        .div(price.baseQuantity)
+        .div(price.baseQuantity).mul(material.sourcePriceFactor ?? '1')
         .toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP);
       if (
         !price ||
         price.materialId !== material.materialId ||
         price.currency !== content.currency ||
-        price.taxBasis !== content.taxBasis ||
+        price.taxBasis !== valuation.taxBasis ||
+        (material.sourcePriceBasis && (!basis || !samePriceSeries(basis, price))) ||
+        (material.sourcePriceFactor !== undefined && material.sourcePriceFactor !== '1' && !factors.has(`${material.sourcePriceBasis}:${material.sourcePriceFactor}`)) ||
         material.unitPrice === null ||
         !normalized?.eq(material.unitPrice) ||
         (price.price.gt(0) && normalized.isZero())
