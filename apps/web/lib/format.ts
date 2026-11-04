@@ -72,9 +72,19 @@ export function formatDate(iso: string | null | undefined) {
 export function formatDateTime(iso: string | null | undefined) {
   return iso ? dateTimeFmt.format(new Date(iso)) : '—';
 }
+/** Preserve source precision; a technical month timestamp is never a quoted day. */
+export function formatReferenceDate(value: string | null | undefined, precision = 'DAY') {
+  if (!value || precision === 'UNKNOWN') return 'Fecha desconocida';
+  if (precision === 'MONTH') return new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value.slice(0, 7)}-01T12:00:00Z`));
+  return value.slice(0, 10).split('-').reverse().join('/');
+}
 /** "2026-10-30" (input date) -> ISO al mediodía UTC para evitar corrimientos de día. */
 export function dateInputToIso(d: string) {
   return d ? new Date(`${d}T12:00:00.000Z`).toISOString() : undefined;
+}
+/** A reference selected by calendar day is available from that day's start in Argentina. */
+export function referenceDateInputToIso(d: string) {
+  return d ? new Date(`${d}T00:00:00-03:00`).toISOString() : undefined;
 }
 export function isoToDateInput(iso: string | null | undefined) {
   return iso ? iso.slice(0, 10) : '';

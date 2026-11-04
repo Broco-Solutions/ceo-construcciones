@@ -62,12 +62,14 @@ function Form() {
     ),
   );
   const [templateId, setTemplateId] = useState('');
+  const [useReferenceCosts,setUseReferenceCosts]=useState(!sourceVersionId);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const save = useMutation((key: string, body: Schemas['BudgetInput']) =>
     api.post<{ data: Schemas['Budget'] }>(
       computationId || legacy ? '/budgets' : '/budget-editor',
       {
         ...body,
+        ...(!computationId && !legacy ? {useReferenceCosts}:{}),
         ...(!computationId && !legacy && sourceVersionId
           ? { sourceVersionId }
           : !computationId && !legacy && templateId
@@ -135,6 +137,7 @@ function Form() {
             hint="La plantilla copia rubros y composiciones. Los cambios quedan sólo en este presupuesto."
           />
         )}
+        {!computationId && !legacy && <label className="row"><input type="checkbox" checked={useReferenceCosts} onChange={e=>setUseReferenceCosts(e.target.checked)}/>Usar costos de referencia disponibles, conservando ajustes manuales</label>}
         {!computationId && base.data && (
           <details>
             <summary>
