@@ -35,13 +35,20 @@ export function Field({ label, error, hint, children, htmlFor }: { label: string
   );
 }
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string };
-export function TextField({ label, error, hint, id, className = '', ...rest }: InputProps) {
+type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string; suffix?: React.ReactNode };
+export function TextField({ label, error, hint, id, className = '', suffix, ...rest }: InputProps) {
   const auto = useId();
   const iid = id ?? auto;
   return (
     <Field label={label} error={error} hint={hint} htmlFor={iid}>
-      <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} />
+      {suffix != null ? (
+        <div className="input-with-suffix">
+          <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} />
+          <span className="input-suffix">{suffix}</span>
+        </div>
+      ) : (
+        <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} />
+      )}
     </Field>
   );
 }
