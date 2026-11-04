@@ -13,10 +13,10 @@ Encargo recibido el 04/11/2026. El archivo `CEO_PLAN_CARGA_INICIAL_Y_COSTOS_CODE
 - P2/P5: API conectada, revisión explícita/seleccionable de borrador y snapshots. Caso sintético 6.100 → 6.500 → 6.900, venta 91.500 → 97.500 → 103.500, demanda constante 40 kg y R1/PDF inmutables. Guardar/aplicar no emite.
 - P4/P6: verificadores independientes con salida 0: API **186 + 3 runtime** (`20261104_023014_2-api`), web **49** + typecheck/build (`20261104_023015_2-web`), E2E **72** (`20261104_023219_2-e2e`). Regresión adicional del cargador **5/5**, incluyendo revisión optimista al retirar un servicio provisional. No se eliminaron assertions ni se sustituyó persistencia por mocks.
 - Compatibilidad final: `logs/catalog-release-candidate.log`, salida 0, V1 poblada → PR9 poblado → nuevo, API standalone/navegador reales, snapshot/PDF iguales, stock/OC parcial intactos y `No difference detected`. Base aislada conservada `ceo_release_test_15f71e2378674d6290c01f18830fc73c`.
-- Manual: `CEO_Manual_Local.sh start` ejecutado; smokes existente y de catálogo aprobados con cinco perfiles. BASE146/74 MO comprobada, cantidades0 y costos unitarios conocidos visibles; ediciones sólo descartadas. La propuesta sintética multipágina se emite una vez y su descarga repetida conserva bytes. Reinicio con SHA integrado pendiente de P7.
+- Manual: `CEO_Manual_Local.sh start` ejecutado; smokes existente y de catálogo aprobados con cinco perfiles. BASE146/74 MO comprobada, cantidades0 y costos unitarios conocidos visibles; ediciones sólo descartadas. La propuesta sintética multipágina se emite una vez y su descarga repetida conserva bytes. Reinicio del candidato versionado ejecutado sin reset; `manual/release.json` y el PR registran la comprobación del mismo código integrado.
 - Visual: capturas/revisión a 1440/1280/768/390/360, materiales/MO/actividad/composición/revisión y BASE real. [Evidencia sintética publicable](../apps/web/docs/evidencia/costos/); evidencia sensible en `catalog-final/` privado. PDF sintético de **6 páginas**, unidades m²/m³, nombres largos, incluidas/excluidas y condiciones inspeccionado; sin costos internos, MO o recargo. R1/R2 numéricas también renderizadas.
 - Se corrigieron durante la pasada: fecha de tarifa adelantada por UTC, preview que no seguía selección parcial, unidad ausente al filtrar presentación, cachés redondeadas interpretadas como contradicción, fechas/fuentes heredadas entre bloques y servicios de alquiler/bombeo tratados como materiales. Los intentos fallidos de contrato/fixtures/selectores y colisión de compilación se corrigieron; sólo las ejecuciones con código 0 citadas acreditan aceptación.
-- P7: revisión de diff/secretos y publicación/integración en curso. No hay habilitación productiva ni aceptación del piloto por CEO.
+- P7: [PR #14](https://github.com/Broco-Solutions/ceo-construcciones/pull/14), commits `dd3a750` (API/carga), `48eb3f4` (web/evidencia), `6a7570b` (documentación). Revisión de 88 archivos sin originales, credenciales ni claves; SQL conserva el checksum ensayado (una línea vacía final indicada por diff-check, sin impacto). El PR registra candidato final, checks y SHA remoto después del merge normal. No hay habilitación productiva ni aceptación del piloto por CEO.
 
 ## Matriz requisito → implementación → prueba → evidencia
 
@@ -69,8 +69,8 @@ La evidencia API usa PostgreSQL real; E2E usa API standalone y web de producció
 | CI-43 | Visual | Capturas sintéticas1440/1280/768/390/360; inspección y smoke BASE aprobados |
 | CI-44 | Volumen | Resolver en lote; precios/recursos paginados; BASE146 con cálculo en lote y sin perder foco al tipear; revisión manual aprobada |
 | CI-45 | Esquemas | Release V1 poblada→PR9 poblado→nuevo: HTTP/browser, snapshots/PDF iguales, diff vacío |
-| CI-46 | Reinicio manual | DB/credenciales conservadas; reinicio con código final pendiente |
+| CI-46 | Reinicio manual | Arranque/reinicio versionado y smokes aprobados sin reset; SHA local compilado en release.json y coincidencia con main registrada en PR14 |
 | CI-47 | Contrato/suites | OpenAPI122 rutas/161 operaciones; API186+runtime3, web49 y E2E72 con salida0 |
-| CI-48 | Entrega | Resultado de carga/faltantes documentados; PR/main y smoke integrado pendientes |
+| CI-48 | Entrega | Informe por entidad/faltantes y guía ejecutada; PR14/checks/registro de SHA acreditan integración y smoke del mismo código |
 
-No se ejecutaron operaciones productivas ni cambios de infraestructura. PR/merge todavía pendientes.
+No se ejecutaron operaciones productivas ni cambios de infraestructura. El [PR14](https://github.com/Broco-Solutions/ceo-construcciones/pull/14) es el registro verificable de estado de merge/checks/SHA; no se anticipa un SHA de merge dentro de este commit.

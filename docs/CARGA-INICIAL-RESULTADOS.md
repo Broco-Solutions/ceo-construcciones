@@ -5,6 +5,7 @@ Fuente principal BASE, SHA256 `5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21d
 | Entidad | Resultado local |
 |---|---:|
 | Rubros de BASE previa reutilizados por evidencia de instalación | 17 |
+| Unidades usadas por el catálogo activo (9 previas + 3 nuevas) | 12 |
 | Actividades nuevas del catálogo | 146 |
 | Materiales PRECIOS activos / provisionales de servicio inactivos | 222 / 10 |
 | Identidades separadas de receta activas / provisionales de servicio inactivas | 94 / 2 |
@@ -14,6 +15,8 @@ Fuente principal BASE, SHA256 `5b67b22f03e425f49b1b0922ca575cf1245e9ceac7442b21d
 | Conceptos MO / tarifas históricas (27 BASE + 10 DG) | 78 / 37 |
 | Actividades con MO calculada conciliada | 74 |
 | Clientes, obras, proveedores, pedidos, OC o movimientos creados por la carga | 0 |
+
+La extracción creó cinco unidades; tres siguen usadas por el catálogo activo y dos quedan conservadas tras reclasificar servicios. Se reutilizan nueve unidades anteriores sin inferir equivalencias físicas.
 
 La primera aplicación creó rubros provisionales propios; se reconciliaron con los 17 rubros comprobados de la instalación BASE anterior. Sólo se retiraron esas filas provisionales sin ediciones ni referencias del usuario, dentro de una transacción con verificaciones y auditoría. No se borraron categorías anteriores, actividades, presupuestos ni datos operativos del usuario. La reejecución anterior ya había creado cero entidades; la conciliación posterior también creó cero y terminó sin conflictos.
 
@@ -32,6 +35,23 @@ La reejecución final creó cero entidades y reportó cero conflictos; la verifi
 Los encabezados `PRECIOS!A203/A206/A247` acreditan fechas de día en 2025; no heredan CAS/Octubre 2026 ni el bloque de alquileres. `A220/A228` no acreditan fecha. Se archivaron 62 referencias provisionales incorrectamente atribuidas, sin borrar filas de precios; las correctas generan nuevas referencias y las sin fecha permanecen pendientes. Las archivadas no aparecen como candidatas en precios, comparación, exportación o revisión de costos. El acceso por ID conserva el dato y lo marca por revisar. De las 372 seleccionables, 26 conservan día y 346 mes.
 
 Once pares de nombres coincidentes entre CAS y La Elena quedan separados: H8/H13/H17/H21/H25/H30/H40 y morteros. Sin una especificación técnica común no se deduce identidad únicamente de grado/nombre. El sistema permite varias cotizaciones para una identidad comprobada; los recorridos existentes de tres proveedores y la prueba de selección conservan esa capacidad.
+
+## Conciliación por entidad
+
+| Entidad / origen | Candidatos | Creados/conservados por esta misión | Reutilizados / límites |
+|---|---:|---|---|
+| Rubros COSTO | 17 | Cero nuevos netos | 17 anteriores; provisionales propios conciliados con evidencia |
+| Unidades del catálogo activo | 12 | 3 usadas nuevas; otras 2 conservadas sin uso activo | 9 anteriores por símbolo documentado |
+| Productos PRECIOS | 234 | 222 identidades activas | 12 servicios fuera de stock; 10 identidades provisionales propias inactivas |
+| Identidades de receta | 96 provisionales | 94 activas | 2 servicios provisionales inactivos; sin fusión por nombre parecido |
+| Presentaciones | 222 materiales activos | 222 + 10 conservadas en identidades inactivas | Sin alterar las anteriores del usuario |
+| Filas de cotización | 222 productos | 186 con referencias neta/con IVA separadas: 372 precios | 36 sin referencia aplicable; 62 provisionales archivadas sin borrar importes |
+| MO BASE | 80 | 78 conceptos; 27 tarifas | 51 sin tarifa; 2 servicios combinados no tratados como salario |
+| Categorías MO DG | 10 tarifas | 10 tarifas; cero conceptos nuevos | 10 correspondencias sobre los recursos BASE |
+| Actividades / definición de costos | 146 | 146 + 146 | 74 con MO calculada; 63 con alguna limitación; restantes directas/pending según fuente |
+| Plantilla conectada | 1 | 1 | Versiones anteriores y borradores existentes preservados |
+
+La última reejecución crea cero y reutiliza todas las correspondencias sin conflictos. Los avisos se cuentan por registro y pueden coexistir con una entidad cargada; no son rechazos globales ni ceros supuestos. `catalog-counts-final.json`, manifiestos, runs y verificación de destinos privados permiten conciliar estas cifras.
 
 ## Faltantes y límites por registro
 
