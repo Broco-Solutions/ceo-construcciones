@@ -45,10 +45,10 @@ function ApuList() {
   });
   const edit = can('editBudget');
   const labor = (a: Schemas['ApuDetail']) =>
-    a.laborCost ? formatMoney(a.laborCost, a.laborCurrency) : '—';
+    a.referenceCost ? (a.referenceCost.laborCost === null ? 'Pendiente' : formatMoney(a.referenceCost.laborCost, a.referenceCost.currency)) : a.laborCost ? formatMoney(a.laborCost, a.laborCurrency) : '—';
   return (
     <Page
-      title="Análisis de precios unitarios"
+      title="Actividades de obra"
       crumb="Catálogos / Actividades de obra"
       actions={
         edit && (
@@ -124,15 +124,19 @@ function ApuList() {
                     r.components.length ? (
                       `${r.components.length}`
                     ) : (
-                      <Pill tone="blue">Sólo mano de obra</Pill>
+                      <Pill tone="blue">Sin materiales</Pill>
                     ),
                 },
                 {
                   key: 'mo',
                   header: 'Mano de obra / u.',
                   align: 'r',
-                  render: (r) => `${labor(r)} · ${TAX_LABEL[r.laborTaxBasis]}`,
+                  render: (r) => `${labor(r)} · ${TAX_LABEL[r.referenceCost?.taxBasis ?? r.laborTaxBasis]}`,
                   hideMobile: true,
+                },
+                {
+                  key: 'cost', header: 'Costo por unidad', align: 'r',
+                  render: (r) => r.referenceCost ? (r.referenceCost.totalUnitCost === null ? 'Datos por revisar' : formatMoney(r.referenceCost.totalUnitCost, r.referenceCost.currency)) : 'Ver composición',
                 },
                 {
                   key: 'st',
@@ -157,8 +161,9 @@ function ApuList() {
                   <span className="small">
                     {r.components.length
                       ? `${r.components.length} materiales`
-                      : 'Sólo mano de obra'}{' '}
-                    · MO {labor(r)}
+                      : 'Sin materiales'}{' '}
+                    · Mano de obra {labor(r)}
+                    {r.referenceCost && <span className="small"> · Costo por unidad: {r.referenceCost.totalUnitCost === null ? 'Datos por revisar' : formatMoney(r.referenceCost.totalUnitCost, r.referenceCost.currency)}</span>}
                   </span>
                 </div>
               )}

@@ -18,7 +18,7 @@ import {
 import { api, type Schemas } from '@/lib/api';
 import { useAll, useApi, useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
-import { formatMoney } from '@/lib/format';
+import { formatMoney, formatQty, formatReferenceDate } from '@/lib/format';
 import { unitSymbol } from '@/lib/units';
 import { PriceComparison } from '@/components/catalogo/PriceComparison';
 import { useNavigationBlocker } from '@/lib/navigation';
@@ -51,6 +51,7 @@ export function BudgetEditor({ id }: { id: string }) {
     savedRef = useRef(saved),
     revisionRef = useRef(revision);
   const tabListRef = useRef<HTMLDivElement | null>(null);
+  const addingActivity = useRef(false);
   contentRef.current = content;
   savedRef.current = saved;
   revisionRef.current = revision;
@@ -64,10 +65,11 @@ export function BudgetEditor({ id }: { id: string }) {
   } | null>(null);
   const initialized = useRef(false),
     sequence = useRef(0),
+    costReviewSequence = useRef(0),
     previewRef = useRef<string | null>(null);
   const [expression, setExpression] = useState(''),
     [expressionError, setExpressionError] = useState<unknown>(),
-    [priceChanges, setPriceChanges] = useState<Schemas['DraftPriceChanges']>(),
+    [priceChanges, setPriceChanges] = useState<Schemas['ReferenceCostReview']>(),
     [acceptedPrices, setAcceptedPrices] = useState<string[]>([]),
     [comparisonMaterial, setComparisonMaterial] = useState<string | null>(null);
   const activities = useAll<Schemas['ApuDetail']>(
@@ -146,6 +148,7 @@ export function BudgetEditor({ id }: { id: string }) {
   }, [content, id, can]);
   useEffect(
     () => () => {
+      costReviewSequence.current++;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     },
     [],
@@ -173,44 +176,52 @@ export function BudgetEditor({ id }: { id: string }) {
   });
   const updatePrices = useMutation(async () => {
     if (content)
-      return api.post<{ data: Schemas['DraftPriceChanges'] }>(
-        `/budget-editor/${id}/price-updates`,
-        content,
+      return api.post<{ data: Schemas['ReferenceCostReview'] }>(
+        `/budget-editor/${id}/cost-review`,
+        { revision, content },
       );
   });
   async function reviewPrices() {
+    const requestSequence = ++costReviewSequence.current;
+    previewCostSelection.reset();
+    applyCosts.reset();
     const r = await updatePrices.run();
-    if (r) {
+    if (r && requestSequence === costReviewSequence.current) {
       setPriceChanges(r.data);
       setAcceptedPrices(
         r.data.changes
           .filter((c) => !c.manual)
-          .map((c) => `${c.lineKey}:${c.materialId}`),
+          .map((c) => c.key),
       );
     }
   }
-  function acceptPrices() {
+  const previewCostSelection = useMutation((_key: string, selected: string[]) =>
+    api.post<{ data: Schemas['ReferenceCostReview'] }>(`/budget-editor/${id}/cost-review`, { revision, content, selected }));
+  async function changeCostSelection(selected: string[]) {
+    if (!priceChanges) return;
+    const requestSequence = ++costReviewSequence.current;
+    setAcceptedPrices(selected);
+    const result = await previewCostSelection.run(selected);
+    if (!result || requestSequence !== costReviewSequence.current) return;
+    if (result.data.planHash !== priceChanges.planHash) {
+      setPriceChanges(undefined);
+      toast.warning('Las referencias cambiaron. Volvé a revisar las diferencias antes de aplicarlas.');
+      return;
+    }
+    setPriceChanges(result.data);
+  }
+  const applyCosts = useMutation((_key: string, body: Schemas['CostApplyInput']) => api.post<{ data: Schemas['BudgetDraft'] }>(`/budget-editor/${id}/apply-cost-review`, body));
+  async function acceptPrices() {
     if (!content || !priceChanges) return;
-    set({
-      lines: content.lines.map((l) => ({
-        ...l,
-        materials: l.materials.map((m) => {
-          const c = priceChanges.changes.find(
-            (c) =>
-              c.lineKey === l.key &&
-              c.materialId === m.materialId &&
-              acceptedPrices.includes(`${l.key}:${m.materialId}`),
-          );
-          return c
-            ? { ...m, unitPrice: c.next, sourcePriceId: c.sourcePriceId }
-            : m;
-        }),
-      })),
-    });
+    const reviewed = JSON.stringify(content);
+    const result = await applyCosts.run({ revision: priceChanges.revision, content, planHash: priceChanges.planHash, selected: acceptedPrices });
+    if (!result) return;
+    const next = result.data.content;
+    setRevision(result.data.revision);
+    setSaved(JSON.stringify(next));
+    if (JSON.stringify(contentRef.current) === reviewed) setContent(next);
     setPriceChanges(undefined);
-    toast.success(
-      'Precios aplicados al borrador. Guardá para conservar los cambios.',
-    );
+    toast.success('Costos de referencia aplicados al borrador. Las revisiones emitidas se conservan.');
   }
   const [previewBusy, setPreviewBusy] = useState(false);
   async function persist() {
@@ -238,6 +249,7 @@ export function BudgetEditor({ id }: { id: string }) {
       return JSON.stringify(contentRef.current) === savedRef.current;
     },
     onPrompt: () => {
+      costReviewSequence.current++;
       setContext(null);
       setComparisonMaterial(null);
       setPick(false);
@@ -276,6 +288,7 @@ export function BudgetEditor({ id }: { id: string }) {
     setPreviewBusy(true);
     try {
       const url = await api.preview(`/budget-editor/${id}/preview`, content);
+      costReviewSequence.current++;
       if (previewRef.current) URL.revokeObjectURL(previewRef.current);
       previewRef.current = url;
       setPreview(url);
@@ -323,6 +336,7 @@ export function BudgetEditor({ id }: { id: string }) {
       lines: valuation.previous.lines.map((l) => ({
         ...l,
         laborUnitCost: null,
+        laborReferences: undefined,
         directUnitCost: null,
         materials: l.materials.map((m) => ({
           ...m,
@@ -377,8 +391,15 @@ export function BudgetEditor({ id }: { id: string }) {
     setMaterialPicker(null);
     setMaterialError('');
   }
-  function addActivity(a: Schemas['ApuDetail']) {
-    if (!content) return;
+  async function addActivity(a: Schemas['ApuDetail']) {
+    if(addingActivity.current)return;
+    addingActivity.current=true;
+    let reference: Schemas['ResolvedActivityCost'] | null = null;
+    try { reference = (await api.get<{data:Schemas['ResolvedActivityCost']|null}>(`/activity-costing/${a.id}`)).data; }
+    catch (error) { if ((error as {status?:number}).status !== 503) { toast.failure('No se pudo consultar el costo de referencia',error); addingActivity.current=false; return; } }
+    const current = contentRef.current;
+    if (!current) { addingActivity.current=false; return; }
+    const compatible=reference?.content.currency===current.currency && reference?.content.taxBasis===current.taxBasis;
     const line: Line = {
       key: crypto.randomUUID(),
       itemId: a.id,
@@ -390,15 +411,15 @@ export function BudgetEditor({ id }: { id: string }) {
       unit: unitSymbol(a.unit),
       quantity: null,
       laborUnitCost:
-        a.laborCurrency === content.currency &&
-        a.laborTaxBasis === content.taxBasis
+        a.laborCurrency === current.currency &&
+        a.laborTaxBasis === current.taxBasis
           ? a.laborCost
           : null,
       directUnitCost:
         a.directCost == null
           ? '0'
-          : a.laborCurrency === content.currency &&
-              a.laborTaxBasis === content.taxBasis
+          : a.laborCurrency === current.currency &&
+              a.laborTaxBasis === current.taxBasis
             ? a.directCost
             : null,
       status: 'ACTIVE',
@@ -407,8 +428,8 @@ export function BudgetEditor({ id }: { id: string }) {
           .filter(
             (p) =>
               p.materialId === c.materialId &&
-              p.currency === content.currency &&
-              p.taxBasis === content.taxBasis &&
+              p.currency === current.currency &&
+              p.taxBasis === current.taxBasis &&
               Date.parse(p.effectiveAt) <= Date.now() &&
               p.baseQuantity === '1' &&
               (!p.supplierId ||
@@ -426,8 +447,17 @@ export function BudgetEditor({ id }: { id: string }) {
         };
       }),
     };
-    set({ lines: [...content.lines, line] });
+    if (compatible && reference) {
+      line.laborUnitCost=reference.laborCost;
+      line.directUnitCost=reference.directCost;
+      line.materialsIncludedInDirect=reference.content.materialsIncludedInDirect;
+      line.materialReview=reference.content.materialReview;
+      if(reference.content.laborMode==='CALCULATED' && reference.labor.every(r=>r.value!==null))line.laborReferences=reference.labor.map(r=>({...r,value:r.value!,source:r.source??''}));
+      line.materials=line.materials.map(m=>{const selected=reference.materials.find(p=>p.materialId===m.materialId);return selected?.sourcePriceId?{...m,unitPrice:selected.unitPrice,sourcePriceId:selected.sourcePriceId}:m;});
+    }
+    set({ lines: [...current.lines, line] });
     setPick(false);
+    addingActivity.current=false;
   }
   function addDirect() {
     const category =
@@ -772,7 +802,7 @@ export function BudgetEditor({ id }: { id: string }) {
                       onClick={reviewPrices}
                       loading={updatePrices.pending}
                     >
-                      Actualizar precios · revisar diferencias
+                      Revisar costos de referencia
                     </Button>
                   </div>
                 )}
@@ -1063,6 +1093,7 @@ export function BudgetEditor({ id }: { id: string }) {
                   disabled={!editable}
                 />
               </div>
+              {selected.laborReferences?.length ? <details className="note small"><summary>Composición de mano de obra</summary>{selected.laborReferences.map(r=><p key={r.resourceId}>{r.name} · {formatQty(r.coefficient,r.unit)} × {formatMoney(r.value,content?.currency)} · {r.dateLabel??'Fecha desconocida'} · {r.source}</p>)}<p>Ingresar un importe manual retira estas referencias únicamente de este presupuesto.</p></details>:null}
               <SelectField
                 label="Participación"
                 value={selected.status}
@@ -1086,6 +1117,7 @@ export function BudgetEditor({ id }: { id: string }) {
                   onChange={(e) =>
                     setLine(selected.key, {
                       laborUnitCost: input(e.target.value),
+                      laborReferences: undefined,
                     })
                   }
                   disabled={!editable}
@@ -1419,8 +1451,8 @@ export function BudgetEditor({ id }: { id: string }) {
       </Modal>
       <Modal
         open={!!priceChanges}
-        onClose={() => setPriceChanges(undefined)}
-        title="Revisar actualización de precios"
+        onClose={() => { costReviewSequence.current++; setPriceChanges(undefined); }}
+        title="Revisar costos de referencia"
         wide
       >
         <div className="stack">
@@ -1428,23 +1460,18 @@ export function BudgetEditor({ id }: { id: string }) {
             <p>No hay nuevas referencias comparables vigentes.</p>
           )}
           {priceChanges?.changes.map((c) => {
-            const key = `${c.lineKey}:${c.materialId}`;
+            const key = c.key;
             return (
               <label className="row" key={key}>
                 <input
                   type="checkbox"
                   checked={acceptedPrices.includes(key)}
-                  onChange={(e) =>
-                    setAcceptedPrices((old) =>
-                      e.target.checked
-                        ? [...old, key]
-                        : old.filter((x) => x !== key),
-                    )
-                  }
+                  disabled={previewCostSelection.pending || applyCosts.pending}
+                  onChange={(e) => void changeCostSelection(e.target.checked ? [...acceptedPrices, key] : acceptedPrices.filter(x => x !== key))}
                 />
                 <span>
-                  {c.name}: {c.previous ?? 'Sin precio'} → {c.next} ·{' '}
-                  {c.effectiveAt.slice(0, 10)}
+                  {c.kind === 'LABOR' ? 'Mano de obra' : 'Materiales'} · {c.name}: {c.previous === null ? 'Sin precio' : formatMoney(c.previous, content?.currency)} → {formatMoney(c.next, content?.currency)} ·{' '}
+                  {formatReferenceDate(c.dateLabel, c.datePrecision)} · {c.source}
                   {c.manual
                     ? ' · Ajuste manual: conservar salvo selección expresa'
                     : ''}
@@ -1452,7 +1479,10 @@ export function BudgetEditor({ id }: { id: string }) {
               </label>
             );
           })}
-          <Button onClick={acceptPrices}>Aplicar selección al borrador</Button>
+          <div className="note">La vista previa conserva cantidades, consumos y rentabilidad. Costo: {formatMoney(priceChanges?.before.totalCost, content?.currency)} → {formatMoney(priceChanges?.after.totalCost, content?.currency)}. Venta: {formatMoney(priceChanges?.before.commercialTotal, content?.currency)} → {formatMoney(priceChanges?.after.commercialTotal, content?.currency)}.</div>
+          {previewCostSelection.error && <ErrorBox error={previewCostSelection.error} />}
+          {applyCosts.error && <ErrorBox error={applyCosts.error} />}
+          <Button disabled={applyCosts.pending || previewCostSelection.pending || !!previewCostSelection.error} onClick={acceptPrices}>Aplicar selección al borrador</Button>
         </div>
       </Modal>
       <Modal

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { api, ApiError, fieldErrors, type Schemas } from '@/lib/api';
 import { useAll, useMutation } from '@/lib/hooks';
 import {
-  dateInputToIso,
+  referenceDateInputToIso as dateInputToIso,
   formatQty,
   isPositiveDecimal,
   parseDecimalInput,
@@ -57,12 +57,14 @@ export function PriceForm({
   onSaved,
   materialId: fixedMaterial,
   supplierId: fixedSupplier,
+  initialReference,
 }: {
   open: boolean;
   onClose: () => void;
   onSaved: (p: MaterialPrice) => void;
   materialId?: string;
   supplierId?: string;
+  initialReference?: MaterialPrice;
 }) {
   const toast = useToast();
   const units = useUnits();
@@ -72,13 +74,13 @@ export function PriceForm({
   );
   const [material, setMaterial] = useState<PickedMaterial | null>(null);
   const [f, setF] = useState({
-    supplierId: fixedSupplier ?? '',
-    presentationId: '',
+    supplierId: initialReference?.supplierId ?? fixedSupplier ?? '',
+    presentationId: initialReference?.presentationId ?? '',
     price: '',
-    currency: '',
-    taxBasis: '' as TaxBasis | '',
+    currency: initialReference?.currency ?? '',
+    taxBasis: (initialReference?.taxBasis ?? '') as TaxBasis | '',
     effectiveAt: '',
-    source: '',
+    source: initialReference?.source ?? '',
   });
   const [local, setLocal] = useState<Record<string, string>>({});
   const pres = useAll<Presentation>(materialId ? '/presentations' : null, {

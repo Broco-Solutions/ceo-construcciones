@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import { db, transaction, type Tx } from "../core/db";
+import { db, transaction, schemaCapabilities, type Tx } from "../core/db";
 import { type Actor, requireRoles } from "../core/auth";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
@@ -15,6 +15,11 @@ import {
 } from "./commercial-domain";
 import { commercialPdf } from "./commercial-pdf";
 import { baseSource, installBase } from "./base-template";
+import {
+  initialReferenceContent,
+  costReview,
+  applyReviewedCosts,
+} from "./budget-cost-updates";
 
 export const draftSaveSchema = z
   .object({ revision: z.number().int().min(0), content: editorContentSchema })
@@ -25,6 +30,7 @@ export const editorCreateSchema = z
     name: text,
     templateId: id.optional(),
     sourceVersionId: id.optional(),
+    useReferenceCosts: z.boolean().optional(),
   })
   .strict()
   .refine(
@@ -52,7 +58,36 @@ const json = (v: unknown) =>
 const hash = (v: unknown) =>
   createHash("sha256").update(JSON.stringify(v)).digest("hex");
 
-async function validateReferences(tx: Tx, content: EditorContent) {
+export async function validateReferences(tx: Tx, content: EditorContent) {
+  const labor = content.lines.flatMap((l) => l.laborReferences ?? []);
+  if (labor.length) {
+    if (!(await schemaCapabilities()).referenceCosts)
+      throw new ApiError(
+        503,
+        "FEATURE_NOT_ENABLED",
+        "Las referencias de mano de obra aún no están habilitadas.",
+      );
+    const rates = await tx.laborRate.findMany({
+      where: { id: { in: [...new Set(labor.map((l) => l.rateId))] } },
+      include: { resource: true },
+    });
+    for (const reference of labor) {
+      const rate = rates.find((r) => r.id === reference.rateId);
+      if (
+        !rate ||
+        rate.resourceId !== reference.resourceId ||
+        rate.resource.unit !== reference.unit ||
+        rate.currency !== content.currency ||
+        rate.taxBasis !== content.taxBasis ||
+        !rate.value.eq(reference.value)
+      )
+        throw new ApiError(
+          422,
+          "LABOR_PROVENANCE_MISMATCH",
+          "La tarifa no coincide con el recurso, unidad, moneda, IVA o importe. Para un ajuste directo, retirala explícitamente.",
+        );
+    }
+  }
   const categoryIds = [...new Set(content.lines.map((l) => l.categoryId))],
     unitIds = [
       ...new Set(
@@ -217,6 +252,7 @@ export async function handlerCommercial(
               "Vinculá el cliente de la obra antes de iniciar un presupuesto comercial.",
             );
           let content = emptyContent();
+          let pristineCatalogTemplate = false;
           if (b.templateId)
             content = editorContentSchema.parse(
               found(
@@ -225,6 +261,22 @@ export async function handlerCommercial(
                 }),
               ).content,
             );
+          if (b.templateId && (await schemaCapabilities()).referenceCosts) {
+            const mapping = await tx.catalogOrigin.findFirst({
+              where: {
+                kind: "template",
+                entityId: b.templateId,
+                source: "BASE-CEO",
+              },
+            });
+            if (mapping) {
+              const template = await tx.budgetTemplate.findUnique({
+                where: { id: b.templateId },
+              });
+              pristineCatalogTemplate =
+                !!template && hash(template) === mapping.installedHash;
+            }
+          }
           if (b.sourceVersionId) {
             const source = found(
               await tx.budgetVersion.findUnique({
@@ -266,6 +318,21 @@ export async function handlerCommercial(
                   })),
                 })),
               };
+            }
+          }
+          if (
+            (await schemaCapabilities()).referenceCosts &&
+            (b.useReferenceCosts ?? pristineCatalogTemplate)
+          ) {
+            if (pristineCatalogTemplate)
+              content = await initialReferenceContent(tx, content);
+            else {
+              const review = await costReview(tx, 1, content);
+              content = applyReviewedCosts(
+                content,
+                review.changes,
+                review.changes.filter((c) => !c.manual).map((c) => c.key),
+              );
             }
           }
           content = {
@@ -314,61 +381,25 @@ export async function handlerCommercial(
         }),
       );
       const content = await parse(request, editorContentSchema);
-      const prices = await db.materialPrice.findMany({
-        where: {
-          materialId: {
-            in: [
-              ...new Set(
-                content.lines.flatMap((l) =>
-                  l.materials.map((m) => m.materialId),
-                ),
-              ),
-            ],
-          },
-          currency: content.currency,
-          taxBasis: content.taxBasis,
-          effectiveAt: { lte: new Date() },
-          OR: [{ supplierId: null }, { supplier: { active: true } }],
-        },
-        include: { presentation: true },
-        orderBy: [
-          { effectiveAt: "desc" },
-          { createdAt: "desc" },
-          { id: "desc" },
-        ],
-      });
+      const review = await costReview(db, 0, content);
       return ok({
-        changes: content.lines.flatMap((line) =>
-          line.materials.flatMap((m) => {
-            const price = prices.find(
-              (p) =>
-                p.materialId === m.materialId &&
-                (p.presentation
-                  ? p.presentation.active &&
-                    p.presentation.baseQuantity.eq(p.baseQuantity)
-                  : p.baseQuantity.eq(1)),
-            );
-            if (!price || price.id === m.sourcePriceId) return [];
-            const normalized = price.price
-              .div(price.baseQuantity)
-              .toDecimalPlaces(8, Prisma.Decimal.ROUND_HALF_UP);
-            if (price.price.gt(0) && normalized.isZero()) return [];
-            const next = normalized.toFixed();
-            return [
-              {
-                lineKey: line.key,
-                materialId: m.materialId,
-                name: m.name,
-                previous: m.unitPrice,
-                next,
-                sourcePriceId: price.id,
-                effectiveAt: price.effectiveAt,
-                source: price.source,
-                manual: m.sourcePriceId === null && m.unitPrice !== null,
-              },
-            ];
-          }),
-        ),
+        changes: review.changes
+          .filter((c) => c.kind === "MATERIAL")
+          .map((c) => ({
+            lineKey: c.lineKey,
+            materialId: content.lines.find((l) => l.key === c.lineKey)!
+              .materials[c.index].materialId,
+            name: c.name,
+            previous: c.previous,
+            next: c.next,
+            sourcePriceId: c.sourceId,
+            effectiveAt:
+              c.dateLabel?.length === 7
+                ? c.dateLabel + "-01T12:00:00Z"
+                : c.dateLabel,
+            source: c.source,
+            manual: c.manual,
+          })),
       });
     }
     if (method === "PUT" && !action) {

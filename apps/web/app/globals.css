@@ -130,6 +130,7 @@ table.t{width:100%;border-collapse:collapse;font-size:13px}
 .bar i{display:block;height:100%;background:var(--ceo);border-radius:5px}
 .bar i.w{background:#e8a33a}
 .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);padding:0 18px;overflow-x:auto}
+.form-fields{border:0;padding:0;margin:0;min-width:0}
 .tab{border:0;background:transparent;padding:11px 12px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:13px;display:inline-flex;gap:6px;align-items:center}
 .tab[aria-selected="true"]{color:var(--ceo);border-color:var(--ceo)}
 

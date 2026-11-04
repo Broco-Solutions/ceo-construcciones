@@ -4189,6 +4189,2087 @@
         ]
       }
     },
+    "/budget-editor/{id}/cost-review": {
+      "post": {
+        "operationId": "post__budget_editor_id_cost_review",
+        "summary": "Previsualizar materiales y MO sin escribir",
+        "tags": [
+          "budget-editor"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ReferenceCostReview"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CostReviewInput"
+              },
+              "example": {
+                "revision": 1,
+                "content": {
+                  "currency": "ARS",
+                  "taxBasis": "UNSPECIFIED",
+                  "markup": "1",
+                  "conditions": "ejemplo",
+                  "exclusions": "ejemplo",
+                  "observations": "ejemplo",
+                  "deadline": "ejemplo",
+                  "lines": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/budget-editor/{id}/apply-cost-review": {
+      "post": {
+        "operationId": "post__budget_editor_id_apply_cost_review",
+        "summary": "Aplicar cambios seleccionados con control de borrador y referencias",
+        "tags": [
+          "budget-editor"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/BudgetDraft"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CostApplyInput"
+              },
+              "example": {
+                "revision": 1,
+                "content": {
+                  "currency": "ARS",
+                  "taxBasis": "UNSPECIFIED",
+                  "markup": "1",
+                  "conditions": "ejemplo",
+                  "exclusions": "ejemplo",
+                  "observations": "ejemplo",
+                  "deadline": "ejemplo",
+                  "lines": []
+                },
+                "selected": [],
+                "planHash": "ejemplo"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labor-resources": {
+      "get": {
+        "operationId": "get__labor_resources",
+        "summary": "Consultar conceptos y referencias de mano de obra",
+        "tags": [
+          "labor-resources"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LaborResourceDetail"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "post__labor_resources",
+        "summary": "Crear concepto de mano de obra",
+        "tags": [
+          "labor-resources"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LaborResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborResourceInput"
+              },
+              "example": {
+                "code": "ejemplo",
+                "name": "ejemplo",
+                "unit": "ejemplo",
+                "kind": "CATEGORY"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/labor-resources/{id}": {
+      "get": {
+        "operationId": "get__labor_resources_id_",
+        "summary": "Consultar concepto y tarifas históricas",
+        "tags": [
+          "labor-resources"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LaborResourceDetail"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "patch__labor_resources_id_",
+        "summary": "Actualizar descripción o disponibilidad sin borrar tarifas",
+        "tags": [
+          "labor-resources"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LaborResource"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborResourcePatch"
+              },
+              "example": {}
+            }
+          }
+        }
+      }
+    },
+    "/labor-rates": {
+      "get": {
+        "operationId": "get__labor_rates",
+        "summary": "Consultar historial paginado de tarifas",
+        "tags": [
+          "labor-rates"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "resourceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LaborRate"
+                      }
+                    },
+                    "pagination": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "pagination"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "post": {
+        "operationId": "post__labor_rates",
+        "summary": "Registrar tarifa sin modificar presupuestos",
+        "tags": [
+          "labor-rates"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/LaborRateCreated"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LaborRateInput"
+              },
+              "example": {
+                "resourceId": "ejemplo",
+                "value": "1",
+                "currency": "ARS",
+                "taxBasis": "UNSPECIFIED",
+                "effectiveAt": "2026-10-22T12:00:00.000Z",
+                "dateLabel": "ejemplo",
+                "datePrecision": "DAY",
+                "source": "ejemplo",
+                "series": "ejemplo"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activity-costing/{id}": {
+      "get": {
+        "operationId": "get__activity_costing_id_",
+        "summary": "Resolver costo de actividad con referencias seleccionadas",
+        "tags": [
+          "activity-costing"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/ResolvedActivityCost"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "put__activity_costing_id_",
+        "summary": "Actualizar selección y composición con revisión optimista",
+        "tags": [
+          "activity-costing"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/ActivityCosting"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityCostingInput"
+              },
+              "example": {
+                "revision": 0,
+                "content": {
+                  "currency": "ARS",
+                  "taxBasis": "UNSPECIFIED",
+                  "laborMode": "DIRECT",
+                  "labor": [],
+                  "materials": []
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/activity-costing/{id}/preview": {
+      "post": {
+        "operationId": "post__activity_costing_id_preview",
+        "summary": "Previsualizar composición sin guardar",
+        "tags": [
+          "activity-costing"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPUTO"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "laborCost": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^-?\\d+(\\.\\d+)?$",
+                              "description": "Decimal serializado como texto, nunca float."
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "materialCost": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^-?\\d+(\\.\\d+)?$",
+                              "description": "Decimal serializado como texto, nunca float."
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "directCost": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^-?\\d+(\\.\\d+)?$",
+                              "description": "Decimal serializado como texto, nunca float."
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "totalUnitCost": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^-?\\d+(\\.\\d+)?$",
+                              "description": "Decimal serializado como texto, nunca float."
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "laborCost",
+                        "materialCost",
+                        "directCost",
+                        "totalUnitCost"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivityCostingContent"
+              },
+              "example": {
+                "currency": "ARS",
+                "taxBasis": "UNSPECIFIED",
+                "laborMode": "DIRECT",
+                "labor": [],
+                "materials": []
+              }
+            }
+          }
+        }
+      }
+    },
     "/price-files": {
       "post": {
         "operationId": "post__price_files",
@@ -29976,6 +32057,29 @@
                 "type": "null"
               }
             ]
+          },
+          "referenceDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "referenceDatePrecision": {
+            "enum": [
+              "DAY",
+              "MONTH",
+              "UNKNOWN"
+            ]
+          },
+          "referenceState": {
+            "enum": [
+              "HISTORICAL",
+              "REVIEW_REQUIRED"
+            ]
           }
         },
         "required": [
@@ -31196,6 +33300,220 @@
           "entityId",
           "before",
           "after",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "LaborResource": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "unit",
+          "kind",
+          "active",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "LaborRate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resourceId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "taxBasis": {
+            "$ref": "#/components/schemas/TaxBasis"
+          },
+          "effectiveAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "datePrecision": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "series": {
+            "type": "string"
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "referenceState": {
+            "enum": [
+              "HISTORICAL",
+              "USER"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "resourceId",
+          "value",
+          "currency",
+          "taxBasis",
+          "effectiveAt",
+          "dateLabel",
+          "datePrecision",
+          "source",
+          "series",
+          "createdById",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "ActivityCosting": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer"
+          },
+          "content": {},
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "itemId",
+          "revision",
+          "content",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "CatalogOrigin": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "sourceKey": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "sourceHash": {
+            "type": "string"
+          },
+          "installedHash": {
+            "type": "string"
+          },
+          "evidence": {},
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "kind",
+          "sourceKey",
+          "entityId",
+          "sourceHash",
+          "installedHash",
+          "evidence",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "CatalogLoadRun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "sourceHash": {
+            "type": "string"
+          },
+          "manifestHash": {
+            "type": "string"
+          },
+          "actorId": {
+            "type": "string"
+          },
+          "summary": {},
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "sourceHash",
+          "manifestHash",
+          "actorId",
+          "summary",
           "createdAt"
         ],
         "additionalProperties": false
@@ -35355,6 +37673,48 @@
             "items": {
               "$ref": "#/components/schemas/ApuComponent"
             }
+          },
+          "referenceCost": {
+            "type": "object",
+            "properties": {
+              "laborCost": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Decimal serializado como texto, nunca float."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "totalUnitCost": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Decimal serializado como texto, nunca float."
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "currency": {
+                "type": "string"
+              },
+              "taxBasis": {
+                "$ref": "#/components/schemas/TaxBasis"
+              }
+            },
+            "required": [
+              "laborCost",
+              "totalUnitCost",
+              "currency",
+              "taxBasis"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -36377,6 +38737,67 @@
                     }
                   ]
                 },
+                "laborReferences": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "resourceId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "rateId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "unit": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "coefficient": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                      },
+                      "value": {
+                        "type": "string",
+                        "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "dateLabel": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "datePrecision": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "resourceId",
+                      "rateId",
+                      "name",
+                      "unit",
+                      "coefficient",
+                      "value",
+                      "source",
+                      "dateLabel",
+                      "datePrecision"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "maxItems": 100
+                },
                 "directUnitCost": {
                   "anyOf": [
                     {
@@ -36674,6 +39095,67 @@
                         }
                       ]
                     },
+                    "laborReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "rateId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "value": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "dateLabel": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "resourceId",
+                          "rateId",
+                          "name",
+                          "unit",
+                          "coefficient",
+                          "value",
+                          "source",
+                          "dateLabel",
+                          "datePrecision"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 100
+                    },
                     "directUnitCost": {
                       "anyOf": [
                         {
@@ -36875,6 +39357,9 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 100
+          },
+          "useReferenceCosts": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -37021,6 +39506,67 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "laborReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "rateId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "value": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "dateLabel": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "resourceId",
+                          "rateId",
+                          "name",
+                          "unit",
+                          "coefficient",
+                          "value",
+                          "source",
+                          "dateLabel",
+                          "datePrecision"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 100
                     },
                     "directUnitCost": {
                       "anyOf": [
@@ -38930,6 +41476,29 @@
               }
             ]
           },
+          "referenceDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "referenceDatePrecision": {
+            "enum": [
+              "DAY",
+              "MONTH",
+              "UNKNOWN"
+            ]
+          },
+          "referenceState": {
+            "enum": [
+              "HISTORICAL",
+              "REVIEW_REQUIRED"
+            ]
+          },
           "presentation": {
             "anyOf": [
               {
@@ -40484,6 +43053,1725 @@
         },
         "required": [
           "changes"
+        ],
+        "additionalProperties": false
+      },
+      "LaborResourceInput": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "CATEGORY",
+              "SERVICE"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "unit",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "LaborResourcePatch": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CostReviewInput": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "taxBasis": {
+                "type": "string",
+                "enum": [
+                  "UNSPECIFIED",
+                  "INCLUDED",
+                  "EXCLUDED"
+                ]
+              },
+              "markup": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              "materialDemandIncomplete": {
+                "type": "boolean"
+              },
+              "conditions": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "exclusions": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "observations": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "deadline": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "itemId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "category": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "unitId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "quantity": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "laborUnitCost": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "laborReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "rateId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "value": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "dateLabel": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "resourceId",
+                          "rateId",
+                          "name",
+                          "unit",
+                          "coefficient",
+                          "value",
+                          "source",
+                          "dateLabel",
+                          "datePrecision"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 100
+                    },
+                    "directUnitCost": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "INCLUDED",
+                        "EXCLUDED"
+                      ]
+                    },
+                    "materialsIncludedInDirect": {
+                      "type": "boolean"
+                    },
+                    "materials": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "materialId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unitId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unitPrice": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "sourcePriceId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "materialId",
+                          "name",
+                          "unitId",
+                          "unit",
+                          "coefficient",
+                          "unitPrice",
+                          "sourcePriceId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 500
+                    },
+                    "materialReview": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "DIRECT",
+                            "VERIFIED",
+                            "UNRESOLVED"
+                          ]
+                        },
+                        "detail": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "evidence": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "detail",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "markup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "materialMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "laborMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "directMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "itemId",
+                    "code",
+                    "name",
+                    "categoryId",
+                    "category",
+                    "unitId",
+                    "unit",
+                    "quantity",
+                    "laborUnitCost",
+                    "directUnitCost",
+                    "status",
+                    "materials"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 1000
+              }
+            },
+            "required": [
+              "currency",
+              "taxBasis",
+              "markup",
+              "conditions",
+              "exclusions",
+              "observations",
+              "deadline",
+              "lines"
+            ],
+            "additionalProperties": false
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10000
+          }
+        },
+        "required": [
+          "revision",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "CostApplyInput": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "taxBasis": {
+                "type": "string",
+                "enum": [
+                  "UNSPECIFIED",
+                  "INCLUDED",
+                  "EXCLUDED"
+                ]
+              },
+              "markup": {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              "materialDemandIncomplete": {
+                "type": "boolean"
+              },
+              "conditions": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "exclusions": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "observations": {
+                "type": "string",
+                "maxLength": 12000
+              },
+              "deadline": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "lines": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "itemId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "code": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "maxLength": 100
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "categoryId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "category": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "unitId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "quantity": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "laborUnitCost": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "laborReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "rateId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "value": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "dateLabel": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "datePrecision": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "resourceId",
+                          "rateId",
+                          "name",
+                          "unit",
+                          "coefficient",
+                          "value",
+                          "source",
+                          "dateLabel",
+                          "datePrecision"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 100
+                    },
+                    "directUnitCost": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ACTIVE",
+                        "INCLUDED",
+                        "EXCLUDED"
+                      ]
+                    },
+                    "materialsIncludedInDirect": {
+                      "type": "boolean"
+                    },
+                    "materials": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "materialId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "unitId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          },
+                          "unit": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "coefficient": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unitPrice": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "sourcePriceId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "materialId",
+                          "name",
+                          "unitId",
+                          "unit",
+                          "coefficient",
+                          "unitPrice",
+                          "sourcePriceId"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "maxItems": 500
+                    },
+                    "materialReview": {
+                      "type": "object",
+                      "properties": {
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "DIRECT",
+                            "VERIFIED",
+                            "UNRESOLVED"
+                          ]
+                        },
+                        "detail": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "evidence": {
+                          "type": "string",
+                          "maxLength": 2000
+                        }
+                      },
+                      "required": [
+                        "status",
+                        "detail",
+                        "evidence"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "markup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "materialMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "laborMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    "directMarkup": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "itemId",
+                    "code",
+                    "name",
+                    "categoryId",
+                    "category",
+                    "unitId",
+                    "unit",
+                    "quantity",
+                    "laborUnitCost",
+                    "directUnitCost",
+                    "status",
+                    "materials"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 1000
+              }
+            },
+            "required": [
+              "currency",
+              "taxBasis",
+              "markup",
+              "conditions",
+              "exclusions",
+              "observations",
+              "deadline",
+              "lines"
+            ],
+            "additionalProperties": false
+          },
+          "selected": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10000
+          },
+          "planHash": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64
+          }
+        },
+        "required": [
+          "revision",
+          "content",
+          "selected",
+          "planHash"
+        ],
+        "additionalProperties": false
+      },
+      "ReferenceCostChange": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "lineKey": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "kind": {
+            "enum": [
+              "MATERIAL",
+              "LABOR"
+            ]
+          },
+          "index": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Decimal serializado como texto, nunca float."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "next": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "sourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "datePrecision": {
+            "type": "string"
+          },
+          "manual": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "key",
+          "lineKey",
+          "kind",
+          "index",
+          "name",
+          "previous",
+          "next",
+          "sourceId",
+          "source",
+          "dateLabel",
+          "datePrecision",
+          "manual"
+        ],
+        "additionalProperties": false
+      },
+      "ReferenceCostReview": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceCostChange"
+            }
+          },
+          "planHash": {
+            "type": "string"
+          },
+          "before": {
+            "$ref": "#/components/schemas/CommercialCalculation"
+          },
+          "after": {
+            "$ref": "#/components/schemas/CommercialCalculation"
+          }
+        },
+        "required": [
+          "revision",
+          "changes",
+          "planHash",
+          "before",
+          "after"
+        ],
+        "additionalProperties": false
+      },
+      "LaborRateInput": {
+        "type": "object",
+        "properties": {
+          "resourceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "taxBasis": {
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "INCLUDED",
+              "EXCLUDED"
+            ]
+          },
+          "effectiveAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLabel": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "datePrecision": {
+            "type": "string",
+            "enum": [
+              "DAY",
+              "MONTH",
+              "UNKNOWN"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "series": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "required": [
+          "resourceId",
+          "value",
+          "currency",
+          "taxBasis",
+          "effectiveAt",
+          "dateLabel",
+          "datePrecision",
+          "source",
+          "series"
+        ],
+        "additionalProperties": false
+      },
+      "ActivityCostingInput": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "taxBasis": {
+                "type": "string",
+                "enum": [
+                  "UNSPECIFIED",
+                  "INCLUDED",
+                  "EXCLUDED"
+                ]
+              },
+              "laborMode": {
+                "type": "string",
+                "enum": [
+                  "DIRECT",
+                  "CALCULATED"
+                ]
+              },
+              "labor": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "resourceId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "rateId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "coefficient": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    }
+                  },
+                  "required": [
+                    "resourceId",
+                    "rateId",
+                    "coefficient"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 100
+              },
+              "materials": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "materialId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "priceId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "materialId",
+                    "priceId"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 500
+              },
+              "materialsIncludedInDirect": {
+                "type": "boolean",
+                "default": false
+              },
+              "notice": {
+                "type": "string",
+                "maxLength": 2000,
+                "default": ""
+              },
+              "materialReview": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DIRECT",
+                      "VERIFIED",
+                      "UNRESOLVED"
+                    ]
+                  },
+                  "detail": {
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "detail",
+                  "evidence"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "currency",
+              "taxBasis",
+              "laborMode",
+              "labor",
+              "materials"
+            ],
+            "additionalProperties": false
+          },
+          "expectedDirectCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "revision",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "ResolvedActivityCost": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer"
+          },
+          "content": {
+            "type": "object",
+            "properties": {
+              "currency": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "taxBasis": {
+                "type": "string",
+                "enum": [
+                  "UNSPECIFIED",
+                  "INCLUDED",
+                  "EXCLUDED"
+                ]
+              },
+              "laborMode": {
+                "type": "string",
+                "enum": [
+                  "DIRECT",
+                  "CALCULATED"
+                ]
+              },
+              "labor": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "resourceId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "rateId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "coefficient": {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    }
+                  },
+                  "required": [
+                    "resourceId",
+                    "rateId",
+                    "coefficient"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 100
+              },
+              "materials": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "materialId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "priceId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    }
+                  },
+                  "required": [
+                    "materialId",
+                    "priceId"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 500
+              },
+              "materialsIncludedInDirect": {
+                "type": "boolean",
+                "default": false
+              },
+              "notice": {
+                "type": "string",
+                "maxLength": 2000,
+                "default": ""
+              },
+              "materialReview": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "DIRECT",
+                      "VERIFIED",
+                      "UNRESOLVED"
+                    ]
+                  },
+                  "detail": {
+                    "type": "string"
+                  },
+                  "evidence": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "detail",
+                  "evidence"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "currency",
+              "taxBasis",
+              "laborMode",
+              "labor",
+              "materials"
+            ],
+            "additionalProperties": false
+          },
+          "labor": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "resourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "rateId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "coefficient": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "source": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "dateLabel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "datePrecision": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "resourceId",
+                "rateId",
+                "coefficient",
+                "name",
+                "unit",
+                "value",
+                "source",
+                "dateLabel",
+                "datePrecision"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "materials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "coefficient": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                },
+                "unitPrice": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "sourcePriceId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "materialId",
+                "coefficient",
+                "unitPrice",
+                "sourcePriceId"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "laborCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "materialCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "directCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalUnitCost": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "revision",
+          "content",
+          "labor",
+          "materials",
+          "laborCost",
+          "materialCost",
+          "directCost",
+          "totalUnitCost",
+          "issues"
+        ],
+        "additionalProperties": false
+      },
+      "LaborResourceDetail": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "rates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LaborRate"
+            }
+          },
+          "linkedActivities": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "name": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "unit",
+          "kind",
+          "active",
+          "createdAt",
+          "rates"
+        ],
+        "additionalProperties": false
+      },
+      "LaborRateCreated": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "resourceId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          },
+          "currency": {
+            "type": "string"
+          },
+          "taxBasis": {
+            "$ref": "#/components/schemas/TaxBasis"
+          },
+          "effectiveAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dateLabel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "datePrecision": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "series": {
+            "type": "string"
+          },
+          "createdById": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "referenceState": {
+            "enum": [
+              "HISTORICAL",
+              "USER"
+            ]
+          },
+          "linkedActivities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        },
+        "required": [
+          "id",
+          "resourceId",
+          "value",
+          "currency",
+          "taxBasis",
+          "effectiveAt",
+          "dateLabel",
+          "datePrecision",
+          "source",
+          "series",
+          "createdById",
+          "createdAt",
+          "linkedActivities"
+        ],
+        "additionalProperties": false
+      },
+      "ActivityCostingContent": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "taxBasis": {
+            "type": "string",
+            "enum": [
+              "UNSPECIFIED",
+              "INCLUDED",
+              "EXCLUDED"
+            ]
+          },
+          "laborMode": {
+            "type": "string",
+            "enum": [
+              "DIRECT",
+              "CALCULATED"
+            ]
+          },
+          "labor": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "resourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "rateId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "coefficient": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                }
+              },
+              "required": [
+                "resourceId",
+                "rateId",
+                "coefficient"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          },
+          "materials": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "priceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "required": [
+                "materialId",
+                "priceId"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 500
+          },
+          "materialsIncludedInDirect": {
+            "type": "boolean",
+            "default": false
+          },
+          "notice": {
+            "type": "string",
+            "maxLength": 2000,
+            "default": ""
+          },
+          "materialReview": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "DIRECT",
+                  "VERIFIED",
+                  "UNRESOLVED"
+                ]
+              },
+              "detail": {
+                "type": "string"
+              },
+              "evidence": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "detail",
+              "evidence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "currency",
+          "taxBasis",
+          "laborMode",
+          "labor",
+          "materials"
         ],
         "additionalProperties": false
       },

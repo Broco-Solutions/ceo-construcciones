@@ -53,3 +53,5 @@ La demanda de fuentes incompletas conserva `materialDemandIncomplete`, `exact: f
 | Manual | Base persistente exclusiva, cinco perfiles, credenciales privadas | `CEO_Manual_Local.sh`, `manual-local.ts`, `manual-smoke.mjs` | [guía](PRUEBAS-MANUALES-ETAPA-1.md); resultado real en aceptación/estado |
 
 Los resultados finales de esta pasada se registran por corrida en aceptación; los conteos del PR8 se conservan como antecedente, no como prueba de estas correcciones.
+
+La extensión de carga inicial/materiales/MO recibida el 04/11/2026 tiene trazabilidad CI-01…CI-48 en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Complementa R06/R07/R08/R14 sin reabrir las decisiones comerciales ni modificar reglas de compras/inventario.

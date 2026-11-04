@@ -61,3 +61,5 @@ No aplicar migraciones, mergear ni desplegar producción sin revisión y autoriz
 - [Instrucciones globales](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md) y [AGENTS.md](AGENTS.md): continuidad y responsabilidades.
 
 El cierre funcional de Etapa 1 está regido por `CEO_PLAN_MAESTRO_CODEX.md`: incluye clientes/obras, Actividades de obra, costos y presentación comercial, compras, importaciones e indicadores. No modifica infraestructura ni ejecuta cambios sobre producción.
+
+La carga inicial incremental incorpora rubros, unidades, materiales, actividades y composiciones verificables de los Excel entregados, con BASE como fuente principal y DG como complemento histórico documentado. Precios de materiales y tarifas de mano de obra se mantienen por separado; las actividades calculan su costo con referencias seleccionadas o importes directos explícitos. Los borradores se actualizan tras revisar diferencias y las revisiones emitidas se conservan. La carga no genera clientes, obras, proveedores operativos ni movimientos de stock a partir de supuestos. Estado y evidencias de ejecución: [carga inicial y costos](docs/ESTADO-CARGA-INICIAL-Y-COSTOS.md).

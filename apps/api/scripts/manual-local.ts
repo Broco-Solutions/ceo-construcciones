@@ -339,12 +339,22 @@ async function seed() {
           ],
         },
       });
-    await call(
-      "budget-templates/base",
-      "POST",
-      undefined,
-      "manual-base-initial",
-    );
+    const loadedCatalog = await db.catalogOrigin.findUnique({
+      where: {
+        source_kind_sourceKey: {
+          source: "BASE-CEO",
+          kind: "template",
+          sourceKey: "BASE-CEO-2026-10",
+        },
+      },
+    });
+    if (!loadedCatalog)
+      await call(
+        "budget-templates/base",
+        "POST",
+        undefined,
+        "manual-base-initial",
+      );
     const destination = await db.location.findFirstOrThrow({
       where: { workId: works[0].id, active: true },
     });

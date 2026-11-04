@@ -36,3 +36,9 @@ La comprobación local final terminó con salida 0 y `No difference detected`; a
 El PR y el resultado final registran commits, checks y SHA leído de `origin/main`. Antes de merge se revisa nuevamente el estado remoto y las protecciones; no se omiten checks, no se autoaprueban revisiones exigidas y no se usa force-push. Después se comprueba CI de main y se observa únicamente la metadata permitida del autodespliegue.
 
 Registro de integración: [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8). Su estado y checks distinguen el candidato de código integrado; el comentario de cierre registra SHA remoto y observación del autodespliegue, sin afirmar habilitación de las funciones nuevas.
+
+## Candidato de carga inicial y costos — 04/11/2026
+
+Base real PR13 `3df832de3633829d5f20b0f4e1cb566def83e081`. La migración nueva es aditiva y opcional para el binario compatible. El verificador ahora incluye un estado intermedio PR9 poblado: congela presupuesto/PDF antes de crear tablas de referencias y compara bytes/snapshot después. Se conserva la prueba de V1 poblada, API standalone y navegador, seguida por `migrate diff`. Los resultados de esta ejecución, candidato y checks están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md), sin reutilizar resultados de PR8/9/13.
+
+No se cambian configuraciones de autodespliegue. Un merge puede desplegar el código por la integración existente; no aplica este catálogo ni habilita las tablas nuevas en producción. No se ejecutaron comandos de infraestructura ni conexiones productivas.

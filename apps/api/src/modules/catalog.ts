@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { priceProvenance, retiredPriceIds } from "./price-provenance";
 import { Prisma } from "@prisma/client";
 import { db, transaction, schemaCapabilities } from "../core/db";
 import { audit } from "../core/audit";
@@ -752,9 +753,14 @@ export async function handlerCatalog(
     if (method === "GET") {
       if (key)
         return ok(
-          found(await db.materialPrice.findUnique({ where: { id: key } })),
+          (
+            await priceProvenance([
+              found(await db.materialPrice.findUnique({ where: { id: key } })),
+            ])
+          )[0],
         );
       const where = {
+        id: { notIn: await retiredPriceIds() },
         materialId: q.get("materialId") || undefined,
         supplierId: q.get("supplierId") || undefined,
       };
@@ -767,7 +773,7 @@ export async function handlerCatalog(
         }),
         db.materialPrice.count({ where }),
       ]);
-      return listed(data, total, p);
+      return listed(await priceProvenance(data), total, p);
     }
     if (method === "POST" && !key) {
       const b = await parse(request, priceSchema);

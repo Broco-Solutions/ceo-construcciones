@@ -19,6 +19,7 @@ import { useApi, useMutation } from '@/lib/hooks';
 import { api, type Schemas } from '@/lib/api';
 import { formatMoney, formatQty, parseDecimalInput } from '@/lib/format';
 import { ApuForm } from '@/components/presupuesto/ApuForm';
+import {ActivityReferenceCosts} from '@/components/presupuesto/ActivityReferenceCosts';
 import {
   buildPrices,
   CalcLines,
@@ -88,6 +89,7 @@ function ApuDetail() {
         )
       }
     >
+      <ActivityReferenceCosts item={apu} onChanged={q.reload}/>
       <Card title="Datos del ítem">
         <DefList
           items={[
@@ -98,7 +100,7 @@ function ApuDetail() {
             ['Rubro', apu.category.name],
             ['Unidad de trabajo', unitLabel(apu.unit)],
             [
-              'Mano de obra por unidad',
+              'MO directa guardada · sólo en modalidad directa',
               apu.laborCost
                 ? `${formatMoney(apu.laborCost, apu.laborCurrency)} · ${TAX_LABEL[apu.laborTaxBasis]}`
                 : `Sin importe · ${TAX_LABEL[apu.laborTaxBasis]}`,
@@ -115,7 +117,7 @@ function ApuDetail() {
               'Otros costos directos por unidad',
               apu.directCost != null
                 ? `${formatMoney(apu.directCost, apu.laborCurrency)} · ${TAX_LABEL[apu.laborTaxBasis]}`
-                : 'Sin costo directo independiente',
+                : 'Sin importe informado',
             ],
           ]}
         />

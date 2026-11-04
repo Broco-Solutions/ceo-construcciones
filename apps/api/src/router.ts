@@ -12,6 +12,8 @@ import { handlerCommercial } from "./modules/commercial";
 import { handlerOrderAdministration } from "./modules/order-administration";
 import { handlerReceiptDesk } from "./modules/receipt-desk";
 import { handlerReferencePrices } from "./modules/reference-prices";
+import { handlerCostReferences } from "./modules/cost-references";
+import { handlerBudgetCostUpdates } from "./modules/budget-cost-updates";
 import { handlerNetNeeds } from "./modules/net-needs";
 import { handlerManagementReports } from "./modules/management-reports";
 import { schemaCapabilities } from "./core/db";
@@ -68,6 +70,8 @@ export async function dispatch(
         );
       let result: Response | null = null;
       for (const handler of [
+        handlerCostReferences,
+        handlerBudgetCostUpdates,
         handlerOrderAdministration,
         handlerReceiptDesk,
         handlerReferencePrices,

@@ -112,3 +112,9 @@ El checkbox global de reconocimiento fue retirado. Los faltantes concretos viven
 BASE se reextrajo con el mismo lector: **146 actividades, 17 rubros y 71 observaciones**. Conserva IVA `UNSPECIFIED` por contradicciones reales. La extracción 2 tiene nombre/versionado propios al incorporarla, sin sobrescribir plantillas anteriores, otras obras o emitidos. Cantidades iniciales cero; precios ausentes nulos.
 
 Evidencia sensible completa: `~/.local/state/ceo-construcciones-codex/dg-technical-final/` y `dg-technical-postgresql/`. Las fuentes no se importaron en producción. El entorno manual recibe únicamente una copia privada del contenido normalizado y sus limitaciones. La revisión visual/PDF y los resultados finales se registran en ACEPTACION-CIERRE-ETAPA-1.md.
+
+## Relectura durante carga inicial y costos — 04/11/2026
+
+Se verificó nuevamente el XLS original (mismo hash), con lector BIFF sin contenido activo y los adaptadores actuales. La nueva ejecución conserva 96 actividades, 67 materiales consolidados, 52 composiciones verificadas y 24 con limitaciones; diferencia de venta calculada −15,6862 (−15,69 al centavo), sin partidas compensatorias. Evidencia nueva privada: `catalog-dg-original.json` y `catalog-dg-review/`.
+
+Como complemento del catálogo se recuperaron diez tarifas de categorías de julio de 2026, vinculadas a los mismos recursos de octubre por nombre/unidad y celdas comprobadas. No se reemplazan las actuales de BASE. PRECIOS DG se inventarió aparte: 41 cotizaciones ya coinciden con BASE, 165 requieren confirmar el alcance/canal y siete la identidad. Sus diferencias no se promueven automáticamente a precios generales. Ver [resultado de carga](CARGA-INICIAL-RESULTADOS.md).

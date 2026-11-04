@@ -53,6 +53,7 @@ export const NAV: NavGroup[] = [
     icon: Package,
     items: [
       { href: '/materiales', label: 'Materiales', icon: Package },
+      { href: '/costos', label: 'Costos de referencia', icon: Calculator, perm: 'readEconomic' },
       {
         href: '/catalogo',
         label: 'Rubros y unidades',

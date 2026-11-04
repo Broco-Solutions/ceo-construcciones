@@ -68,13 +68,53 @@ async function main() {
       false,
       process.argv.includes("--browser"),
     );
-  run("pnpm", ["db:deploy"]);
+  for (const migration of [
+    "20261102000100_clients_and_commercial_baseline",
+    "20261102000200_budget_editor",
+    "20261103000100_reception_and_invoice",
+    "20261103000200_explicit_zero_prices",
+    "20261103000300_trace_coverage_and_order_amounts",
+    "20261103000400_activity_direct_cost",
+  ]) {
+    run("pnpm", [
+      "exec",
+      "prisma",
+      "db",
+      "execute",
+      "--schema",
+      "prisma/schema.prisma",
+      "--file",
+      `prisma/migrations/${migration}/migration.sql`,
+    ]);
+    run("pnpm", [
+      "exec",
+      "prisma",
+      "migrate",
+      "resolve",
+      "--applied",
+      migration,
+    ]);
+  }
   run("pnpm", [
     "exec",
     "tsx",
     "scripts/release-compatibility-fixture.ts",
     "expanded",
   ]);
+  run("pnpm", [
+    "exec",
+    "tsx",
+    "scripts/reference-release-fixture.ts",
+    "before",
+  ]);
+  if (process.argv.includes("--runtime"))
+    await runtimeReleaseCheck(
+      target.toString(),
+      true,
+      process.argv.includes("--browser"),
+    );
+  run("pnpm", ["db:deploy"]);
+  run("pnpm", ["exec", "tsx", "scripts/reference-release-fixture.ts", "after"]);
   if (process.argv.includes("--runtime"))
     await runtimeReleaseCheck(
       target.toString(),
