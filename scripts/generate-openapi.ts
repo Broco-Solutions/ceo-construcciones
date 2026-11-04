@@ -1,4 +1,15 @@
 import { writeFileSync, mkdirSync } from "node:fs";
+import {
+  laborResourceSchema,
+  laborResourcePatchSchema,
+  laborRateSchema,
+  activityCostingWriteSchema,
+  resolvedActivitySchema,
+} from "../apps/api/src/modules/cost-references";
+import {
+  costReviewSchema,
+  costApplySchema,
+} from "../apps/api/src/modules/budget-cost-updates";
 import { resolve } from "node:path";
 import { Prisma } from "../apps/api/node_modules/@prisma/client";
 import { zodToJsonSchema } from "../apps/api/node_modules/zod-to-json-schema";
@@ -149,6 +160,12 @@ schemas.Work.required = schemas.Work.required.filter(
 schemas.ApuItem.required = schemas.ApuItem.required.filter(
   (name: string) => name !== "directCost",
 );
+schemas.MaterialPrice.properties.referenceDate = nullable(str);
+schemas.MaterialPrice.properties.referenceDatePrecision = {
+  enum: ["DAY", "MONTH", "UNKNOWN"],
+};
+schemas.MaterialPrice.properties.referenceState = { enum: ["HISTORICAL", "REVIEW_REQUIRED"] };
+schemas.LaborRate.properties.referenceState={enum:['HISTORICAL','USER']};
 add(
   "Pagination",
   obj({
@@ -466,6 +483,10 @@ extend("ApuDetail", "ApuItem", {
   category: ref("Category"),
   components: arr(ref("ApuComponent")),
 });
+schemas.ApuDetail.properties.referenceCost = obj({
+  laborCost: nullable(dec), totalUnitCost: nullable(dec), currency: str,
+  taxBasis: ref("TaxBasis"),
+});
 extend("ComputationDetail", "Computation", {
   lines: arr(
     extend("ComputationLineDetail", "ComputationLine", {
@@ -570,12 +591,25 @@ schemas.BudgetTemplate.properties.content = ref("EditorContent");
 extend("CommercialLine", "SnapshotLine", {
   directUnitCost: dec,
   directCost: dec,
-  materials:arr(obj({...schemas.EditorContent.properties.lines.items.properties.materials.items.properties,quantity:dec,unitCost:nullable(dec)}, schemas.EditorContent.properties.lines.items.properties.materials.items.required)),
-  materialsIncludedInDirect:bool,
+  materials: arr(
+    obj(
+      {
+        ...schemas.EditorContent.properties.lines.items.properties.materials
+          .items.properties,
+        quantity: dec,
+        unitCost: nullable(dec),
+      },
+      schemas.EditorContent.properties.lines.items.properties.materials.items
+        .required,
+    ),
+  ),
+  materialsIncludedInDirect: bool,
   sellingUnitPrice: dec,
   sellingAmount: dec,
 });
-schemas.CommercialLine.required=schemas.CommercialLine.required.filter((k:string)=>k!=="materialsIncludedInDirect");
+schemas.CommercialLine.required = schemas.CommercialLine.required.filter(
+  (k: string) => k !== "materialsIncludedInDirect",
+);
 extend("CommercialCategory", "BudgetCalculation", {});
 schemas.CommercialCategory = obj({
   ...schemas.BudgetCalculation.properties.categories.items.properties,
@@ -584,13 +618,21 @@ schemas.CommercialCategory = obj({
 });
 extend("CommercialCalculation", "BudgetCalculation", {
   formatVersion: { const: 2 },
-  unitCosts: arr(obj({lineKey:id,totalUnitCost:nullable(dec),missingCosts:arr(str),quantityPending:bool,zeroQuantity:bool})),
+  unitCosts: arr(
+    obj({
+      lineKey: id,
+      totalUnitCost: nullable(dec),
+      missingCosts: arr(str),
+      quantityPending: bool,
+      zeroQuantity: bool,
+    }),
+  ),
   lines: arr(ref("CommercialLine")),
   categories: arr(ref("CommercialCategory")),
   directCost: dec,
   commercialTotal: dec,
-  materialDemandIncomplete:bool,
-  materialReviewIssues:arr(obj({lineKey:id,name:str,detail:str})),
+  materialDemandIncomplete: bool,
+  materialReviewIssues: arr(obj({ lineKey: id, name: str, detail: str })),
   materialQuantityPolicy: obj({
     precision: { const: 8 },
     roundingMode: { const: "HALF_UP" },
@@ -599,7 +641,10 @@ extend("CommercialCalculation", "BudgetCalculation", {
   issues: arr(obj({ lineKey: id, message: str })),
   complete: bool,
 });
-schemas.CommercialCalculation.required=schemas.CommercialCalculation.required.filter((k:string)=>!["unitCosts","materialReviewIssues"].includes(k));
+schemas.CommercialCalculation.required =
+  schemas.CommercialCalculation.required.filter(
+    (k: string) => !["unitCosts", "materialReviewIssues"].includes(k),
+  );
 add(
   "CommercialHeader",
   obj({
@@ -709,7 +754,7 @@ add(
   obj({
     workId: id,
     referenceVersionId: nullable(id),
-    materialDemandIncomplete:bool,
+    materialDemandIncomplete: bool,
     coverageHash: str,
     rows: arr(
       obj({
@@ -1282,6 +1327,135 @@ operation(
   "Recepciones delegadas sin datos económicos",
   ref("DelegatedOrder"),
   { roles, list: true },
+);
+zod("LaborResourceInput", laborResourceSchema);
+zod("LaborResourcePatch", laborResourcePatchSchema);
+zod("CostReviewInput", costReviewSchema);
+zod("CostApplyInput", costApplySchema);
+add(
+  "ReferenceCostChange",
+  obj({
+    key: str,
+    lineKey: id,
+    kind: { enum: ["MATERIAL", "LABOR"] },
+    index: integer,
+    name: str,
+    previous: nullable(dec),
+    next: dec,
+    sourceId: id,
+    source: nullable(str),
+    dateLabel: nullable(str),
+    datePrecision: str,
+    manual: bool,
+  }),
+);
+add(
+  "ReferenceCostReview",
+  obj({
+    revision: integer,
+    changes: arr(ref("ReferenceCostChange")),
+    planHash: str,
+    before: ref("CommercialCalculation"),
+    after: ref("CommercialCalculation"),
+  }),
+);
+operation(
+  "/budget-editor/{id}/cost-review",
+  "post",
+  "Previsualizar materiales y MO sin escribir",
+  ref("ReferenceCostReview"),
+  { roles: writers, input: ref("CostReviewInput") },
+);
+operation(
+  "/budget-editor/{id}/apply-cost-review",
+  "post",
+  "Aplicar cambios seleccionados con control de borrador y referencias",
+  ref("BudgetDraft"),
+  { roles: writers, input: ref("CostApplyInput") },
+);
+zod("LaborRateInput", laborRateSchema);
+zod("ActivityCostingInput", activityCostingWriteSchema);
+zod("ResolvedActivityCost", resolvedActivitySchema);
+extend("LaborResourceDetail", "LaborResource", {
+  rates: arr(ref("LaborRate")),
+});
+schemas.LaborResourceDetail.properties.linkedActivities = arr(
+  obj({ id, name: str }),
+);
+extend("LaborRateCreated", "LaborRate", { linkedActivities: arr(id) });
+operation(
+  "/labor-resources",
+  "get",
+  "Consultar conceptos y referencias de mano de obra",
+  ref("LaborResourceDetail"),
+  { roles: commercial, list: true, queries: [q("q")] },
+);
+operation(
+  "/labor-resources/{id}",
+  "get",
+  "Consultar concepto y tarifas históricas",
+  ref("LaborResourceDetail"),
+  { roles: commercial },
+);
+operation(
+  "/labor-resources/{id}",
+  "patch",
+  "Actualizar descripción o disponibilidad sin borrar tarifas",
+  ref("LaborResource"),
+  { roles: writers, input: ref("LaborResourcePatch") },
+);
+operation(
+  "/labor-resources",
+  "post",
+  "Crear concepto de mano de obra",
+  ref("LaborResource"),
+  { roles: writers, input: ref("LaborResourceInput"), status: 201 },
+);
+operation(
+  "/labor-rates",
+  "get",
+  "Consultar historial paginado de tarifas",
+  ref("LaborRate"),
+  { roles: commercial, list: true, queries: [q("resourceId", id, true)] },
+);
+operation(
+  "/labor-rates",
+  "post",
+  "Registrar tarifa sin modificar presupuestos",
+  ref("LaborRateCreated"),
+  { roles: writers, input: ref("LaborRateInput"), status: 201 },
+);
+operation(
+  "/activity-costing/{id}",
+  "get",
+  "Resolver costo de actividad con referencias seleccionadas",
+  nullable(ref("ResolvedActivityCost")),
+  { roles: commercial },
+);
+operation(
+  "/activity-costing/{id}",
+  "put",
+  "Actualizar selección y composición con revisión optimista",
+  ref("ActivityCosting"),
+  { roles: writers, input: ref("ActivityCostingInput") },
+);
+operation(
+  "/activity-costing/{id}/preview",
+  "post",
+  "Previsualizar composición sin guardar",
+  obj({
+    laborCost: nullable(dec),
+    materialCost: nullable(dec),
+    directCost: nullable(dec),
+    totalUnitCost: nullable(dec),
+  }),
+  {
+    roles: writers,
+    input: zod(
+      "ActivityCostingContent",
+      activityCostingWriteSchema.shape.content,
+    ),
+  },
 );
 operation(
   "/price-files",

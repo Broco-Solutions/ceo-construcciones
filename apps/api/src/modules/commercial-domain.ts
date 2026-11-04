@@ -33,6 +33,24 @@ export const editorLineSchema = z
     unit: label,
     quantity: nonnegative.nullable(),
     laborUnitCost: nonnegative.nullable(),
+    laborReferences: z
+      .array(
+        z
+          .object({
+            resourceId: id,
+            rateId: id,
+            name: label,
+            unit: label,
+            coefficient: nonnegative,
+            value: nonnegative,
+            source: z.string(),
+            dateLabel: z.string().nullable(),
+            datePrecision: z.string(),
+          })
+          .strict(),
+      )
+      .max(100)
+      .optional(),
     directUnitCost: nonnegative.nullable(),
     status: z.enum(["ACTIVE", "INCLUDED", "EXCLUDED"]),
     materialsIncludedInDirect: z.boolean().optional(),
@@ -52,6 +70,23 @@ export const editorLineSchema = z
   })
   .strict()
   .superRefine((v, c) => {
+    if (
+      v.laborReferences &&
+      (v.laborUnitCost === null ||
+        !v.laborReferences
+          .reduce(
+            (sum, r) => sum.add(new D(r.coefficient).mul(r.value)),
+            new D(0),
+          )
+          .toDecimalPlaces(8)
+          .eq(v.laborUnitCost))
+    )
+      c.addIssue({
+        code: "custom",
+        path: ["laborUnitCost"],
+        message:
+          "La MO calculada debe coincidir con sus referencias; para un importe manual retiralas explícitamente.",
+      });
     if (
       v.materialReview &&
       v.materialReview.status !== "UNRESOLVED" &&

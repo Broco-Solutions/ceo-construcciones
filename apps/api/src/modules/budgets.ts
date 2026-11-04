@@ -6,6 +6,7 @@ import { Actor, requireRoles, requireWork } from "../core/auth";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
 import { idempotent } from "./inventory";
+import { resolveActivityCosts } from "./cost-references";
 
 // Keep calculations decimal and exact until the caller's explicitly selected
 // rounding boundary. Never inherit decimal.js's default 20 significant digits.
@@ -439,8 +440,25 @@ async function snapshotLines(
       sourcePriceId: price.id,
     });
   }
+  const referenceCosts = await resolveActivityCosts(
+    tx,
+    lines.map((l) => l.item.id),
+  );
   return lines.map((line) => {
     const item = line.item;
+    const reference = referenceCosts.get(item.id);
+    const compatible =
+      reference?.content.currency === valuation.currency &&
+      reference?.content.taxBasis === valuation.taxBasis;
+    if (reference?.content.materialsIncludedInDirect)
+      throw new ApiError(
+        422,
+        "HISTORICAL_AGGREGATE",
+        "Esta actividad conserva un suministro histórico agregado. Usá su costo de referencia y el editor de presupuesto para mantener la composición sin sumar dos veces.",
+      );
+    const laborCost = compatible
+      ? reference!.laborCost
+      : (item.laborCost?.toFixed() ?? null);
     const override = overrides.find((value) => value.lineId === line.id);
     const componentIds = new Set(
       item.components.map((component) => component.materialId),
@@ -458,9 +476,10 @@ async function snapshotLines(
       );
     if (
       override?.laborUnitCost === undefined &&
-      (item.laborCost === null ||
-        item.laborCurrency !== valuation.currency ||
-        item.laborTaxBasis !== valuation.taxBasis)
+      (laborCost === null ||
+        (!compatible &&
+          (item.laborCurrency !== valuation.currency ||
+            item.laborTaxBasis !== valuation.taxBasis)))
     )
       throw new ApiError(
         422,
@@ -488,7 +507,7 @@ async function snapshotLines(
       unitId: item.unitId,
       unit: item.unit.code,
       quantity: override?.quantity ?? line.quantity.toString(),
-      laborUnitCost: override?.laborUnitCost ?? item.laborCost!.toString(),
+      laborUnitCost: override?.laborUnitCost ?? laborCost!,
       ...(override?.directUnitCost !== undefined || item.directCost != null
         ? {
             directUnitCost:
@@ -499,7 +518,19 @@ async function snapshotLines(
         const materialOverride = override?.materials?.find(
           (value) => value.materialId === component.materialId,
         );
-        const selected = priceMap.get(component.materialId);
+        const resolved = compatible
+          ? reference!.materials.find(
+              (m) => m.materialId === component.materialId,
+            )
+          : undefined;
+        const selected =
+          priceMap.get(component.materialId) ??
+          (resolved?.unitPrice !== null && resolved?.unitPrice !== undefined
+            ? {
+                unitPrice: resolved.unitPrice,
+                sourcePriceId: resolved.sourcePriceId,
+              }
+            : undefined);
         if (materialOverride?.unitPrice === undefined && !selected)
           throw new ApiError(
             422,
@@ -659,7 +690,29 @@ export async function handlerBudgets(
         }),
         db.apuItem.count({ where }),
       ]);
-      return response({ data, pagination: { page, pageSize, total } });
+      const resolved = (await schemaCapabilities()).referenceCosts
+        ? await resolveActivityCosts(
+            db,
+            data.map((item) => item.id),
+          )
+        : new Map();
+      return response({
+        data: data.map((item) => {
+          const cost = resolved.get(item.id);
+          return cost
+            ? {
+                ...item,
+                referenceCost: {
+                  laborCost: cost.laborCost,
+                  totalUnitCost: cost.totalUnitCost,
+                  currency: cost.content.currency,
+                  taxBasis: cost.content.taxBasis,
+                },
+              }
+            : item;
+        }),
+        pagination: { page, pageSize, total },
+      });
     }
     if (!id && method === "POST") {
       requireWriter(actor);

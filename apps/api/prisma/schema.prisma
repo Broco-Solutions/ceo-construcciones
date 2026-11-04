@@ -101,6 +101,8 @@ model User {
   IdempotencyRecordactorId       IdempotencyRecord[]   @relation("IdempotencyRecordactorId")
   receptionDelegations           ReceptionDelegation[]
   invoiceInfoChanges             OrderInvoiceInfo[]
+  referenceLaborRates            LaborRate[]           @relation("LaborRateAuthor")
+  catalogLoadRuns                CatalogLoadRun[]      @relation("CatalogLoadActor")
 }
 
 model Session {
@@ -332,6 +334,7 @@ model ApuItem {
   updatedAt        DateTime          @updatedAt
   components       ApuMaterial[]
   computationLines ComputationLine[]
+  referenceCosting ActivityCosting?
 }
 
 model ApuMaterial {
@@ -686,4 +689,68 @@ model IdempotencyRecord {
 model CodeCounter {
   entity    String @id
   lastValue Int    @default(0)
+}
+
+/// Append-only historical reference costs. Separate tables preserve V1 projections.
+model LaborResource {
+  id        String      @id @default(cuid())
+  code      String      @unique
+  name      String
+  unit      String
+  kind      String
+  active    Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  rates     LaborRate[]
+}
+
+model LaborRate {
+  id            String        @id @default(cuid())
+  resourceId    String
+  resource      LaborResource @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+  value         Decimal       @db.Decimal(24, 8)
+  currency      String        @db.VarChar(3)
+  taxBasis      TaxBasis
+  effectiveAt   DateTime?
+  dateLabel     String?
+  datePrecision String
+  source        String
+  series        String
+  createdById   String
+  createdBy     User          @relation("LaborRateAuthor", fields: [createdById], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "LaborRate_actor_fkey")
+  createdAt     DateTime      @default(now())
+
+  @@index([resourceId, series, effectiveAt])
+}
+
+model ActivityCosting {
+  itemId    String   @id
+  item      ApuItem  @relation(fields: [itemId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "ActivityCosting_item_fkey")
+  revision  Int      @default(1)
+  content   Json
+  updatedAt DateTime @updatedAt
+}
+
+model CatalogOrigin {
+  id            String   @id @default(cuid())
+  source        String
+  kind          String
+  sourceKey     String
+  entityId      String
+  sourceHash    String
+  installedHash String
+  evidence      Json
+  createdAt     DateTime @default(now())
+
+  @@unique([source, kind, sourceKey])
+  @@index([kind, entityId])
+}
+
+model CatalogLoadRun {
+  id           String   @id @default(cuid())
+  sourceHash   String
+  manifestHash String
+  actorId      String
+  actor        User     @relation("CatalogLoadActor", fields: [actorId], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "CatalogLoadRun_actor_fkey")
+  summary      Json
+  createdAt    DateTime @default(now())
 }

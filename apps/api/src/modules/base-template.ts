@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import source from "../../data/base-template.json";
 import type { Tx } from "../core/db";
+import { schemaCapabilities } from "../core/db";
 import type { Actor } from "../core/auth";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
@@ -74,6 +75,23 @@ const sourceUnits: Record<string, { symbol: string; name: string }> = {
 /** Explicit user action, atomic and idempotent. No startup/data migration or
  * fuzzy matching. New reference materials get their own stable BASE codes. */
 export async function installBase(tx: Tx, actor: Actor) {
+  if ((await schemaCapabilities()).referenceCosts) {
+    const mapping = await tx.catalogOrigin.findUnique({
+      where: {
+        source_kind_sourceKey: {
+          source: "BASE-CEO",
+          kind: "template",
+          sourceKey: "BASE-CEO-2026-10",
+        },
+      },
+    });
+    if (mapping) {
+      const loaded = await tx.budgetTemplate.findFirst({
+        where: { id: mapping.entityId, active: true },
+      });
+      if (loaded) return loaded;
+    }
+  }
   const name = `BASE · ${baseSource.sourceSha256.slice(0, 12)}${source.extractionVersion ? ` · extracción ${source.extractionVersion}` : ""}`;
   const existing = await tx.budgetTemplate.findFirst({ where: { name } });
   if (existing) return existing;

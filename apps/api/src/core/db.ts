@@ -13,6 +13,7 @@ type Capabilities = {
   receptions: boolean;
   coverage: boolean;
   activities: boolean;
+  referenceCosts: boolean;
 };
 let capabilities: Capabilities | undefined,
   capabilityPromise: Promise<Capabilities> | undefined,
@@ -30,7 +31,8 @@ export async function schemaCapabilities(
     (to_regclass('public."BudgetDraft"') IS NOT NULL AND to_regclass('public."BudgetIssue"') IS NOT NULL AND to_regclass('public."BudgetTemplate"') IS NOT NULL) AS commercial,
     (to_regclass('public."ReceptionDelegation"') IS NOT NULL AND to_regclass('public."OrderInvoiceInfo"') IS NOT NULL) AS receptions,
     (to_regclass('public."ReceiptCoverage"') IS NOT NULL AND to_regclass('public."OrderAmountPolicy"') IS NOT NULL) AS coverage,
-    EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ApuItem' AND column_name='directCost') AS activities`
+    EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='ApuItem' AND column_name='directCost') AS activities,
+    (to_regclass('public."LaborResource"') IS NOT NULL AND to_regclass('public."LaborRate"') IS NOT NULL AND to_regclass('public."ActivityCosting"') IS NOT NULL AND to_regclass('public."CatalogOrigin"') IS NOT NULL AND to_regclass('public."CatalogLoadRun"') IS NOT NULL) AS "referenceCosts"`
     .then((rows) => {
       capabilities = rows[0];
       lastProbe = Date.now();

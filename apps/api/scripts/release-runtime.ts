@@ -119,14 +119,19 @@ export async function runtimeReleaseCheck(
       assert.equal((await call(path)).status, 200, `HTTP ${path} preservado`);
     assert.equal((await call("clients")).status, expanded ? 200 : 503);
     if (expanded) {
-      const c = await (
-        await call("clients", "POST", {
-          code: "RUNTIME-CLIENT",
-          name: "Cliente HTTP sintético",
-        })
-      ).json();
+      const runTag = randomUUID().slice(0, 8);
+      const createdClient = await call("clients", "POST", {
+        code: "RUNTIME-CLIENT-" + runTag,
+        name: "Cliente HTTP sintético",
+      });
+      assert.equal(
+        createdClient.status,
+        201,
+        "Alta HTTP de cliente en cada estado de esquema",
+      );
+      const c = await createdClient.json();
       const work = await call("works", "POST", {
-        code: "RUNTIME-EXPANDED",
+        code: "RUNTIME-EXPANDED-" + runTag,
         name: "Obra HTTP expandida",
         clientId: c.data.id,
       });

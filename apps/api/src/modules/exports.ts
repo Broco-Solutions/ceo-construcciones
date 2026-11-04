@@ -1,3 +1,4 @@
+import { retiredPriceIds } from "./price-provenance";
 import ExcelJS from "exceljs";
 import { Prisma } from "@prisma/client";
 import { db } from "../core/db";
@@ -104,6 +105,7 @@ export async function handlerExports(
     if ((await db.materialPrice.count()) > max)
       throw new ApiError(422, "EXPORT_LIMIT", "Exportación excede 10000 filas");
     const rows = await db.materialPrice.findMany({
+      where: { id: { notIn: await retiredPriceIds() } },
       include: { material: true, supplier: true, presentation: true },
       orderBy: { effectiveAt: "desc" },
     });
