@@ -1,8 +1,9 @@
 'use client';
+import { EntityPicker } from '@/components/EntityPicker';
 import { unitSymbol } from '@/lib/units';
 import { useEffect, useState } from 'react';
 import { api, ApiError, fieldErrors, type Schemas } from '@/lib/api';
-import { useAll, useMutation } from '@/lib/hooks';
+import { useApi, useMutation } from '@/lib/hooks';
 import {
   referenceDateInputToIso as dateInputToIso,
   formatQty,
@@ -83,11 +84,9 @@ export function PriceForm({
     source: initialReference?.source ?? '',
   });
   const [local, setLocal] = useState<Record<string, string>>({});
-  const pres = useAll<Presentation>(materialId ? '/presentations' : null, {
-    materialId: materialId ?? undefined,
-  });
-  const activePres = pres.rows.filter((p) => p.active);
-  const selPres = activePres.find((p) => p.id === f.presentationId) ?? null;
+  const pres=useApi<{data:Presentation}>(f.presentationId?'/presentations/'+f.presentationId:null);
+  const [chosenPresentation,setChosenPresentation]=useState<Presentation|null>(null);
+  const selPres=chosenPresentation?.id===f.presentationId?chosenPresentation:pres.data?.data.id===f.presentationId?pres.data.data:null;
   const [fixedUnit, setFixedUnit] = useState<Schemas['Unit'] | null>(null);
   useEffect(() => {
     if (!fixedMaterial) return;
@@ -182,9 +181,9 @@ export function PriceForm({
           />
         )}
         <SelectField
-          label="Proveedor"
+          entity="suppliers" label="Proveedor"
           value={f.supplierId}
-          onChange={set('supplierId')}
+          onChange={e=>{const next=e.target.value,incompatible=!!selPres?.supplierId&&selPres.supplierId!==next;setF(old=>({...old,supplierId:next,...(incompatible?{presentationId:''}:{})}));if(incompatible){setChosenPresentation(null);toast.info('La presentación anterior pertenece a otro proveedor',{description:'Elegí una compatible o usá la unidad base.'});}}}
           disabled={!!fixedSupplier}
           error={errs.supplierId}
           placeholder={
@@ -194,20 +193,8 @@ export function PriceForm({
             .filter((s) => s.active || s.id === f.supplierId)
             .map((s) => ({ value: s.id, label: `${s.name} (${s.code})` }))}
         />
-        <SelectField
-          label="Presentación"
-          value={f.presentationId}
-          onChange={set('presentationId')}
-          disabled={!materialId}
-          error={errs.presentationId}
-          placeholder={
-            materialId ? 'Por unidad base' : 'Elegí primero el material'
-          }
-          options={activePres.map((p) => ({
-            value: p.id,
-            label: `${p.name} — 1 = ${formatQty(p.baseQuantity, unitCode)}`,
-          }))}
-        />
+        <EntityPicker<Presentation> resource="presentations" label="Presentación" value={f.presentationId} query={{materialId:materialId??undefined,supplierId:f.supplierId||undefined,active:true}} onChange={p=>{setChosenPresentation(p);setF(old=>({...old,presentationId:p?.id??''}));}} disabled={!materialId} error={errs.presentationId} placeholder={materialId?'Por unidad base':'Elegí primero el material'}/>
+
         {selPres ? (
           <div className="field">
             <label>Cantidad en unidad base</label>

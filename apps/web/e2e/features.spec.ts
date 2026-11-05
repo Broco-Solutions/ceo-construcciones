@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 // Casos puntuales del cierre de integración (issue #3) POR LA UI contra la API real.
 // Cada corrida crea su propia obra/APU/cómputo/presupuesto con sufijo único (re-ejecutable sobre base nueva con sólo el seed).
 // La API directa (apiAs) se usa SÓLO para PREPARACIÓN y para verificar conteos/ids; está marcada así.
@@ -32,9 +33,7 @@ const st: {
 } = { versions: [] };
 
 async function pick(select: Locator, text: string) {
-  const opt = select.locator('option').filter({ hasText: text }).first();
-  await expect(opt).toBeAttached();
-  await select.selectOption((await opt.getAttribute('value'))!);
+  await chooseOption(select,{label:text});
 }
 
 let admin: Api;
@@ -96,12 +95,12 @@ async function fillVersion(page: Page, prices: [string, string]) {
   await expect(dlg).toBeVisible();
   await pick(dlg.getByLabel('Cómputo de origen'), `Cómputo casos ${SUF}`);
   await dlg.getByLabel('Moneda').fill('ARS');
-  await dlg.getByLabel('Base impositiva').selectOption({ index: 1 });
-  await dlg.getByLabel('Decimales (precisión)').selectOption({ index: 1 });
-  await dlg.getByLabel('Modo de redondeo').selectOption({ index: 1 });
+  await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
+  await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
+  await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });
   const modes = dlg.locator('select:has(option[value="manual"])');
   await expect(modes).toHaveCount(2);
-  for (let i = 0; i < 2; i++) await modes.nth(i).selectOption('manual');
+  for (let i = 0; i < 2; i++) await chooseOption(modes.nth(i), 'manual');
   const p = dlg.getByLabel(/^Precio por/);
   await p.nth(0).fill(prices[0]);
   await p.nth(1).fill(prices[1]);
@@ -265,9 +264,8 @@ async function newGeneralOrder(
   presentation?: string,
 ) {
   await page.goto('/ordenes/nueva');
-  await page
-    .getByLabel('Proveedor')
-    .selectOption({ label: 'Corralón Demo Sur' });
+  await chooseOption(page
+    .getByLabel('Proveedor', {exact:true}), { label: 'Corralón Demo Sur' });
   await pick(page.getByLabel('Destino de entrega'), 'Galpón Demo Central');
   await pickMaterial(page, 'CEM-001');
   await page.getByLabel(/^Cantidad/).fill(qty);
@@ -348,9 +346,8 @@ test('OC: advertencia de OC existente para el mismo pedido', async ({
     await expect(page.getByText('Verificando órdenes existentes…')).toHaveCount(
       0,
     );
-    await page
-      .getByLabel('Proveedor')
-      .selectOption({ label: 'Proveedor Demo Oeste' });
+    await chooseOption(page
+      .getByLabel('Proveedor', {exact:true}), { label: 'Proveedor Demo Oeste' });
     for (const inp of await page.getByLabel(/^Precio \(ARS\)/).all())
       await inp.fill('100');
     for (const inp of await page.getByLabel(/^Precio por cantidad base/).all())
@@ -409,7 +406,7 @@ test('filtros del servidor y paginación con total coherente', async ({
   await expect(
     page.locator('#contenido table tbody tr').locator('visible=true'),
   ).toHaveCount(1);
-  await page.locator('#f-obra-estado').selectOption('PAUSED');
+  await chooseOption(page.locator('#f-obra-estado'), 'PAUSED');
   await expect(pager).toHaveCount(0);
   await expect(
     page.getByText(`${pre}-00`).locator('visible=true').first(),
@@ -437,9 +434,9 @@ test('filtros del servidor y paginación con total coherente', async ({
   await page.goto('/pedidos');
   await pick(page.getByLabel('Obra'), `FEA-${SUF}`);
   await expect(page.getByTestId('list-total')).toHaveText('1 pedidos');
-  await page.getByTestId('request-filter-status').selectOption('CANCELLED');
+  await chooseOption(page.getByTestId('request-filter-status'), 'CANCELLED');
   await expect(page.getByTestId('list-total')).toHaveText('0 pedidos');
-  await page.getByTestId('request-filter-status').selectOption('');
+  await chooseOption(page.getByTestId('request-filter-status'), '');
   // OC: obra + estado.
   await page.goto('/ordenes');
   await pick(page.getByLabel('Obra'), `FEA-${SUF}`);
@@ -447,9 +444,9 @@ test('filtros del servidor y paginación con total coherente', async ({
     .total;
   expect(total).toBe(2);
   await expect(page.getByTestId('list-total')).toHaveText(`${total} órdenes`);
-  await page.getByTestId('oc-filter-status').selectOption('ISSUED');
+  await chooseOption(page.getByTestId('oc-filter-status'), 'ISSUED');
   await expect(page.getByTestId('list-total')).toHaveText('0 órdenes');
-  await page.getByTestId('oc-filter-status').selectOption('DRAFT');
+  await chooseOption(page.getByTestId('oc-filter-status'), 'DRAFT');
   await expect(page.getByTestId('list-total')).toHaveText('2 órdenes');
   await expect(
     page.locator('#contenido table tbody tr').locator('visible=true'),

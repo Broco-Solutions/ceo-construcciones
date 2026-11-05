@@ -12,9 +12,12 @@ if (existsSync(resolve(nested, "server.js"))) {
   await cp(resolve(".next/static"), resolve(nested, ".next/static"), {
     recursive: true,
   });
+  await cp(resolve("data/pdf-v2"), resolve(nested, "data/pdf-v2"), {recursive:true});
   if (existsSync("public"))
     await cp(resolve("public"), resolve(nested, "public"), { recursive: true });
-} else if (!existsSync(resolve(root, "server.js"))) {
+} else if (existsSync(resolve(root, "server.js"))) {
+  await cp(resolve("data/pdf-v2"), resolve(root, "data/pdf-v2"), {recursive:true});
+} else {
   throw new Error("No standalone server generated");
 }
 console.info("Standalone listo: node .next/standalone/server.js");

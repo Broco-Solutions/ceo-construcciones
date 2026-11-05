@@ -59,8 +59,8 @@ function Ordenes() {
       <LookupGate lk={lk}>
         <Card bodyClass="">
           <div className="filters">
-            <SelectField label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
-            {eco && <SelectField label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Todos" options={lk.suppliers.rows.map((s) => ({ value: s.id, label: s.name }))} />}
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            {eco && <SelectField entity="suppliers" label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Todos" options={lk.suppliers.rows.map((s) => ({ value: s.id, label: s.name }))} />}
             <SelectField label="Destino" value={destinationId} onChange={(e) => setDestinationId(e.target.value)} placeholder="Todos" options={lk.locations.rows.map((l) => ({ value: l.id, label: lk.locationName(l.id) }))} data-testid="oc-filter-destination" />
             <SelectField label="Estado" value={status} onChange={(e) => setStatus(e.target.value as OrderStatus | '')} placeholder="Todos" options={Object.entries(ORDER_STATUS).map(([k, [l]]) => ({ value: k, label: l }))} data-testid="oc-filter-status" />
           </div>
@@ -77,7 +77,7 @@ function Ordenes() {
           ) : list.loading && !list.data ? (
             <Loading />
           ) : (
-            <DataTable
+            <DataTable collection={{resource:"purchase-orders",filters:{workId:workId||undefined,supplierId:(eco&&supplierId)||undefined,status:status||undefined,destinationId:destinationId||undefined,requestId:requestId||undefined,quotationId:quotationId||undefined},total:list.pagination?.total,reload:list.reload}}
               rows={rows}
               rowKey={(o) => o.id}
               onRowClick={(o) => router.push(`/ordenes/${o.id}`)}

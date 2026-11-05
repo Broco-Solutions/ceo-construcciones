@@ -1,4 +1,5 @@
 'use client';
+import { ActivityMultiPicker } from './ActivityMultiPicker';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Plus, Save, Download, Eye } from 'lucide-react';
@@ -72,9 +73,6 @@ export function BudgetEditor({ id }: { id: string }) {
     [priceChanges, setPriceChanges] = useState<Schemas['ReferenceCostReview']>(),
     [acceptedPrices, setAcceptedPrices] = useState<string[]>([]),
     [comparisonMaterial, setComparisonMaterial] = useState<string | null>(null);
-  const activities = useAll<Schemas['ApuDetail']>(
-    can('editBudget') ? '/apu-items' : null,
-  );
   const categories = useAll<Schemas['Category']>(
       can('editBudget') ? '/categories' : null,
     ),
@@ -393,14 +391,10 @@ export function BudgetEditor({ id }: { id: string }) {
     setMaterialPicker(null);
     setMaterialError('');
   }
-  async function addActivity(a: Schemas['ApuDetail']) {
-    if(addingActivity.current)return;
-    addingActivity.current=true;
+  async function buildActivityLine(a: Schemas['ApuDetail'], current: NonNullable<typeof content>) {
     let reference: Schemas['ResolvedActivityCost'] | null = null;
     try { reference = (await api.get<{data:Schemas['ResolvedActivityCost']|null}>(`/activity-costing/${a.id}`)).data; }
-    catch (error) { if ((error as {status?:number}).status !== 503) { toast.failure('No se pudo consultar el costo de referencia',error); addingActivity.current=false; return; } }
-    const current = contentRef.current;
-    if (!current) { addingActivity.current=false; return; }
+    catch (error) { if ((error as {status?:number}).status !== 503) throw error; }
     const compatible=reference?.content.currency===current.currency && reference?.content.taxBasis===current.taxBasis;
     const line: Line = {
       key: crypto.randomUUID(),
@@ -457,9 +451,21 @@ export function BudgetEditor({ id }: { id: string }) {
       if(reference.content.laborMode==='CALCULATED' && reference.labor.every(r=>r.value!==null))line.laborReferences=reference.labor.map(r=>({...r,value:r.value!,source:r.source??''}));
       line.materials=line.materials.map(m=>{const selected=reference.materials.find(p=>p.materialId===m.materialId);return selected?.sourcePriceId?{...m,unitPrice:selected.unitPrice,sourcePriceId:selected.sourcePriceId,...(selected.sourcePriceBasis?{sourcePriceBasis:selected.sourcePriceBasis}:{}),...(selected.sourcePriceFactor?{sourcePriceFactor:selected.sourcePriceFactor}:{})}:m;});
     }
-    set({ lines: [...current.lines, line] });
-    setPick(false);
-    addingActivity.current=false;
+    return line;
+  }
+  async function addActivities(activities: Schemas['ApuDetail'][]) {
+    if(addingActivity.current)return;
+    addingActivity.current=true;
+    try {
+      const original=contentRef.current;
+      if(!original)throw new Error('El borrador no está disponible.');
+      const lines:Line[]=[];
+      for(const activity of activities)lines.push(await buildActivityLine(activity,original));
+      const latest=contentRef.current;
+      if(!latest||latest.currency!==original.currency||latest.taxBasis!==original.taxBasis)throw new Error('La moneda o el IVA cambiaron mientras se consultaban las referencias. Revisá e incorporá de nuevo.');
+      set({lines:[...latest.lines,...lines]});
+      setPick(false);
+    } finally {addingActivity.current=false;}
   }
   function addDirect() {
     const category =
@@ -995,14 +1001,7 @@ export function BudgetEditor({ id }: { id: string }) {
         wide
       >
         <div className="stack">
-          {activities.rows
-            .filter((a) => a.active)
-            .map((a) => (
-              <Button key={a.id} variant="sec" onClick={() => addActivity(a)}>
-                {a.category.name} · {a.name} ({unitSymbol(a.unit)})
-              </Button>
-            ))}
-          <ErrorBox error={activities.error} />
+          <ActivityMultiPicker existingIds={content?.lines.flatMap(l=>l.itemId?[l.itemId]:[])??[]} onAdd={addActivities}/>
         </div>
       </Modal>
       <Modal
@@ -1059,7 +1058,7 @@ export function BudgetEditor({ id }: { id: string }) {
               />
               <div className="formgrid">
                 <SelectField
-                  label="Rubro"
+                  searchable label="Rubro"
                   value={selected.categoryId}
                   options={categories.rows.map((c) => ({
                     value: c.id,
@@ -1078,7 +1077,7 @@ export function BudgetEditor({ id }: { id: string }) {
                   disabled={!editable}
                 />
                 <SelectField
-                  label="Unidad"
+                  searchable label="Unidad"
                   value={selected.unitId}
                   options={units.rows.map((u) => ({
                     value: u.id,

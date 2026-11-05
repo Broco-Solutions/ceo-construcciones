@@ -1,4 +1,6 @@
 'use client';
+import { EntitySearch } from '@/components/EntitySearch';
+import { normalizeSearch } from '@/components/Combobox';
 import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
@@ -49,6 +51,7 @@ function NuevoPedido() {
   const [categoryId, setCategoryId] = useState('');
   const [qty, setQty] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
+  const [materialQueryId,setMaterialQueryId]=useState('');
   const [requiredAt, setRequiredAt] = useState('');
   const [notes, setNotes] = useState('');
   const [confirm, setConfirm] = useState(false);
@@ -62,12 +65,12 @@ function NuevoPedido() {
   const activeWorks = lk.works.rows.filter((w) => w.status === 'ACTIVE');
   const catMaterials = useMemo(() => {
     const plannedIds = planned.plannedIds(categoryId);
-    const s = search.trim().toLowerCase();
+    const s = normalizeSearch(search);
     // Catálogo activo del rubro + materiales previstos del rubro (etiquetas incluidas en la versión, aunque falten en el catálogo).
     const fromCatalog = lk.materials.rows
       .filter(
         (m) =>
-          m.active && (m.categoryId === categoryId || plannedIds.has(m.id)),
+          m.active && (m.categoryId === categoryId || plannedIds.has(m.id) || m.id===materialQueryId),
       )
       .map((m) => ({
         id: m.id,
@@ -87,12 +90,10 @@ function NuevoPedido() {
       }));
     return [...fromCatalog, ...onlyPlanned].filter(
       (m) =>
-        !s ||
-        m.name.toLowerCase().includes(s) ||
-        m.code.toLowerCase().includes(s),
+        materialQueryId ? m.id===materialQueryId : !s || s.split(' ').every(token=>normalizeSearch(m.name+' '+m.code).includes(token)),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lk.materials.rows, categoryId, search, planned.data]);
+  }, [lk.materials.rows, categoryId, search, materialQueryId, planned.data]);
 
   const entered = Object.entries(qty).filter(([, v]) => v.trim() !== '');
   const invalid = entered.filter(([, v]) => !positiveQty(v)).map(([k]) => k);
@@ -262,17 +263,8 @@ function NuevoPedido() {
                 Las cantidades son editables. Podés pedir más de lo previsto,
                 con advertencia y trazabilidad.
               </div>
-              <div className="row" style={{ gap: 6 }}>
-                <Search size={16} aria-hidden className="muted" />
-                <input
-                  className="input"
-                  style={{ flex: 1, minHeight: 44 }}
-                  placeholder="Buscar material…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  aria-label="Buscar material"
-                />
-              </div>
+              <EntitySearch resource="materials" label="Buscar material" text={search} id={materialQueryId} onChange={(q,id)=>{setSearch(q);setMaterialQueryId(id);}}/>
+
               {catMaterials.length === 0 ? (
                 <Empty title="Sin materiales en este rubro" />
               ) : (

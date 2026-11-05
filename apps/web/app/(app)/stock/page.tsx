@@ -1,10 +1,11 @@
 'use client';
+import { BatchActions } from '@/components/inventario/InventoryBatch';
 import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AlertTriangle, Download, Plus, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, Plus } from 'lucide-react';
 import { api, type Schemas } from '@/lib/api';
 import { usePaged } from '@/lib/hooks';
 import { formatDateTime, formatQty } from '@/lib/format';
@@ -19,14 +20,12 @@ type Stock = Schemas['Stock'];
 function StockInner() {
   const sp = useSearchParams();
   const router = useAppRouter();
-  const toast = useToast();
   const { can } = useSession();
   const locationId = sp.get('locationId') ?? '';
   const materialId = sp.get('materialId') ?? '';
   const lk = useInvLookups();
   const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Stock>('/stock', { locationId, materialId });
   const [minFor, setMinFor] = useState<{ locationId: string; materialId: string } | null>(null);
-  const [exporting, setExporting] = useState(false);
 
   const setParam = (k: string, v: string) => {
     const q = new URLSearchParams(sp.toString());
@@ -35,17 +34,6 @@ function StockInner() {
     router.replace(`/stock${q.toString() ? `?${q}` : ''}`);
   };
 
-  const exportXlsx = async () => {
-    setExporting(true);
-    try {
-      const name = await api.download('/exports/stock', undefined, 'stock.xlsx');
-      toast.success('Planilla de stock descargada', { description: name });
-    } catch (e) {
-      toast.failure('No se pudo descargar la planilla de stock', e);
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const current = locationId ? lk.locById.get(locationId) : undefined;
   const depots = lk.locations.filter((l) => l.active && l.kind !== 'WORK');
@@ -57,14 +45,7 @@ function StockInner() {
       crumb="Inventario"
       actions={
         <>
-          <Button variant="sec" onClick={exportXlsx} loading={exporting}>
-            <Download size={16} /> Exportar Excel
-          </Button>
-          {can('manageStock') && (
-            <Button variant="sec" onClick={() => setMinFor({ locationId, materialId })}>
-              <SlidersHorizontal size={16} /> Configurar mínimo
-            </Button>
-          )}
+          <BatchActions locationId={locationId} allowMovement={false} onSaved={reload}/>
           {can('consume') && (
             <Link className="btn" href={`/stock/movimientos/nuevo${locationId ? `?sourceId=${locationId}` : ''}`}>
               <Plus size={16} /> Registrar movimiento
@@ -113,12 +94,13 @@ function StockInner() {
             Disponible = físico − reservado, calculado por el sistema. El mínimo mostrado es el efectivo para esa ubicación e indica si es propio de la ubicación, heredado del material o si no hay mínimo.
           </p>
           <ErrorBox error={error ?? lk.error} onRetry={reload} />
-          {loading ? (
+          {loading && !rows.length ? (
             <Loading />
           ) : (
             <>
-              <DataTable
-                rows={rows}
+              <DataTable collection={{resource:"stock",filters:{locationId,materialId},total:pagination?.total,reload}}
+                selectionActions={({rows,clear})=><BatchActions selected={rows} locationId={locationId} onSaved={()=>{clear();reload();}}/>}
+              rows={rows}
                 rowKey={(r) => r.id}
                 empty={
                   <Empty title="Sin saldos registrados">

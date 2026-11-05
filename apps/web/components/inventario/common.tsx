@@ -1,5 +1,7 @@
 'use client';
 // Piezas compartidas del módulo Inventario (stock, movimientos, reservas, alertas, reportes).
+import { Combobox } from '@/components/Combobox';
+import { EntityPicker } from '@/components/EntityPicker';
 import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -86,28 +88,7 @@ export function LocationSelect({
   hint?: string;
   required?: boolean;
 }) {
-  const list = locations.filter((l) => l.active && (!kinds || kinds.includes(l.kind)));
-  const groups = (['WAREHOUSE', 'YARD', 'WORK'] as const).filter((k) => !kinds || kinds.includes(k));
-  return (
-    <Field label={label} error={error} hint={hint}>
-      <select className="input" value={value} onChange={(e) => onChange(e.target.value)} aria-invalid={error ? true : undefined} required={required} aria-label={label}>
-        <option value="">{placeholder}</option>
-        {groups.map((k) => {
-          const items = list.filter((l) => l.kind === k);
-          if (!items.length) return null;
-          return (
-            <optgroup key={k} label={KIND_LABEL[k] === 'Obra' ? 'Obras' : KIND_LABEL[k]}>
-              {items.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name} ({l.code})
-                </option>
-              ))}
-            </optgroup>
-          );
-        })}
-      </select>
-    </Field>
-  );
+  return <Combobox label={label} value={value} onChange={row=>onChange(row?.value??'')} options={locations.filter(l=>!kinds||kinds.includes(l.kind)||l.id===value).map(l=>({value:l.id,label:l.name,description:KIND_LABEL[l.kind]+' · '+l.code,disabled:!l.active}))} placeholder={placeholder} error={error} hint={hint} required={required}/>;
 }
 
 /** Selector local de material con búsqueda por código/nombre (sin precios). */
@@ -126,25 +107,7 @@ export function MaterialSelect({
   error?: string;
   placeholder?: string;
 }) {
-  const [q, setQ] = useState('');
-  const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-  const list = materials.filter((m) => m.active || m.id === value).filter((m) => !q || norm(`${m.code} ${m.name}`).includes(norm(q)) || m.id === value);
-  return (
-    <Field label={label} error={error}>
-      <div className="stack" style={{ gap: 6 }}>
-        {materials.length > 12 && <input className="input" placeholder="Buscar por código o nombre…" value={q} onChange={(e) => setQ(e.target.value)} aria-label={`Buscar ${label.toLowerCase()}`} />}
-        <select className="input" value={value} onChange={(e) => onChange(e.target.value)} aria-invalid={error ? true : undefined} aria-label={label}>
-          <option value="">{placeholder}</option>
-          {list.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.code} · {m.name}
-              {m.unit ? ` (${unitSymbol(m.unit)})` : ''}
-            </option>
-          ))}
-        </select>
-      </div>
-    </Field>
-  );
+  return <EntityPicker resource="materials" label={label} value={value} onChange={row=>onChange(row?.id??'')} query={{active:true}} error={error} placeholder={placeholder}/>;
 }
 
 /** Pestañas de navegación interna del módulo. */

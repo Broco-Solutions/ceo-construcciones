@@ -1,4 +1,6 @@
 'use client';
+import { FilterToolbar } from '@/components/FilterToolbar';
+import { EntitySearch } from '@/components/EntitySearch';
 import { useAppRouter } from '@/lib/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -22,11 +24,12 @@ export default function ProveedoresPage() {
 function Inner({ canEdit }: { canEdit: boolean }) {
   const router = useAppRouter();
   const [q, setQ] = useState('');
+  const [entityId,setEntityId]=useState('');
   const [active, setActive] = useState<'yes' | 'no' | 'all'>('yes');
   const [creating, setCreating] = useState(false);
   const n = useDebounced(q.trim());
   // Búsqueda y estado los filtra el servidor antes de paginar.
-  const list = usePaged<Supplier>('/suppliers', { search: n || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const list = usePaged<Supplier>('/suppliers', { id:entityId||undefined,search: n || undefined, active: active === 'all' ? undefined : active === 'yes' });
   const rows = list.rows;
   return (
     <Page
@@ -37,7 +40,6 @@ function Inner({ canEdit }: { canEdit: boolean }) {
           <Link className="btn sec" href="/proveedores/precios">
             <Tag size={16} /> Precios
           </Link>
-          <ExportButton path="/exports/suppliers" label="Exportar" fallbackName="proveedores.xlsx" />
           {canEdit && (
             <Button onClick={() => setCreating(true)}>
               <Plus size={16} /> Nuevo proveedor
@@ -47,14 +49,13 @@ function Inner({ canEdit }: { canEdit: boolean }) {
       }
     >
       <Card bodyClass="">
-        <div className="filters" style={{ padding: 12 }}>
-          <input className="input" type="search" id="q-proveedor" placeholder="Buscar proveedores…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar proveedores" />
+        <FilterToolbar primary={<EntitySearch inputId="q-proveedor" resource="suppliers" label="Buscar proveedores" text={q} id={entityId} onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>} activeCount={Number(active!=='all')} onClear={()=>{setActive('all');}}>
           <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} id="f-proveedor-estado" aria-label="Estado">
             <option value="yes">Activos</option>
             <option value="no">Inactivos</option>
             <option value="all">Todos</option>
           </select>
-        </div>
+        </FilterToolbar>
         {list.error ? (
           <div style={{ padding: 12 }}>
             <ErrorBox error={list.error} onRetry={list.reload} />
@@ -62,7 +63,7 @@ function Inner({ canEdit }: { canEdit: boolean }) {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable<Supplier>
+          <DataTable<Supplier> collection={{resource:"suppliers",filters:{id:entityId||undefined,search:n||undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
             rows={rows}
             rowKey={(s) => s.id}
             onRowClick={(s) => router.push(`/proveedores/${s.id}`)}

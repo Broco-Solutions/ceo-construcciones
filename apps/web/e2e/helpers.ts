@@ -174,3 +174,29 @@ export const SUFFIX = () =>
   `${Date.now().toString(36).slice(-4)}${uid().slice(0, 3)}`.toUpperCase();
 export const isoDays = (d: number) =>
   new Date(Date.now() + d * 86_400_000).toISOString();
+
+/** Native short lists and the shared APG picker are operated through their UI.
+ * IDs are found by loading actual pages; no fake options or API writes. */
+export async function chooseOption(control: import('@playwright/test').Locator, choice: string | {value?:string;label?:string;index?:number}) {
+  const tag=await control.evaluate(el=>el.tagName);
+  if(tag==='SELECT'){if(typeof choice==='object'&&choice.label){const option=control.locator('option').filter({hasText:choice.label}).first();await expect(option).toBeAttached();await control.selectOption((await option.getAttribute('value'))!);}else await control.selectOption(choice);return;}
+  await expect(control).toHaveAttribute('role','combobox');
+  const page=control.page();
+  await control.click();
+  const label=typeof choice==='object'?choice.label:undefined,value=typeof choice==='string'?choice:choice.value;
+  await control.fill(label?.split(/\s*·\s*/)[0]??'');
+  const list=page.getByRole('listbox',{name:'Opciones disponibles'});
+  await expect(list).toBeVisible();
+  // Wait for the debounced query, not the previous options from an earlier input.
+  await expect(list).toHaveAttribute('aria-busy','false');
+  let option=label?label.split(/\s*·\s*/).reduce((loc,part)=>loc.filter({hasText:part}),list.getByRole('option')):value?list.locator(`[role="option"][data-value="${value}"]`):list.getByRole('option').nth((choice as {index?:number}).index??0);
+  for(let pageIndex=0;pageIndex<80;pageIndex++){
+    if(await option.count())break;
+    const more=page.getByRole('button',{name:'Cargar más opciones'});
+    if(!(await more.count()))break;
+    await more.click();await expect(list).toHaveAttribute('aria-busy','false');
+  }
+  await expect(option.first()).toBeVisible({timeout:15000});
+  await option.first().click();
+  await expect(control).toHaveAttribute('aria-expanded','false');
+}

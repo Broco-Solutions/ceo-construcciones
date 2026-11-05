@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 import { expect, test } from '@playwright/test';
 import { login } from './helpers';
 
@@ -29,7 +30,7 @@ test('la OC acepta solamente ARS y USD desde el dropdown', async ({ page }) => {
   await expect(currency).toBeVisible();
   await expect(currency).toHaveValue('ARS');
   expect(await currency.locator('option').evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value))).toEqual(['ARS', 'USD']);
-  await currency.selectOption('USD');
+  await chooseOption(currency, 'USD');
   await expect(currency).toHaveValue('USD');
 
   const supplier = page.getByLabel('Proveedor', { exact: true });

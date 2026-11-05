@@ -543,7 +543,7 @@ export async function handlerCommercial(
               exclusions: content.exclusions,
               observations: content.observations,
               deadline: content.deadline,
-              pdfTemplateVersion: 1,
+              pdfTemplateVersion: 2,
               nonPricedLines: content.lines
                 .filter((l) => l.status !== "ACTIVE")
                 .map((l) => ({
@@ -558,7 +558,12 @@ export async function handlerCommercial(
               include: { issue: true },
               orderBy: { number: "desc" },
             });
-            if (previous?.issue?.contentHash === contentHash) return previous;
+            if (previous?.issue) {
+              const priorVersion=(previous.snapshot as {commercial?:{pdfTemplateVersion?:number}})?.commercial?.pdfTemplateVersion;
+              const comparable={...commercial,...(priorVersion===undefined?{}:{pdfTemplateVersion:priorVersion})};
+              if(priorVersion===undefined)delete (comparable as {pdfTemplateVersion?:number}).pdfTemplateVersion;
+              if(previous.issue.contentHash===hash({content,commercial:comparable}))return previous;
+            }
             const latest = await tx.budgetVersion.aggregate({
               where: { budgetId: key },
               _max: { number: true },
@@ -660,6 +665,7 @@ export async function handlerCommercial(
             observations: content.observations,
             deadline: content.deadline,
             issuedAt: new Date().toISOString(),
+            pdfTemplateVersion: 2,
             nonPricedLines: content.lines
               .filter((l) => l.status !== "ACTIVE")
               .map((l) => ({

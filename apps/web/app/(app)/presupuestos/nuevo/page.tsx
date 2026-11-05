@@ -105,7 +105,7 @@ function Form() {
       <Card title="Presupuesto">
         <div className="formgrid">
           <SelectField
-            label="Obra"
+            entity="works" label="Obra"
             value={workId}
             placeholder="Elegir obra…"
             options={works.rows.map((w) => ({

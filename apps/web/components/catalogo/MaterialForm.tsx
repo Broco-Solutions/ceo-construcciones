@@ -96,7 +96,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
           </div>
         ) : (
           <SelectField
-            label="Unidad base"
+            searchable label="Unidad base"
             value={f.unitId}
             onChange={set('unitId')}
             error={errs.unitId}
@@ -106,7 +106,7 @@ export function MaterialForm({ open, onClose, material, onSaved }: { open: boole
           />
         )}
         <SelectField
-          label="Rubro"
+          searchable label="Rubro"
           value={f.categoryId}
           onChange={set('categoryId')}
           error={errs.categoryId}

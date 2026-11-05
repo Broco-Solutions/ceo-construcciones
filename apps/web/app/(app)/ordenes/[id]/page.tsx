@@ -244,12 +244,13 @@ function InvoiceRef({ order, onSaved }: { order: OrderDetail; onSaved: () => voi
 function EditDraft({ order, lk, onClose, onSaved }: { order: OrderDetail; lk: ReturnType<typeof useLookups>; onClose: () => void; onSaved: () => void }) {
   const toast = useToast();
   const [notes, setNotes] = useState(order.notes ?? '');
+  const [notesPublic,setNotesPublic]=useState(order.notesPublic??false);
   const [lines, setLines] = useState<LineDraft[]>(order.lines.map(lineFrom));
   const [errs, setErrs] = useState<Record<number, string>>({});
   const locked = !!order.quotationId;
-  const save = useMutation((_k: string, body: { notes?: string; lines?: Schemas['CommercialLineInput'][] }) => api.patch(`/purchase-orders/${order.id}`, body));
+  const save = useMutation((_k: string, body: { notes?: string; notesPublic?:boolean; lines?: Schemas['CommercialLineInput'][] }) => api.patch(`/purchase-orders/${order.id}`, body));
   const submit = async () => {
-    const body: { notes?: string; lines?: Schemas['CommercialLineInput'][] } = { notes };
+    const body: { notes?: string; notesPublic?:boolean; lines?: Schemas['CommercialLineInput'][] } = { notes, notesPublic };
     if (!locked) {
       const v = toCommercial(lines);
       setErrs(v.errors);
@@ -275,7 +276,7 @@ function EditDraft({ order, lk, onClose, onSaved }: { order: OrderDetail; lk: Re
         </>
       }
     >
-      <TextArea label="Observaciones" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} />
+      <TextArea label="Observaciones" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} /><label className="row"><input type="checkbox" checked={notesPublic} onChange={e=>setNotesPublic(e.target.checked)}/>Incluir estas observaciones en la OC para el proveedor</label>
       {locked ? (
         <div className="note small">La OC está vinculada a una cotización seleccionada: sus renglones no se pueden modificar.</div>
       ) : (

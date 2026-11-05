@@ -200,8 +200,9 @@ export const api = {
     query?: Query,
     fallbackName = 'descarga',
     forceFilename = false,
+    body?: unknown,
   ) {
-    const res = await send('GET', path, { query });
+    const res = await send(body === undefined ? 'GET' : 'POST', path, { query, body });
     const blob = await res.blob();
     const cd = res.headers.get('content-disposition') ?? '';
     const m = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(cd);

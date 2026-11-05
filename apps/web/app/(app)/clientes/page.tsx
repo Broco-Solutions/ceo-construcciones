@@ -1,6 +1,7 @@
 'use client';
 import { useAppRouter } from '@/lib/navigation';
 
+import { EntitySearch } from '@/components/EntitySearch';
 import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -32,11 +33,12 @@ function Clients() {
   const { can } = useSession();
   const router = useAppRouter();
   const [q, setQ] = useState('');
+  const [entityId,setEntityId]=useState('');
   const [open, setOpen] = useState(false);
   const search = useDebounced(q.trim());
   const list = usePaged<Schemas['Client']>(
     '/clients',
-    { q: search || undefined },
+    { q: search || undefined, id:entityId||undefined },
     50,
   );
   return (
@@ -52,20 +54,7 @@ function Clients() {
     >
       <Card bodyClass="">
         <div className="filters">
-          <div className="field">
-            <label htmlFor="client-search">Buscar</label>
-            <div className="row" style={{ gap: 6 }}>
-              <Search size={16} aria-hidden className="muted" />
-              <input
-                id="client-search"
-                className="input"
-                type="search"
-                placeholder="Nombre, CUIT o código"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </div>
-          </div>
+          <EntitySearch inputId="client-search" resource="clients" text={q} id={entityId} placeholder="Nombre, CUIT o código" onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>
         </div>
         {list.error ? (
           <div className="bd">
@@ -74,7 +63,7 @@ function Clients() {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable
+          <DataTable collection={{resource:"clients",filters:{q:search||undefined,id:entityId||undefined},total:list.pagination?.total,reload:list.reload}}
             rows={list.rows}
             rowKey={(c) => c.id}
             onRowClick={(c) => router.push(`/clientes/${c.id}`)}
@@ -115,7 +104,7 @@ function Clients() {
               </div>
             )}
             empty={
-              <Empty title="Todavía no hay clientes">
+              <Empty title={q ? "No hay clientes con esos filtros" : "Todavía no hay clientes"}>
                 Creá el primer cliente antes de registrar una obra nueva.
               </Empty>
             }

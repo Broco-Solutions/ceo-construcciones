@@ -86,7 +86,7 @@ function Auditoria() {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable
+          <DataTable collection={{resource:"audit",filters:{entity:t(applied.entity),entityId:t(applied.entityId),actorId:applied.actorId||undefined,action:t(applied.action),from:dayToIso(applied.from,false),to:dayToIso(applied.to,true)},total:list.pagination?.total,reload:list.reload}}
             rows={list.rows}
             rowKey={(l) => l.id}
             onRowClick={setSel}

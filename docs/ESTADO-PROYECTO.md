@@ -145,3 +145,15 @@ Validación del candidato: `CEO_Verificar_Local.sh api` **195 pruebas + 3 runtim
 ## Accesos DEMO por identidad y mínimo autorizado — 05/11/2026
 
 Por decisión expresa posterior del usuario, el mínimo general pasa a 8 caracteres (máximo 128), sincronizado entre hash, administración, contrato y formulario. El auxiliar de cuentas usa IDs/auditoría para reconocer las identidades PR17 renombradas y rechaza recrearlas a partir de un paquete anterior. No hay claves en Git ni cambios de login, permisos, infraestructura, DNS, migraciones o carga de catálogos. La rotación puntual y los cinco accesos públicos se registran sin secretos en el cierre del PR y en `online/access-change/` privado; [guía](DEMO-ONLINE.md).
+
+## Cuenta permanente Broco verificada — 05/11/2026
+
+Se reutilizó `admin@brocosolutions.com` (GERENCIA activa), conservando ID, clave e historial; sólo se ajustó el nombre a Broco Solutions — Administración mediante PATCH auditado. Acceso/logout reales y todos los módulos/tres obras verificados; los cinco DEMO conservan claves, roles y asignaciones. Huellas de 43 tablas de negocio, PDFs, usuarios/sesiones ajenos y archivos de credenciales DEMO/locales sin cambios. Archivo privado separado `online/credenciales-broco-admin.json`. Preservación permanente y exclusión de limpiezas DEMO documentadas en [guía online](DEMO-ONLINE.md). Tarea de datos: sin cambios de código, migraciones, cargas, semillas, infraestructura, PR o redespliegue.
+
+### UX transversal — implementación en curso
+
+Rama `codex/ux-transversal-etapa-1`, base `2859bff`: combobox/búsqueda, selección/exportación, lotes de mínimos/movimientos, PDF V2 con V1 preservada e informes en desarrollo y pruebas incrementales. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`; evidencia en `docs/UX-TRANSVERSAL-ETAPA-1.md`. No integrado ni desplegado todavía; sin cambios de infraestructura, usuarios o datos online. Limpieza documental prevista al cierre, en commit separado.
+
+### UX transversal — hito de verificación local (05/11/2026)
+
+Rama `codex/ux-transversal-etapa-1`, main remoto revalidado en `2859bff`. Implementados combobox compartido, filtros, selección congelada/exportación, mínimos y movimientos atómicos, PDF V2 con V1 conservada e informes. Verificador API final: **211 pruebas + 3 runtime**, tipos/build y salida 0, log privado `ux-transversal/final-api.log`. Web unitarias 60 y E2E focalizado 10/10 aprobados, incluidos 115 clientes en tres páginas, mínimos sin saldo/conflicto, transferencia/reserva/doble clic y actividades múltiples sin alterar líneas previas. Hubo fallas reales de interacción (foco, respuesta visual del checkbox y reset tardío de paginación del combobox), corregidas con regresiones; los verificadores completos web/E2E y la revisión visual final siguen pendientes. Aún sin PR, merge ni despliegue de este incremento. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`; matriz y excepciones en `docs/UX-TRANSVERSAL-ETAPA-1.md`. Sin migraciones ni operaciones online en este hito.

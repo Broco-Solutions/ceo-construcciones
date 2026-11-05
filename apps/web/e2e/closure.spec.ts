@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import {
@@ -89,7 +90,7 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
     await page.getByRole('button', { name: 'Nueva obra', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel('Nombre', { exact: true }).fill(name);
-    await expect(dialog.getByLabel('Cliente principal')).toHaveValue(client.id);
+    await expect(dialog.getByLabel('Cliente principal')).toHaveAttribute('data-selected-id',client.id);
     await dialog
       .getByLabel('Dirección de la obra')
       .fill('Dirección sintética de aceptación 123');
@@ -108,7 +109,7 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
   await page
     .getByLabel('Nombre', { exact: true })
     .fill(`Presupuesto comercial ${suffix}`);
-  await page.getByLabel('Empezar desde').selectOption(template.id);
+  await chooseOption(page.getByLabel('Empezar desde'), template.id);
   await page
     .getByRole('button', { name: 'Crear presupuesto', exact: true })
     .click();
@@ -227,12 +228,11 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
     ).data.find((l) => l.workId === work.id)!;
   // Issuing and receiving use the same UI as the pre-existing full journey.
   await page.goto(`/ordenes/nueva?requestId=${requestId}&workId=${work.id}`);
-  await page.getByLabel('Proveedor', { exact: true }).selectOption(supplier.id);
-  await page.getByLabel('Destino de entrega').selectOption(location.id);
-  await page.getByLabel('Moneda', { exact: true }).selectOption('ARS');
-  await page
-    .getByLabel(/Base impositiva|Tratamiento.*IVA/)
-    .selectOption('EXCLUDED');
+  await chooseOption(page.getByLabel('Proveedor', { exact: true }), supplier.id);
+  await chooseOption(page.getByLabel('Destino de entrega'), location.id);
+  await chooseOption(page.getByLabel('Moneda', { exact: true }), 'ARS');
+  await chooseOption(page
+    .getByLabel(/Base impositiva|Tratamiento.*IVA/), 'EXCLUDED');
   await page.getByLabel('Precio (ARS)', { exact: true }).fill('10');
   await page.getByRole('button', { name: 'Revisar y crear' }).click();
   await confirmModal(page, /Confirmar|Crear/);
@@ -243,7 +243,7 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
   await toast(page, /emitida/);
   await page.goto(`/recepciones/${orderId}`);
   await page.getByLabel('N.º de remito').fill(`R-COM-${suffix}`);
-  await page.getByLabel('Ubicación que recibe').selectOption(location.id);
+  await chooseOption(page.getByLabel('Ubicación que recibe'), location.id);
   await page.getByLabel(/^Cantidad recibida de Cemento portland/).fill('3');
   await page.getByRole('button', { name: 'Revisar recepción' }).click();
   await confirmModal(page, 'Confirmar recepción');
@@ -251,9 +251,9 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
   await page.goto('/stock/movimientos/nuevo');
   await page.getByRole('button', { name: 'Consumo en obra' }).click();
   await pickMaterial(page, material.code);
-  await page.getByLabel('Obra (origen)').selectOption(location.id);
+  await chooseOption(page.getByLabel('Obra (origen)'), location.id);
   await page.getByLabel(/^Cantidad/).fill('1');
-  await page.getByLabel('Rubro (opcional)').selectOption(cat.id);
+  await chooseOption(page.getByLabel('Rubro (opcional)'), cat.id);
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
   await toast(page, 'Movimiento registrado correctamente');
@@ -268,7 +268,7 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
     remaining: '0',
   });
   await page.goto(`/indicadores?clientId=${client.id}`);
-  await page.getByLabel('Cliente', { exact: true }).selectOption(client.id);
+  await chooseOption(page.getByLabel('Cliente', { exact: true }), client.id);
   await expect(
     page.getByText('3.600.000,00', { exact: false }).first(),
   ).toBeVisible();

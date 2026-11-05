@@ -234,7 +234,7 @@ function QuotationForm({ request, lk, onClose, onSaved }: { request: RequestDeta
         </>
       }
     >
-      <SelectField label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Elegí proveedor" options={lk.suppliers.rows.filter((s) => s.active).map((s) => ({ value: s.id, label: s.name }))} error={errs.supplierId} />
+      <SelectField entity="suppliers" label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Elegí proveedor" options={lk.suppliers.rows.filter((s) => s.active).map((s) => ({ value: s.id, label: s.name }))} error={errs.supplierId} />
       <div className="formgrid">
         <TextField label="Moneda (ISO)" value={currency} maxLength={3} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={errs.currency ?? (!/^[A-Z]{3}$/.test(currency) ? 'Código de 3 letras, p. ej. ARS o USD' : undefined)} />
         <SelectField label="Base impositiva" value={taxBasis} onChange={(e) => setTaxBasis(e.target.value as TaxBasis)} options={Object.entries(TAX_BASIS).map(([k, l]) => ({ value: k, label: l }))} hint={taxBasis === 'UNSPECIFIED' ? 'Sin base declarada la comparación no es directa.' : undefined} />

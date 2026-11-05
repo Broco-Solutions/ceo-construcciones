@@ -1,10 +1,12 @@
 'use client';
+import { FilterToolbar } from '@/components/FilterToolbar';
+import { EntitySearch } from '@/components/EntitySearch';
 import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Page } from '@/components/shell';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill } from '@/components/ui';
+import { Button, SelectField, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill } from '@/components/ui';
 import { usePaged } from '@/lib/hooks';
 import { formatQty } from '@/lib/format';
 import { useSession } from '@/lib/session';
@@ -17,6 +19,7 @@ export default function MaterialesPage() {
   const units = useUnits();
   const cats = useCategories();
   const [q, setQ] = useState('');
+  const [entityId,setEntityId]=useState('');
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [active, setActive] = useState<'all' | 'yes' | 'no'>('yes');
@@ -26,7 +29,7 @@ export default function MaterialesPage() {
     return () => clearTimeout(t);
   }, [q]);
   // search/categoryId/active se aplican en el servidor antes de paginar.
-  const list = usePaged<Material>('/materials', { search: search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const list = usePaged<Material>('/materials', { id:entityId||undefined,search: search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
   const rows = list.rows;
   // Relaciones incluidas en el DTO; el catálogo sólo como respaldo.
   const unit = (m: Material) => unitSymbol(m.unit ?? units.map.get(m.unitId));
@@ -38,7 +41,6 @@ export default function MaterialesPage() {
       crumb="Catálogo"
       actions={
         <>
-          <ExportButton path="/exports/materials" label="Exportar" fallbackName="materiales.xlsx" />
           {can('editMaterials') && (
             <Button onClick={() => setCreating(true)}>
               <Plus size={16} /> Nuevo material
@@ -48,22 +50,15 @@ export default function MaterialesPage() {
       }
     >
       <Card bodyClass="">
-        <div className="filters" style={{ padding: 12 }}>
-          <input className="input" type="search" placeholder="Buscar por código o nombre…" value={q} onChange={(e) => setQ(e.target.value)} id="q-material" aria-label="Buscar materiales" />
-          <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} id="f-material-rubro" aria-label="Rubro">
-            <option value="">Todos los rubros</option>
-            {cats.rows.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+        <FilterToolbar primary={<EntitySearch inputId="q-material" resource="materials" label="Buscar materiales" text={q} id={entityId} onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>} activeCount={Number(!!categoryId)+Number(active!=='all')} onClear={()=>{setCategoryId('');setActive('all');}}>
+          <SelectField searchable label="Rubro" id="f-material-rubro" value={categoryId} onChange={e=>setCategoryId(e.target.value)} placeholder="Todos los rubros" options={cats.rows.map(c=>({value:c.id,label:c.name}))}/>
+
           <select className="input" value={active} onChange={(e) => setActive(e.target.value as typeof active)} id="f-material-estado" aria-label="Estado">
             <option value="yes">Activos</option>
             <option value="no">Inactivos</option>
             <option value="all">Todos</option>
           </select>
-        </div>
+        </FilterToolbar>
         {list.error ? (
           <div style={{ padding: 12 }}>
             <ErrorBox error={list.error} onRetry={list.reload} />
@@ -72,7 +67,7 @@ export default function MaterialesPage() {
           <Loading />
         ) : (
           <>
-            <DataTable
+            <DataTable collection={{resource:"materials",filters:{id:entityId||undefined,search:search||undefined,categoryId:categoryId||undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
               rows={rows}
               rowKey={(m) => m.id}
               onRowClick={(m) => router.push(`/materiales/${m.id}`)}

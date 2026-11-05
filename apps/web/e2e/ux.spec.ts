@@ -1,7 +1,7 @@
 // Notificaciones, unidades predeterminadas y textos de ayuda. La interceptación de red se usa SÓLO
 // para simular un rechazo del servidor sin depender de datos inválidos reales.
 import { expect, test, type Page } from '@playwright/test';
-import { login, SUFFIX, toast } from './helpers';
+import { apiAs, login, SUFFIX, toast } from './helpers';
 
 const EVID = 'docs/evidencia';
 
@@ -67,12 +67,14 @@ test('si el servidor rechaza el alta no hay aviso de éxito y el error queda jun
 });
 
 test('un error de descarga queda visible hasta cerrarlo y no muestra detalles técnicos', async ({ page }) => {
+  const prep=await apiAs('GERENCIA'),units=await prep.list('/units'),material=await prep.send('POST','/materials',{code:'AUTO',name:'Material de descarga sintético',unitId:units.data[0].id}),location=await prep.send('POST','/locations',{code:'AUTO',name:'Ubicación de descarga sintética',kind:'YARD'});
+  await prep.send('POST','/movements',{type:'INITIAL',materialId:material.id,destinationId:location.id,quantity:'1'},'download-'+SUFFIX());await prep.dispose();
   await login(page, 'GERENCIA');
   await page.goto('/stock');
-  await page.route('**/api/v1/exports/stock', (route) =>
+  await page.route('**/api/v1/selections/export', (route) =>
     route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: { code: 'API_UNAVAILABLE', message: 'upstream connect error' } }) }),
   );
-  await page.getByRole('button', { name: 'Exportar Excel' }).click();
+  await page.getByRole('button', { name: 'Exportar filtrados' }).click();
   const n = page.getByRole('alert').locator('.toast');
   await expect(n).toContainText('No se pudo descargar la planilla de stock');
   await expect(n).toContainText('No hay conexión con el servidor');
@@ -88,12 +90,16 @@ test('los selectores de unidad muestran nombre y símbolo', async ({ page }) => 
   await login(page, 'GERENCIA');
   await page.goto('/materiales');
   await page.getByRole('button', { name: 'Nuevo material' }).click();
-  const unit = page.getByRole('dialog').getByLabel('Unidad base');
-  await expect(unit.locator('option', { hasText: 'Metro cuadrado (m²)' })).toHaveCount(1);
-  await expect(unit.locator('option', { hasText: 'Kilogramo (kg)' })).toHaveCount(1);
-  await expect(unit.locator('option', { hasText: /UNI-\d/ })).toHaveCount(0);
+  const unit = page.getByRole('dialog').getByLabel('Unidad base',{exact:true});
+  await unit.click();
+  const options=page.getByRole('listbox',{name:'Opciones disponibles'});
+  await expect(options.getByRole('option',{name:'Metro cuadrado (m²)',exact:true})).toHaveCount(1);
+  await expect(options.getByRole('option',{name:'Kilogramo (kg)',exact:true})).toHaveCount(1);
+  await expect(options.getByRole('option',{name:/UNI-\d/})).toHaveCount(0);
+  await unit.press('Escape');
   await page.goto('/apu/nuevo');
-  await expect(page.getByLabel('Unidad de trabajo').locator('option', { hasText: 'Metro cúbico (m³)' })).toHaveCount(1);
+  await page.getByLabel('Unidad de trabajo',{exact:true}).click();
+  await expect(page.getByRole('listbox',{name:'Opciones disponibles'}).getByRole('option',{name:'Metro cúbico (m³)',exact:true})).toHaveCount(1);
 });
 
 test('la ayuda de precios explica cómo actualizarlos sin jerga técnica', async ({ page }) => {

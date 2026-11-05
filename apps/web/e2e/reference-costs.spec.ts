@@ -210,8 +210,9 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
       await page.goto('/costos');
       await pickMaterial(page, `RC-${suffix}`, 'Filtrar por material');
       await expect(
-        page.getByText(`Material costos ${suffix}`).first(),
-      ).toBeVisible();
+        page.getByLabel('Filtrar por material',{exact:true}),
+      ).toHaveValue(`Material costos ${suffix}`);
+      await expect(page.getByLabel('Filtrar por material',{exact:true})).toHaveAttribute('data-selected-id',material.id);
       await page.screenshot({ path: `${evidence}/materiales-${width}.png` });
       await page
         .getByRole('tab', { name: 'Mano de obra', exact: true })

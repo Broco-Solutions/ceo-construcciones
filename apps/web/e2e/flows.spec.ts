@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 // Flujos V1 de punta a punta POR LA UI contra la API real (sin mocks).
 // Cada caso crea datos con sufijo único. La API directa (page.request + Origin) se usa SÓLO para
 // preparar datos que no son el objeto del caso y está marcada con "PREPARACIÓN".
@@ -39,9 +40,7 @@ function today(offsetDays = 0) {
 }
 /** Elige la opción cuyo texto contiene `text` (las etiquetas incluyen unidades/códigos). */
 async function pick(select: Locator, text: string) {
-  const opt = select.locator('option').filter({ hasText: text }).first();
-  await expect(opt).toBeAttached();
-  await select.selectOption((await opt.getAttribute('value'))!);
+  await chooseOption(select, {label:text});
 }
 async function apiList<T>(page: Page, path: string): Promise<T[]> {
   const r = await page.request.get(
@@ -81,9 +80,8 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   const name = `Obra E2E ${SUF}`;
   const dlg = page.getByRole('dialog');
   await dlg.getByLabel('Nombre').fill(name);
-  await dlg
-    .getByLabel('Cliente principal')
-    .selectOption({ label: 'CLI-DEMO-01 · Cliente Demo' });
+  await chooseOption(dlg
+    .getByLabel('Cliente principal'), { label: 'CLI-DEMO-01 · Cliente Demo' });
   await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
   await dlg.getByRole('button', { name: 'Crear obra' }).click();
   await toast(page, 'Obra creada correctamente');
@@ -96,7 +94,7 @@ test('(a) Gerencia da de alta una obra y la consulta', async ({ page }) => {
   // Consulta desde el listado con búsqueda.
   await page.goto('/obras');
   await page.getByLabel('Buscar').fill(code);
-  await page.getByText(name).locator('visible=true').first().click();
+  await page.locator('.t tbody').getByText(name,{exact:true}).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
   await expect(page.getByText(code).first()).toBeVisible();
   await expect(
@@ -129,7 +127,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
     .fill('0,07');
   await page.getByLabel('Importe de mano de obra').fill('1200,50');
   await page.getByLabel('Moneda').fill('ARS');
-  await page.getByLabel('Base impositiva').selectOption({ index: 1 });
+  await chooseOption(page.getByLabel('Base impositiva'), { index: 1 });
   await snap(page, '02-apu-con-materiales');
   await page.getByRole('button', { name: 'Crear actividad' }).click();
   await toast(page, 'Actividad creada correctamente');
@@ -144,7 +142,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await pick(page.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
   await expect(page.getByText('sólo de mano de obra')).toBeVisible();
   await page.getByLabel('Moneda').fill('ARS');
-  await page.getByLabel('Base impositiva').selectOption({ index: 1 });
+  await chooseOption(page.getByLabel('Base impositiva'), { index: 1 });
   // Mano de obra explícita: vacío bloquea (no se envía nada), 0 se acepta.
   let posted = 0;
   page.on(
@@ -200,13 +198,13 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
   await expect(dlg.getByLabel('Cómputo de origen')).toBeVisible();
   await pick(dlg.getByLabel('Cómputo de origen'), `Cómputo E2E ${SUF}`);
   await dlg.getByLabel('Moneda').fill('ARS');
-  await dlg.getByLabel('Base impositiva').selectOption({ index: 1 });
-  await dlg.getByLabel('Decimales (precisión)').selectOption({ index: 1 });
-  await dlg.getByLabel('Modo de redondeo').selectOption({ index: 1 });
+  await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
+  await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
+  await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });
   // Precios manuales explícitos por material (independiente de los precios de referencia cargados).
   const modes = dlg.locator('select:has(option[value="manual"])');
   await expect(modes).toHaveCount(2);
-  for (let i = 0; i < 2; i++) await modes.nth(i).selectOption('manual');
+  for (let i = 0; i < 2; i++) await chooseOption(modes.nth(i), 'manual');
   const prices = dlg.getByLabel(/^Precio por/);
   await prices.nth(0).fill('950');
   await prices.nth(1).fill('42000');
@@ -284,7 +282,7 @@ test('(e) Compras carga dos cotizaciones, compara y selecciona', async ({
   ] as const) {
     await page.getByRole('button', { name: 'Cargar cotización' }).click();
     const dlg = page.getByRole('dialog');
-    await dlg.getByLabel('Proveedor').selectOption({ label: supplier });
+    await chooseOption(dlg.getByLabel('Proveedor', {exact:true}), { label: supplier });
     await dlg.getByLabel('Válida hasta').fill(today(30));
     const p = dlg.getByLabel(/^Precio \(ARS\)/);
     await expect(p).toHaveCount(2);
@@ -321,8 +319,8 @@ test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
     .getByRole('link', { name: 'Generar OC con la seleccionada' })
     .click();
   await page.waitForURL(/\/ordenes\/nueva/);
-  await expect(page.getByLabel('Proveedor')).toHaveValue(/.+/);
-  await page.getByLabel('Destino de entrega').selectOption(st.jefeLoc.id);
+  await expect(page.getByLabel('Proveedor', {exact:true})).toHaveValue(/.+/);
+  await chooseOption(page.getByLabel('Destino de entrega'), st.jefeLoc.id);
   await page.getByRole('button', { name: 'Revisar y crear' }).click();
   await confirmModal(page, /Confirmar|Crear/);
   await toast(page, /Orden OC-\d+ creada como borrador/);
@@ -354,7 +352,7 @@ test('(g) Jefe registra una recepción parcial', async ({ page }) => {
   await page.waitForURL(`**/recepciones/${st.orderId}`);
   await page.getByLabel('N.º de remito').fill(`R-${SUF}`);
   const loc = page.getByLabel('Ubicación que recibe');
-  if (!(await loc.inputValue())) await loc.selectOption(st.jefeLoc!.id);
+  if (!(await loc.inputValue())) await chooseOption(loc, st.jefeLoc!.id);
   await page.getByLabel(/^Cantidad recibida de Cemento portland/).fill('4');
   await snap(page, '08-recepcion-parcial-jefe');
   await page.getByRole('button', { name: 'Revisar recepción' }).click();
@@ -394,7 +392,7 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({
   await page.getByRole('button', { name: /Nueva reserva/ }).click();
   const dlg = page.getByRole('dialog');
   await pick(dlg.getByLabel('Material', { exact: true }), MAT.cemento);
-  await dlg.getByLabel('Origen (galpón o patio)').selectOption(wh.id);
+  await chooseOption(dlg.getByLabel('Origen (galpón o patio)'), wh.id);
   await expect(dlg.getByText(/Disponible en origen/)).toBeVisible();
   await pick(dlg.getByLabel('Obra destino'), JEFE_WORK);
   await dlg.getByLabel(/^Cantidad/).fill('5');
@@ -407,10 +405,9 @@ test('(h) Compras reserva stock de galpón y lo transfiere a la obra', async ({
     .waitFor()
     .catch(() => page.getByRole('button', { name: 'Transferencia' }).click());
   await pickMaterial(page, MAT.cemento);
-  await page.getByLabel('Origen', { exact: true }).selectOption(wh.id);
-  await page
-    .getByLabel('Destino', { exact: true })
-    .selectOption(st.jefeLoc!.id);
+  await chooseOption(page.getByLabel('Origen', { exact: true }), wh.id);
+  await chooseOption(page
+    .getByLabel('Destino', { exact: true }), st.jefeLoc!.id);
   await page.getByLabel(/^Cantidad/).fill('5');
   await pick(page.getByLabel('Satisfacer reserva (opcional)'), 'Reservado 5');
   await snap(page, '09-transferencia-con-reserva');
@@ -426,10 +423,10 @@ test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   await page.getByRole('button', { name: 'Consumo en obra' }).click();
   await pickMaterial(page, MAT.cemento);
   const src = page.getByLabel('Obra (origen)');
-  if (!(await src.inputValue())) await src.selectOption(st.jefeLoc!.id);
+  if (!(await src.inputValue())) await chooseOption(src, st.jefeLoc!.id);
   await expect(page.getByText(/Saldo actual en/)).toBeVisible();
   await page.getByLabel(/^Cantidad/).fill('2');
-  await page.getByLabel('Rubro (opcional)').selectOption({ label: 'Revoques' });
+  await chooseOption(page.getByLabel('Rubro (opcional)'), { label: 'Revoques' });
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');
   await toast(page, 'Movimiento registrado correctamente', 'Consumo en obra');
@@ -441,10 +438,9 @@ test('(i) Jefe registra consumo y devolución', async ({ page }) => {
   await page.getByRole('button', { name: 'Devolución' }).click();
   await pickMaterial(page, MAT.cemento);
   const rsrc = page.getByLabel('Obra (origen)');
-  if (!(await rsrc.inputValue())) await rsrc.selectOption(st.jefeLoc!.id);
-  await page
-    .getByLabel('Devolver a (galpón o patio)')
-    .selectOption(st.warehouse?.id ?? { index: 1 });
+  if (!(await rsrc.inputValue())) await chooseOption(rsrc, st.jefeLoc!.id);
+  await chooseOption(page
+    .getByLabel('Devolver a (galpón o patio)'), st.warehouse?.id ?? { index: 1 });
   await page.getByLabel(/^Cantidad/).fill('1');
   await page.getByRole('button', { name: 'Revisar y confirmar' }).click();
   await confirmModal(page, 'Confirmar movimiento');

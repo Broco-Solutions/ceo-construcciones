@@ -1,3 +1,5 @@
+import { listSelection } from "./list-selection";
+import { entitySearchWhere } from "./entity-search";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { db, transaction, schemaCapabilities } from "../core/db";
@@ -679,7 +681,8 @@ export async function handlerBudgets(
       const { page, pageSize, skip, take } = pagination(request);
       const categoryId =
         new URL(request.url).searchParams.get("categoryId") ?? undefined;
-      const where = { ...(categoryId ? { categoryId } : {}) };
+      const params = new URL(request.url).searchParams;
+      const where = { ...(categoryId ? { categoryId } : {}), ...(params.has("active") ? {active:params.get("active")==="true"}:{}), ...(await entitySearchWhere("apu-items", params)) };
       const [data, total] = await Promise.all([
         db.apuItem.findMany({
           where,
@@ -905,7 +908,7 @@ export async function handlerBudgets(
       const workId = new URL(request.url).searchParams.get("workId");
       if (workId) await requireWork(actor, workId);
       const { page, pageSize, skip, take } = pagination(request);
-      const where = workId ? { workId } : {};
+      const where = {...(workId?{workId}:{}),...listSelection(new URL(request.url).searchParams)};
       const [data, total] = await Promise.all([
         db.budget.findMany({ where, skip, take, orderBy: { id: "asc" } }),
         db.budget.count({ where }),

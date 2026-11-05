@@ -1,4 +1,6 @@
 'use client';
+import { EntityPicker } from '@/components/EntityPicker';
+import { ActivityMultiPicker } from './ActivityMultiPicker';
 import { unitSymbol } from '@/lib/units';
 import { useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
@@ -36,7 +38,9 @@ export function ComputationForm({
 }) {
   const toast = useToast();
   const works = useWorks();
-  const apus = useAll<Schemas['ApuDetail']>('/apu-items');
+  const [activityRows,setActivityRows]=useState<Schemas['ApuDetail'][]>(()=>(initial?.lines??[]).map(l=>l.item));
+  const apus={rows:activityRows,loading:false,error:null,reload:()=>{}};
+  const categoryCatalog=useAll<Schemas['Category']>('/categories');
   const [workId, setWorkId] = useState(initial?.workId ?? defaultWorkId ?? '');
   const [name, setName] = useState(initial?.name ?? '');
   const [rows, setRows] = useState<Row[]>(() =>
@@ -64,11 +68,7 @@ export function ComputationForm({
     () => new Map(apus.rows.map((a) => [a.id, a])),
     [apus.rows],
   );
-  const categories = useMemo(() => {
-    const m = new Map<string, Schemas['Category']>();
-    apus.rows.forEach((a) => m.set(a.categoryId, a.category));
-    return [...m.values()];
-  }, [apus.rows]);
+  const categories=categoryCatalog.rows;
 
   if (works.loading || apus.loading) return <Loading />;
   if (works.error || apus.error)
@@ -144,7 +144,7 @@ export function ComputationForm({
       <Card title="Cómputo">
         <div className="formgrid">
           <SelectField
-            label="Obra"
+            entity="works" label="Obra"
             value={workId}
             placeholder="Elegir obra…"
             options={works.rows.map((w) => ({
@@ -193,7 +193,7 @@ export function ComputationForm({
               onClick={() =>
                 setRows((r) => [...r, { key: ++seq, itemId: '', quantity: '' }])
               }
-              disabled={!apus.rows.length}
+
             >
               <Plus size={14} /> Agregar ítem
             </Button>
@@ -201,11 +201,8 @@ export function ComputationForm({
         }
         bodyClass=""
       >
-        {!apus.rows.length ? (
-          <Empty title="No hay actividades de obra">
-            Primero cargá una actividad desde Catálogos.
-          </Empty>
-        ) : rows.length === 0 ? (
+        <div className="bd"><ActivityMultiPicker existingIds={rows.map(r=>r.itemId)} onAdd={async chosen=>{setActivityRows(old=>[...new Map([...old,...chosen].map(r=>[r.id,r])).values()]);setRows(old=>[...old,...chosen.map(a=>({key:++seq,itemId:a.id,quantity:''}))]);}}/></div>
+        {rows.length === 0 ? (
           <Empty title="Sin ítems">
             Agregá los ítems de la obra con su cantidad medida.
           </Empty>
@@ -225,22 +222,7 @@ export function ComputationForm({
                       className="formgrid"
                       style={{ alignItems: 'end' }}
                     >
-                      <SelectField
-                        label="Actividad de obra"
-                        value={r.itemId}
-                        placeholder="Elegir ítem…"
-                        options={options}
-                        onChange={(e) =>
-                          setRows((rs) =>
-                            rs.map((x) =>
-                              x.key === r.key
-                                ? { ...x, itemId: e.target.value }
-                                : x,
-                            ),
-                          )
-                        }
-                        error={fe[`lines.${i}.itemId`]}
-                      />
+                      <EntityPicker<Schemas['ApuDetail']> resource="apu-items" label="Actividad de obra" value={r.itemId} query={{categoryId:catFilter||undefined,active:true}} onChange={a=>{if(a)setActivityRows(old=>[...new Map([...old,a].map(x=>[x.id,x])).values()]);setRows(rs=>rs.map(x=>x.key===r.key?{...x,itemId:a?.id??''}:x));}} error={fe[`lines.${i}.itemId`]}/>
                       <DecimalField
                         label={`Cantidad${a ? ` (${unitSymbol(a.unit)})` : ''}`}
                         value={r.quantity}

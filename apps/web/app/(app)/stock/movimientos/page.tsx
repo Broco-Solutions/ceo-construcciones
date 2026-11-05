@@ -1,4 +1,5 @@
 'use client';
+import { BatchActions } from '@/components/inventario/InventoryBatch';
 import { unitSymbol } from '@/lib/units';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -24,12 +25,13 @@ const TONE: Record<Movement['type'], 'ok' | 'warn' | 'bad' | 'blue' | 'plain'> =
 
 function MovimientosInner() {
   const sp = useSearchParams();
+  const batchId=sp.get('batchId')??'';
   const { can } = useSession();
   const lk = useInvLookups();
   const [materialId, setMaterialId] = useState('');
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');
   const [locationId, setLocationId] = useState('');
-  const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Movement>('/movements', { materialId, workId, locationId });
+  const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Movement>('/movements', { materialId, workId, locationId, batchId });
 
   const mat = (id: string) => lk.matById.get(id);
 
@@ -46,13 +48,14 @@ function MovimientosInner() {
       }
     >
       <InvNav />
+      {batchId&&<p className="note">Lote {batchId} · <Link href="/stock/movimientos">Ver todos los movimientos</Link></p>}
       <Card bodyClass="">
         <div className="filters">
           <div style={{ minWidth: 260 }}>
             <MaterialSelect value={materialId} onChange={setMaterialId} materials={lk.materials} placeholder="Todos" />
           </div>
           <div style={{ minWidth: 200 }}>
-            <SelectField label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
           </div>
           <div style={{ minWidth: 220 }}>
             <LocationSelect label="Ubicación (origen o destino)" value={locationId} onChange={setLocationId} locations={lk.locations} placeholder="Todas" />
@@ -60,15 +63,16 @@ function MovimientosInner() {
         </div>
         <div className="bd">
           <ErrorBox error={error ?? lk.error} onRetry={reload} />
-          {loading ? (
+          {loading && !rows.length ? (
             <Loading />
           ) : (
             <>
-              <DataTable
+              <DataTable collection={{resource:"movements",filters:{materialId,workId,locationId,batchId},total:pagination?.total,reload}}
                 rows={rows}
                 rowKey={(r) => r.id}
                 empty={<Empty title="Sin movimientos" />}
                 columns={[
+                  {key:"batch",header:"Lote",render:r=>r.batchId?<Link className="mono small" href={`/stock/movimientos?batchId=${r.batchId}`} title={r.batchId}>{r.batchId.slice(0,8)}</Link>:"Individual",hideMobile:true},
                   { key: 'f', header: 'Fecha', render: (r) => <span className="small">{formatDateTime(r.createdAt)}</span> },
                   { key: 't', header: 'Tipo', render: (r) => <Pill tone={TONE[r.type]}>{MOVEMENT_LABEL[r.type]}</Pill> },
                   { key: 'm', header: 'Material', render: (r) => mat(r.materialId)?.name ?? <span className="mono small">{r.materialId}</span> },

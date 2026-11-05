@@ -1,5 +1,8 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useTableSelection, type Collection } from '@/lib/table-selection';
+import { Combobox } from './Combobox';
+import { EntityPicker, type EntityResource } from './EntityPicker';
 import { X, AlertTriangle, Inbox, RefreshCw } from 'lucide-react';
 import { ApiError, fieldErrors, fieldLabel, friendlyError, issueMessage, type Pagination } from '@/lib/api';
 
@@ -59,21 +62,27 @@ export function DecimalField(props: Omit<InputProps, 'type' | 'inputMode'>) {
 }
 
 type SelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
+  entity?: EntityResource;
+  entityQuery?: Record<string, string | number | boolean | null | undefined>;
+  searchable?: boolean;
   label: string;
   error?: string;
   hint?: string;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean; description?: string }[];
   placeholder?: string;
 };
-export function SelectField({ label, error, hint, options, placeholder, id, ...rest }: SelectProps) {
+export function SelectField({ label, error, hint, options, placeholder, id, entity, entityQuery, searchable, ...rest }: SelectProps) {
   const auto = useId();
   const iid = id ?? auto;
+  const onPick = (value: string) => rest.onChange?.({target:{value},currentTarget:{value}} as React.ChangeEvent<HTMLSelectElement>);
+  if (entity) return <EntityPicker resource={entity} query={entityQuery} label={label} value={String(rest.value ?? '')} onChange={row=>onPick(row?.id??'')} id={iid} error={error} hint={hint} placeholder={placeholder} disabled={rest.disabled} required={rest.required} clearable={placeholder !== undefined}/>;
+  if (searchable) return <Combobox label={label} value={String(rest.value ?? '')} options={options} onChange={row=>onPick(row?.value??'')} id={iid} error={error} hint={hint} placeholder={placeholder} disabled={rest.disabled} required={rest.required} clearable={placeholder !== undefined}/>;
   return (
     <Field label={label} error={error} hint={hint} htmlFor={iid}>
       <select id={iid} className="input" aria-invalid={error ? true : undefined} {...rest}>
         {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((o) => (
-          <option key={o.value} value={o.value}>
+          <option key={o.value} value={o.value} disabled={o.disabled}>
             {o.label}
           </option>
         ))}
@@ -211,7 +220,11 @@ export function DataTable<T>({
   onRowClick,
   mobile,
   empty,
+  collection,
+  selectionActions,
 }: {
+  collection?: Collection;
+  selectionActions?: (selection: {rows:Record<string,unknown>[];ids:string[];clear:()=>void}) => React.ReactNode;
   rows: T[];
   columns: Column<T>[];
   rowKey: (row: T) => string;
@@ -219,21 +232,36 @@ export function DataTable<T>({
   mobile?: (row: T) => React.ReactNode;
   empty?: React.ReactNode;
 }) {
-  if (rows.length === 0) return <>{empty ?? <Empty title="Sin registros" />}</>;
+  const selection=useTableSelection(collection,rows.map(rowKey));
+  const header=useRef<HTMLInputElement>(null);
+  const all=rows.length>0&&rows.every(r=>selection.ids.has(rowKey(r))),some=rows.some(r=>selection.ids.has(rowKey(r)));
+  useEffect(()=>{if(header.current)header.current.indeterminate=some&&!all;},[some,all]);
+  const checkbox=(row:T)=><input type="checkbox" className="row-checkbox" aria-label={`Seleccionar fila ${String((row as Record<string,unknown>).name??(row as Record<string,unknown>).code??((row as {material?:{name?:string}}).material?.name)??rowKey(row))}`} checked={selection.ids.has(rowKey(row))} disabled={selection.pending} onClick={e=>e.stopPropagation()} onKeyDown={e=>e.stopPropagation()} onChange={()=>selection.toggle(rowKey(row))}/>;
   return (
     <>
+      {collection&&<div className="selection-bar" aria-label="Acciones de selección" aria-busy={selection.pending}>
+        <span role="status">{selection.ids.size ? `${selection.ids.size} seleccionados · ${selection.scope}` : `${collection.total??rows.length} resultados`}</span>
+        <Button size="sm" variant="sec" loading={selection.pending} disabled={(collection.total??rows.length)===0} onClick={()=>selection.exportRows(false)}>Exportar filtrados</Button>
+        {selection.ids.size>0&&<>
+          <Button size="sm" variant="sec" disabled={selection.pending} onClick={()=>selection.exportRows(true)}>Exportar seleccionados</Button>
+          {(collection.total??0)>rows.length&&<Button size="sm" variant="sec" disabled={selection.pending} onClick={selection.selectAll}>Seleccionar los {collection.total} resultados de este filtro</Button>}
+          <Button size="sm" variant="ghost" disabled={selection.pending} onClick={selection.clear}>Limpiar selección</Button>
+          {!selection.pending&&selectionActions?.({rows:selection.rows,ids:[...selection.ids],clear:selection.clear})}
+        </>}
+      </div>}
+      {selection.message&&<p className="small muted" role="status">{selection.message}</p>}
+      <ErrorBox error={selection.error} onRetry={collection?.reload}/>
+      {rows.length===0&&(empty??<Empty title="Sin registros"/>)}
       {mobile && (
         <div className="mcards">
           {rows.map((r) => (
             <div
               key={rowKey(r)}
               className="pcard"
-              role={onRowClick ? 'button' : undefined}
-              tabIndex={onRowClick ? 0 : undefined}
-              onClick={onRowClick ? () => onRowClick(r) : undefined}
-              onKeyDown={onRowClick ? (e) => e.key === 'Enter' && onRowClick(r) : undefined}
+
             >
-              {mobile(r)}
+              {collection&&<div className="mobile-row-selection" onClick={e=>e.stopPropagation()}>{checkbox(r)}<span>Seleccionar</span></div>}
+              <div role={onRowClick ? 'button' : undefined} tabIndex={onRowClick ? 0 : undefined} onClick={onRowClick ? () => onRowClick(r) : undefined} onKeyDown={onRowClick ? e=>{if(e.target===e.currentTarget&&(e.key==='Enter'||e.key===' ')){e.preventDefault();onRowClick(r);}} : undefined}>{mobile(r)}</div>
             </div>
           ))}
         </div>
@@ -242,6 +270,7 @@ export function DataTable<T>({
         <table className="t">
           <thead>
             <tr>
+              {collection&&<th scope="col"><input ref={header} type="checkbox" aria-label="Seleccionar página visible" title="Seleccionar sólo la página visible" checked={all} disabled={!rows.length||selection.pending} onChange={selection.togglePage}/></th>}
               {columns.map((c) => (
                 <th key={c.key} className={[c.align, c.hideMobile && 'hide-m'].filter(Boolean).join(' ')} scope="col">
                   {c.header}
@@ -258,6 +287,7 @@ export function DataTable<T>({
                 onClick={onRowClick ? () => onRowClick(r) : undefined}
                 onKeyDown={onRowClick ? (e) => e.key === 'Enter' && onRowClick(r) : undefined}
               >
+                {collection&&<td>{checkbox(r)}</td>}
                 {columns.map((c) => (
                   <td key={c.key} className={[c.align, c.hideMobile && 'hide-m'].filter(Boolean).join(' ')}>
                     {c.render(r)}

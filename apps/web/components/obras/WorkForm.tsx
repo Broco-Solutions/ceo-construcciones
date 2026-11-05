@@ -108,7 +108,7 @@ export function WorkForm({
           error={fe.name}
         />
         <SelectField
-          label="Cliente principal"
+          entity="clients" label="Cliente principal"
           disabled={legacyClients}
           value={clientId}
           onChange={(e) => setClientId(e.target.value)}

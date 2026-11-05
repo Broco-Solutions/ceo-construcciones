@@ -1,4 +1,6 @@
 'use client';
+import Link from 'next/link';
+import { BarChart } from '@/components/reportes/BarChart';
 import { useAppRouter } from '@/lib/navigation';
 import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -34,10 +36,11 @@ function Variance({ v, unit }: { v: string | null; unit: string }) {
   if (v === null) return <span className="muted" title="Sin referencia: no se calcula desvío">—</span>;
   const neg = v.startsWith('-') && /[1-9]/.test(v);
   const zero = !/[1-9]/.test(v);
-  return <Pill tone={zero ? 'ok' : neg ? 'ok' : 'warn'}>{`${!neg && !zero ? '+' : ''}${formatQty(v, unit)}`}</Pill>;
+  return <Pill tone={zero ? 'plain' : neg ? 'blue' : 'warn'}>{`${!neg && !zero ? '+' : ''}${formatQty(v, unit)}`}</Pill>;
 }
 
 function ReportInner() {
+  const canEconomic=useSession().can('readEconomic');
   const sp = useSearchParams();
   const router = useAppRouter();
   const toast = useToast();
@@ -110,13 +113,14 @@ function ReportInner() {
         )
       }
     >
+      <div className="row">{canEconomic&&<Link className="btn sec" href="/indicadores">Visión ejecutiva económica</Link>}<Link className="btn sec" href={workId?`/stock?locationId=${lk.locByWork.get(workId)?.id??''}`:'/stock'}>Saldos y mínimos</Link></div>
       <Card bodyClass="">
         <div className="filters">
           <div style={{ minWidth: 240 }}>
-            <SelectField label="Obra" value={workId} onChange={(e) => setParam('workId', e.target.value)} placeholder="Seleccioná una obra" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setParam('workId', e.target.value)} placeholder="Seleccioná una obra" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
           </div>
           <div style={{ minWidth: 200 }}>
-            <SelectField label="Rubro" value={categoryId} onChange={(e) => setParam('categoryId', e.target.value)} placeholder="Todos" options={cats.rows.map((c) => ({ value: c.id, label: c.name }))} />
+            <SelectField searchable label="Rubro" value={categoryId} onChange={(e) => setParam('categoryId', e.target.value)} placeholder="Todos" options={cats.rows.map((c) => ({ value: c.id, label: c.name }))} />
           </div>
           <div style={{ minWidth: 260 }}>
             <MaterialSelect value={materialId} onChange={(v) => setParam('materialId', v)} materials={lk.materials} placeholder="Todos" />
@@ -153,6 +157,8 @@ function ReportInner() {
                   </ul>
                 </div>
               )}
+              {r.summary&&<div className="report-kpis"><Card title="Materiales del filtro"><b className="kpi-number">{r.summary.materials}</b></Card><Card title="Con pendiente de compra"><b className="kpi-number">{r.summary.withPendingPurchase}</b></Card><Card title="Sin previsto comparable"><b className="kpi-number">{r.summary.withoutPlanned}</b></Card></div>}
+              {materialId&&r.rows.length===1&&<BarChart title={r.rows[0].name} description={`Cantidades en ${r.rows[0].unit}. Las etapas se superponen: no se suman ni representan avance de obra.`} rows={(['planned','requested','purchased','received','consumed','available'] as const).flatMap((key,i)=>r.rows[0][key]===null?[]:[{key,label:['Previsto','Pedido','Comprado','Recibido','Consumido','Disponible'][i],value:r.rows[0][key]!}])} format={s=>formatQty(s,r.rows[0].unit)}/>}
               <DataTable
                 rows={r.rows}
                 rowKey={(x) => x.materialId}

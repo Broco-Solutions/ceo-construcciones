@@ -1,3 +1,5 @@
+import { handlerSelections } from "./modules/selections";
+import { handlerInventoryBatches } from "./modules/inventory-batches";
 import { authenticate, assertOrigin } from "./core/auth";
 import { errorResponse, ApiError } from "./core/errors";
 import { identity } from "./modules/identity";
@@ -70,6 +72,7 @@ export async function dispatch(
         );
       let result: Response | null = null;
       for (const handler of [
+        handlerSelections,
         handlerCostReferences,
         handlerBudgetCostUpdates,
         handlerOrderAdministration,
@@ -80,6 +83,7 @@ export async function dispatch(
         handlerCommercial,
         handlerCatalog,
         handlerBudgets,
+        handlerInventoryBatches,
         handlerInventory,
         handlerProcurement,
         handlerImports,

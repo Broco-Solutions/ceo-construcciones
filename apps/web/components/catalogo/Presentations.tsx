@@ -184,7 +184,7 @@ function PresentationForm({
           <b>1 {f.name.trim() || 'presentación'} = {bq && isPositiveDecimal(bq) ? formatQty(bq, unitCode) : `? ${unitCode}`}</b>
           <div className="small">Verificá la equivalencia: no podrá modificarse después.</div>
         </div>
-        {suppliers && <SelectField label="Proveedor (opcional)" value={f.supplierId} onChange={(e) => setF({ ...f, supplierId: e.target.value })} placeholder="Cualquiera" options={suppliers} />}
+        {suppliers && <SelectField entity="suppliers" label="Proveedor (opcional)" value={f.supplierId} onChange={(e) => setF({ ...f, supplierId: e.target.value })} placeholder="Cualquiera" options={suppliers} />}
         <ErrorBox error={m.error && Object.keys(fieldErrors(m.error)).length === 0 ? m.error : null} />
       </form>
     </Modal>

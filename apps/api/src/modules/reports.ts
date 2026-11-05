@@ -215,6 +215,7 @@ export async function materialReport(actor: Actor, filter: Filter) {
       })
       .sort((a, b) => a.code.localeCompare(b.code));
     return {
+      summary:{materials:rows.length,withoutPlanned:rows.filter(r=>r.planned===null).length,withPendingPurchase:rows.filter(r=>r.remainingToPurchase!==null&&new Decimal(r.remainingToPurchase).gt(0)).length,withPendingRequest:rows.filter(r=>r.remainingToRequest!==null&&new Decimal(r.remainingToRequest).gt(0)).length},
       workId: filter.workId,
       categoryId: filter.categoryId ?? null,
       version: version
