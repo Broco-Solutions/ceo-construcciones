@@ -10,6 +10,7 @@ Leé primero README.md, docs/PRD-ETAPA-1.md y docs/ESTADO-PROYECTO.md. El **PRD 
 - Las migraciones Prisma deben ser versionadas y revisadas; antes de migraciones destructivas o cambios en producción, backup y autorización explícita.
 
 ## Responsabilidades durante el cierre de Etapa 1
+- La misión de habilitación demo online autorizada el 05/11/2026 permite, sólo en el proyecto/entorno existentes identificados en `docs/DEMO-ONLINE.md`, respaldo puntual, migraciones versionadas pendientes, carga CEO verificada y datos/accesos DEMO. Sustituye las prohibiciones productivas anteriores únicamente para esas acciones; conserva controles locales, seguridad, integridad y límites de infraestructura.
 - El encargo incremental de carga inicial y costos de referencia recibido el 04/11/2026 autoriza a Codex full stack, migraciones aditivas y carga verificada exclusivamente local. Incluye MO por referencias y actividades vinculadas, sin nómina. El texto completo adjunto por el usuario prevalece en este incremento; no se reinicia el plan maestro ni se habilitan operaciones productivas.
 - Para la misión de cierre definida en `CEO_PLAN_MAESTRO_CODEX.md`, **Codex** trabaja full stack: dominio, API, autenticación/RBAC, Prisma, contratos, `apps/web`, pruebas y documentación. La autorización no permite cambiar infraestructura, secretos, backups, Railway/Vercel ni datos productivos.
 - Fuera de esa misión, el frontend debe seguir consumiendo contratos versionados y no crear modelos paralelos ni endpoints inventados.

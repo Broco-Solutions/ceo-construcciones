@@ -46,3 +46,7 @@ No se cambian configuraciones de autodespliegue. Un merge puede desplegar el có
 ## Vinculación material BASE — PR15
 
 Corrección incremental sobre main `7dbc7b1`, sin esquema nuevo ni DDL. Campos JSON opcionales y contratos actualizados; V1 conserva proyecciones/capacidades condicionales. Compatibilidad del candidato ejecutada en `base-link-release-final.log`: V1 poblada→PR9 poblado→ampliada, HTTP y navegador, snapshots/PDF y operaciones conservados, diff vacío. Código integrado y checks se verifican en [PR15](https://github.com/Broco-Solutions/ceo-construcciones/pull/15). El complemento de datos se aplicó sólo a la base manual local; no es una migración/carga productiva ni modifica el autodespliegue existente.
+
+## Habilitación online autorizada — 05/11/2026
+
+La misión posterior autorizó y ejecutó respaldo puntual, las siete migraciones pendientes, BASE/DG con vinculación PR15 y accesos/datos DEMO en el entorno online existente. El registro, límites históricos, accesos privados y smoke real del dominio están en [DEMO-ONLINE.md](DEMO-ONLINE.md). Esto no cambia el carácter exclusivamente local de las ejecuciones anteriores ni los controles de sus auxiliares.

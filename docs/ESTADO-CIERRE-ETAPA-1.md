@@ -64,3 +64,7 @@ No hay preguntas funcionales pendientes. Permanecen datos de puesta en marcha: c
 ## Incremento de carga inicial y costos — 04/11/2026
 
 El incremento posterior a PR13 incorpora catálogos BASE y referencias materiales/MO conectadas, sin reiniciar F0–F9. La aceptación técnica CI-01…CI-48, resultados reales, trazabilidad, visual/PDF y estado de integración están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Los resultados anteriores de este documento son históricos y no sustituyen esa matriz. No se declara aceptación de piloto ni habilitación productiva.
+
+## Hito posterior: demo online (05/11/2026)
+
+Con autorización productiva acotada posterior, respaldo puntual verificado, esquema ampliado y carga BASE/DG/PR15 quedaron habilitados en el dominio existente. Matriz de evidencia y separación entre demostración, datos históricos y aceptación: [DEMO-ONLINE.md](DEMO-ONLINE.md). Los cierres exclusivamente locales anteriores no se reinterpretan como ejecuciones productivas. Resultado del candidato: API 195 + 3 runtime, web 52, E2E 73; smoke real de cinco perfiles, PDF y circuito DEMO. Sin cambios de infraestructura ni aceptación del piloto implícita.

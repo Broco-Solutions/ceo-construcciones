@@ -115,3 +115,7 @@ Revisar también móvil 360/390 y escritorio 1280/1440, teclado, estados de guar
 Un error de edición, cálculo, permiso o integridad es un defecto de aplicación. Una partida histórica sin rendimiento/unidad verificada es una limitación específica de datos, detallada en [conciliación DG](DG-1153-RECONCILIACION.md); reconocer un aviso no vuelve exacta la demanda. La habilitación productiva, sus migraciones/datos y la aceptación operativa por CEO son posteriores y requieren su proceso autorizado.
 
 La evidencia de esta pasada se registra en [aceptación](ACEPTACION-CIERRE-ETAPA-1.md) y [estado](ESTADO-CIERRE-ETAPA-1.md). Consultar allí el candidato validado y la integración; `release.json` acredita el binario local usado.
+
+## Habilitación online autorizada — 05/11/2026
+
+La misión posterior autorizó y ejecutó respaldo puntual, las siete migraciones pendientes, BASE/DG con vinculación PR15 y accesos/datos DEMO en el entorno online existente. El registro, límites históricos, accesos privados y smoke real del dominio están en [DEMO-ONLINE.md](DEMO-ONLINE.md). Esto no cambia el carácter exclusivamente local de las ejecuciones anteriores ni los controles de sus auxiliares.

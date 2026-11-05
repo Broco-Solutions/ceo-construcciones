@@ -409,3 +409,7 @@ Las causas se sanitizan; la matriz privada conserva los valores y la cadena comp
 Aplicación `cmw222m5600fb721tnuvs6xyd`: 67 vinculadas, cero conflictos; cero materiales/actividades/plantillas nuevos y ninguna operación creada. Se agregaron 12 referencias y 12 presentaciones comprobadas sobre identidades existentes; 9 correspondencias de equivalencia reutilizan identidades previas y 2 documentan factores económicos. Total de correspondencias 1.531, verificación sin discrepancias. Referencias PRECIOS anteriores 372 conservadas, más 12 referencias de composición; no se borraron las 62 provisionales archivadas.
 
 La reejecución final crea cero y conserva las67 conexiones, con cero conflictos. Se normaliza el orden de claves JSON antes de comparar la definición; PostgreSQL JSONB no se interpreta como edición de usuario por reordenar claves. Las pruebas exigen ausencia de estos falsos conflictos y preservación de conflictos reales. Evidencias privadas `base-link-manual-apply.json`, `base-link-manual-repeat-final.json`, `base-link-manual-verification.json`.
+
+## Habilitación online autorizada — 05/11/2026
+
+La misión posterior autorizó y ejecutó respaldo puntual, las siete migraciones pendientes, BASE/DG con vinculación PR15 y accesos/datos DEMO en el entorno online existente. El registro, límites históricos, accesos privados y smoke real del dominio están en [DEMO-ONLINE.md](DEMO-ONLINE.md). Esto no cambia el carácter exclusivamente local de las ejecuciones anteriores ni los controles de sus auxiliares.
