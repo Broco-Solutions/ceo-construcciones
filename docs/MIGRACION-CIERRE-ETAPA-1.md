@@ -36,3 +36,7 @@ Se agrega `20261104000100_reference_cost_catalog`: tablas de recursos/tarifas MO
 El código comprueba `schemaCapabilities.referenceCosts` por lectura. Sin las tablas, las funciones nuevas informan disponibilidad 503 y los recorridos V1 continúan con sus proyecciones. No hay DDL en requests, startup productivo ni carga automática. Los campos nuevos de snapshots son opcionales/versionados por modalidad; los emitidos anteriores no se reescriben.
 
 La carga es explícita mediante `CEO_Catalogo_Local.sh`, con manifiesto recompuesto desde el original, hash esperado, actor local y transacción serializable con bloqueo de origen. Sólo admite PostgreSQL loopback aislado. El arranque manual reconoce la plantilla conectada y conserva la base, credenciales y documentos. Ver [resultados](CARGA-INICIAL-RESULTADOS.md) y [guía](PRUEBAS-MANUALES-ETAPA-1.md). Migración/carga productivas permanecen pendientes de un procedimiento separado autorizado.
+
+## Habilitación online autorizada — 05/11/2026
+
+La misión posterior autorizó y ejecutó respaldo puntual, las siete migraciones pendientes, BASE/DG con vinculación PR15 y accesos/datos DEMO en el entorno online existente. El registro, límites históricos, accesos privados y smoke real del dominio están en [DEMO-ONLINE.md](DEMO-ONLINE.md). Esto no cambia el carácter exclusivamente local de las ejecuciones anteriores ni los controles de sus auxiliares.
