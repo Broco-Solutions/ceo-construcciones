@@ -144,7 +144,7 @@ export function ApuForm({
       <Card title="Ítem">
         <div className="formgrid">
           <SelectField
-            label="Rubro"
+            searchable label="Rubro"
             value={categoryId}
             placeholder="Elegir rubro…"
             options={cat.categories.rows.map((c) => ({
@@ -164,7 +164,7 @@ export function ApuForm({
             placeholder="Aplicado a la cal completo"
           />
           <SelectField
-            label="Unidad de trabajo"
+            searchable label="Unidad de trabajo"
             value={unitId}
             placeholder="Elegir unidad…"
             options={cat.units.rows.map((u) => ({

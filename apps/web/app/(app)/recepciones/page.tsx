@@ -26,7 +26,7 @@ function Group({ status, title, lk }: { status: OrderStatus; title: string; lk: 
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable
+          <DataTable collection={{resource:"purchase-orders",filters:{status},total:list.pagination?.total,reload:list.reload}}
             rows={list.rows}
             rowKey={(o) => o.id}
             onRowClick={(o) => router.push(`/recepciones/${o.id}`)}

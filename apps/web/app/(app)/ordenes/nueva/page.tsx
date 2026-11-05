@@ -75,6 +75,7 @@ function NuevaOC() {
       currency,
       taxBasis,
       notes: notes.trim() || undefined,
+      notesPublic: true,
       lines: v.out,
     });
     if (r) {
@@ -104,7 +105,7 @@ function NuevaOC() {
                   ]}
                 />
                 <div className="formgrid">
-                  <SelectField label="Proveedor" value={supplierId} disabled={mode === 'quotation'} onChange={(e) => setSupplierId(e.target.value)} placeholder="Elegí proveedor" options={lk.suppliers.rows.filter((s) => s.active || s.id === supplierId).map((s) => ({ value: s.id, label: s.name }))} error={errs.supplierId} />
+                  <SelectField entity="suppliers" label="Proveedor" value={supplierId} disabled={mode === 'quotation'} onChange={(e) => setSupplierId(e.target.value)} placeholder="Elegí proveedor" options={lk.suppliers.rows.filter((s) => s.active || s.id === supplierId).map((s) => ({ value: s.id, label: s.name }))} error={errs.supplierId} />
                   <SelectField
                     label="Destino de entrega"
                     value={destinationId}
@@ -122,7 +123,7 @@ function NuevaOC() {
                     La cotización usa la moneda {currency}, que todavía no se admite para crear órdenes de compra. Sólo se permiten ARS y USD.
                   </div>
                 )}
-                <TextArea label="Observaciones" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} />
+                <TextArea label="Observaciones para el proveedor (se incluyen en la OC)" value={notes} maxLength={4000} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </Card>
             <Card title="Renglones">

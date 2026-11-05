@@ -44,9 +44,9 @@ export function PriceTable({
 }) {
   const list = usePaged<MaterialPrice>('/prices', { materialId, supplierId });
   const units = useUnits();
-  const suppliers = useSuppliers(true);
-  const mats = useAll<Material>(materialId ? null : '/materials');
-  const pres = useAll<Presentation>('/presentations', { materialId });
+  const suppliers = useSuppliers(list.rows.some(p=>p.supplierId&&!p.supplier));
+  const mats = useAll<Material>(!materialId&&list.rows.some(p=>!p.material)?'/materials':null);
+  const pres = useAll<Presentation>(list.rows.some(p=>p.presentationId&&!p.presentation)?'/presentations':null, { materialId });
   const matMap = useMemo(
     () => new Map(mats.rows.map((m) => [m.id, m])),
     [mats.rows],
@@ -60,8 +60,8 @@ export function PriceTable({
   );
   const unitOf = (p: MaterialPrice) => {
     if (unitCode) return unitCode;
-    const m = selectedMaterial.data?.data ?? matMap.get(p.materialId);
-    return m ? unitSymbol(units.map.get(m.unitId)) : '';
+    const m = p.material ?? selectedMaterial.data?.data ?? matMap.get(p.materialId);
+    return m ? unitSymbol(m.unit??units.map.get(m.unitId)) : '';
   };
   if (list.error) return <ErrorBox error={list.error} onRetry={list.reload} />;
   if (list.loading && !list.data) return <Loading />;
@@ -71,14 +71,14 @@ export function PriceTable({
       p.referenceDatePrecision ?? 'DAY',
     );
   const per = (p: MaterialPrice, u: string) => {
-    const pr = p.presentationId ? presMap.get(p.presentationId) : null;
+    const pr = p.presentation ?? (p.presentationId ? presMap.get(p.presentationId) : null);
     return pr
       ? `1 ${pr.name} (${formatQty(p.baseQuantity, u)})`
       : formatQty(p.baseQuantity, u);
   };
   return (
     <>
-      <DataTable
+      <DataTable collection={{resource:"prices",filters:{materialId,supplierId},total:list.pagination?.total,reload:list.reload}}
         rows={list.rows}
         rowKey={(p) => p.id}
         empty={empty ?? <Empty title="Sin precios registrados" />}
@@ -125,7 +125,7 @@ export function PriceTable({
                   header: 'Material',
                   render: (p: MaterialPrice) => (
                     <Link href={`/materiales/${p.materialId}`}>
-                      {matMap.get(p.materialId)?.name ?? '…'}
+                      {p.material?.name ?? matMap.get(p.materialId)?.name ?? '…'}
                     </Link>
                   ),
                 },
@@ -139,7 +139,7 @@ export function PriceTable({
                   render: (p: MaterialPrice) =>
                     p.supplierId ? (
                       <Link href={`/proveedores/${p.supplierId}`}>
-                        {suppliers.map.get(p.supplierId)?.name ?? '…'}
+                        {p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…'}
                       </Link>
                     ) : (
                       <span className="muted">Sin proveedor</span>
@@ -186,12 +186,12 @@ export function PriceTable({
               </Pill>
             </div>
             {!materialId && (
-              <span>{matMap.get(p.materialId)?.name ?? '…'}</span>
+              <span>{p.material?.name ?? matMap.get(p.materialId)?.name ?? '…'}</span>
             )}
             <span className="small muted">
               por {per(p, unitOf(p))} · desde {referenceDate(p)}
               {!supplierId &&
-                ` · ${p.supplierId ? (suppliers.map.get(p.supplierId)?.name ?? '…') : 'sin proveedor'}`}
+                ` · ${p.supplierId ? (p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…') : 'sin proveedor'}`}
             </span>
             {p.referenceState === 'HISTORICAL' && (
               <span className="small muted">

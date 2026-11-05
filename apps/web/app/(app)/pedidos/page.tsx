@@ -43,8 +43,8 @@ function Pedidos() {
       <LookupGate lk={lk}>
         <Card bodyClass="">
           <div className="filters">
-            <SelectField label="Obra" value={workId} onChange={(e) => setW(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
-            <SelectField label="Rubro" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} placeholder="Todos" options={lk.categories.rows.map((c) => ({ value: c.id, label: c.name }))} />
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setW(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            <SelectField searchable label="Rubro" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} placeholder="Todos" options={lk.categories.rows.map((c) => ({ value: c.id, label: c.name }))} />
             <SelectField
               label="Estado"
               value={status}
@@ -60,7 +60,7 @@ function Pedidos() {
           ) : list.loading && !list.data ? (
             <Loading />
           ) : (
-            <DataTable
+            <DataTable collection={{resource:"requests",filters:{workId:workId||undefined,categoryId:categoryId||undefined,status:status||undefined},total:list.pagination?.total,reload:list.reload}}
               rows={rows}
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/pedidos/${r.id}`)}

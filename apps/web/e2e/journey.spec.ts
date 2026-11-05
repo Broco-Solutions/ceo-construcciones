@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 // Recorrido completo encadenado POR LA UI sobre una obra propia de la corrida:
 // Obra → APU → Cómputo → Presupuesto (versión + referencia) → Pedido (Jefe) → Cotización → OC (emisión)
 // → Recepción (Jefe) → Reserva → Transferencia → Consumo (Jefe) → Devolución (Jefe) → Reporte.
@@ -42,9 +43,7 @@ const st: {
 } = {};
 
 async function pick(select: Locator, text: string) {
-  const opt = select.locator('option').filter({ hasText: text }).first();
-  await expect(opt).toBeAttached();
-  await select.selectOption((await opt.getAttribute('value'))!);
+  await chooseOption(select, {label:text});
 }
 async function as(
   browser: Browser,
@@ -74,9 +73,8 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByRole('button', { name: 'Nueva obra' }).click();
     const dlg = p.getByRole('dialog');
     await dlg.getByLabel('Nombre').fill(W.name);
-    await dlg
-      .getByLabel('Cliente principal')
-      .selectOption({ label: 'CLI-DEMO-01 · Cliente Demo' });
+    await chooseOption(dlg
+      .getByLabel('Cliente principal'), { label: 'CLI-DEMO-01 · Cliente Demo' });
     await pick(dlg.getByLabel('Responsable'), 'jefe@demo.local');
     await dlg.getByRole('button', { name: 'Crear obra' }).click();
     await toast(p, 'Obra creada correctamente');
@@ -112,7 +110,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
       .fill('2');
     await p.getByLabel('Importe de mano de obra').fill('150');
     await p.getByLabel('Moneda').fill('ARS');
-    await p.getByLabel('Base impositiva').selectOption({ index: 1 });
+    await chooseOption(p.getByLabel('Base impositiva'), { index: 1 });
     await p.getByRole('button', { name: 'Crear actividad' }).click();
     await toast(p, 'Actividad creada correctamente');
     await p.waitForURL(/\/apu\/(?!nuevo)[^/]+$/);
@@ -146,13 +144,12 @@ test('recorrido completo de una obra', async ({ browser }) => {
     const dlg = p.getByRole('dialog');
     await pick(dlg.getByLabel('Cómputo de origen'), COMP);
     await dlg.getByLabel('Moneda').fill('ARS');
-    await dlg.getByLabel('Base impositiva').selectOption({ index: 1 });
-    await dlg.getByLabel('Decimales (precisión)').selectOption({ index: 1 });
-    await dlg.getByLabel('Modo de redondeo').selectOption({ index: 1 });
-    await dlg
+    await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
+    await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
+    await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });
+    await chooseOption(dlg
       .locator('select:has(option[value="manual"])')
-      .first()
-      .selectOption('manual');
+      .first(), 'manual');
     await dlg
       .getByLabel(/^Precio por/)
       .first()
@@ -191,9 +188,8 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto(`/cotizaciones/${st.requestId}`);
     await p.getByRole('button', { name: 'Cargar cotización' }).click();
     const dlg = p.getByRole('dialog');
-    await dlg
-      .getByLabel('Proveedor')
-      .selectOption({ label: 'Corralón Demo Sur' });
+    await chooseOption(dlg
+      .getByLabel('Proveedor', {exact:true}), { label: 'Corralón Demo Sur' });
     await dlg.getByLabel('Válida hasta').fill(day(30));
     await dlg
       .getByLabel(/^Precio \(ARS\)/)
@@ -211,7 +207,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
       .getByRole('link', { name: 'Generar OC con la seleccionada' })
       .click();
     await p.waitForURL(/\/ordenes\/nueva/);
-    await p.getByLabel('Destino de entrega').selectOption(st.locId!);
+    await chooseOption(p.getByLabel('Destino de entrega'), st.locId!);
     await p.getByRole('button', { name: 'Revisar y crear' }).click();
     await confirmModal(p, /Confirmar|Crear/);
     await toast(p, /Orden OC-\d+ creada como borrador/);
@@ -232,7 +228,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto(`/recepciones/${st.orderId}`);
     await p.getByLabel('N.º de remito').fill(`RJ-${SUF}`);
     const loc = p.getByLabel('Ubicación que recibe');
-    if (!(await loc.inputValue())) await loc.selectOption(st.locId!);
+    if (!(await loc.inputValue())) await chooseOption(loc, st.locId!);
     await p.getByTestId('receive-all-pending').click();
     await expect(
       p.getByLabel(/^Cantidad recibida de Cemento portland/),
@@ -271,15 +267,15 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.getByRole('button', { name: /Nueva reserva/ }).click();
     const dlg = p.getByRole('dialog');
     await pick(dlg.getByLabel('Material', { exact: true }), 'CEM-001');
-    await dlg.getByLabel('Origen (galpón o patio)').selectOption(st.whId!);
+    await chooseOption(dlg.getByLabel('Origen (galpón o patio)'), st.whId!);
     await pick(dlg.getByLabel('Obra destino'), W.code);
     await dlg.getByLabel(/^Cantidad/).fill('5');
     await dlg.getByRole('button', { name: 'Reservar' }).click();
     await toast(p, 'Reserva creada correctamente');
     await p.goto('/stock/movimientos/nuevo?type=TRANSFER');
     await pickMaterial(p, 'CEM-001');
-    await p.getByLabel('Origen', { exact: true }).selectOption(st.whId!);
-    await p.getByLabel('Destino', { exact: true }).selectOption(st.locId!);
+    await chooseOption(p.getByLabel('Origen', { exact: true }), st.whId!);
+    await chooseOption(p.getByLabel('Destino', { exact: true }), st.locId!);
     await p.getByLabel(/^Cantidad/).fill('5');
     await pick(p.getByLabel('Satisfacer reserva (opcional)'), 'Reservado 5');
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
@@ -292,17 +288,17 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto('/stock/movimientos/nuevo');
     await p.getByRole('button', { name: 'Consumo en obra' }).click();
     await pickMaterial(p, 'CEM-001');
-    await p.getByLabel('Obra (origen)').selectOption(st.locId!);
+    await chooseOption(p.getByLabel('Obra (origen)'), st.locId!);
     await expect(p.getByText(/Saldo actual en/)).toContainText('25');
     await p.getByLabel(/^Cantidad/).fill('8');
-    await p.getByLabel('Rubro (opcional)').selectOption({ label: 'Revoques' });
+    await chooseOption(p.getByLabel('Rubro (opcional)'), { label: 'Revoques' });
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');
     await toast(p, 'Movimiento registrado correctamente', 'Consumo en obra');
     await p.getByRole('button', { name: 'Devolución' }).click();
     await pickMaterial(p, 'CEM-001');
-    await p.getByLabel('Obra (origen)').selectOption(st.locId!);
-    await p.getByLabel('Devolver a (galpón o patio)').selectOption(st.whId!);
+    await chooseOption(p.getByLabel('Obra (origen)'), st.locId!);
+    await chooseOption(p.getByLabel('Devolver a (galpón o patio)'), st.whId!);
     await p.getByLabel(/^Cantidad/).fill('3');
     await p.getByRole('button', { name: 'Revisar y confirmar' }).click();
     await confirmModal(p, 'Confirmar movimiento');

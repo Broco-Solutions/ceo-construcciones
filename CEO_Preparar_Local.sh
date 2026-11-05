@@ -19,10 +19,9 @@ esac
 printf 'Proyecto: %s\n' "$ROOT"
 printf 'Node: %s · pnpm: %s\n' "$(node --version)" "$(pnpm --version)"
 [[ "$(node -p 'process.versions.node.split(".")[0]')" == 24 ]] || fail 'El proyecto usa Node 24. Seleccioná esa versión en tu gestor (p. ej. nvm use 24) y repetí.'
-[[ -s CEO_PLAN_MAESTRO_CODEX.md ]] || fail 'Falta CEO_PLAN_MAESTRO_CODEX.md en la raíz. Guardá allí el plan original.'
-[[ -s CEO_Construcciones_Auditoria_Gap_2026-11-02.md ]] || fail 'Falta la auditoría complementaria. Está incluida en este paquete.'
-if [[ ! -s docs/ESTADO-CIERRE-ETAPA-1.md ]]; then
-  fail 'No aparece docs/ESTADO-CIERRE-ETAPA-1.md: usá el árbol de trabajo donde Codex dejó el incremento. No reclones ni continúes sobre una copia sin esos cambios.'
+[[ -s CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md ]] || fail 'Falta el plan vigente CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md.'
+if [[ ! -s docs/ESTADO-PROYECTO.md ]]; then
+  fail 'No aparece docs/ESTADO-PROYECTO.md: usá el árbol de trabajo donde Codex dejó el incremento. No reclones ni continúes sobre una copia sin esos cambios.'
 fi
 
 STATE="$HOME/.local/state/ceo-construcciones-codex"

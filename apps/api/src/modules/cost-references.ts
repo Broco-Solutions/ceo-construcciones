@@ -1,3 +1,4 @@
+import { entitySearchWhere } from "./entity-search";
 import { retiredPriceIds } from "./price-provenance";
 import { sourcePriceBases, sourcePriceContext, samePriceSeries, undatedPriceIds, sourcePriceFactors } from './source-price-basis';
 import {
@@ -583,7 +584,7 @@ export async function handlerCostReferences(
       q = new URL(request.url).searchParams.get("q") ?? "";
     const where = {
       ...(key ? { id: key } : {}),
-      ...(q ? { name: { contains: q, mode: "insensitive" as const } } : {}),
+      ...(!key ? await entitySearchWhere("labor-resources", new URL(request.url).searchParams) : {}),
     };
     const [rows, total] = await Promise.all([
       db.laborResource.findMany({

@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 // Jefe de Obra en celular (Pixel 7) contra la API real: accesos rápidos, pedido táctil, recepción y consumo.
 // La API directa se usa SÓLO para PREPARACIÓN (OC emitida por Compras para poder recibir).
 import { expect, test, type Page } from '@playwright/test';
@@ -16,8 +17,7 @@ async function noHorizontalScroll(page: Page, label: string) {
 }
 const toast = (page: Page, text: string | RegExp) => expect(page.getByText(text).locator('visible=true').first()).toBeVisible({ timeout: 15_000 });
 async function selectByText(sel: import('@playwright/test').Locator, text: string) {
-  const o = sel.locator('option').filter({ hasText: text }).first();
-  await sel.selectOption((await o.getAttribute('value'))!);
+  await chooseOption(sel, {label:text});
 }
 const tomorrow = (d = 7) => new Date(Date.now() + d * 86_400_000).toISOString().slice(0, 10);
 
@@ -136,11 +136,10 @@ test('devolución desde el celular: obra → material → galpón → cantidad �
   await page.goto('/stock/movimientos/nuevo');
   await page.getByRole('button', { name: 'Devolución' }).tap();
   await pickMaterial(page, 'CEM-001');
-  await page.getByLabel('Obra (origen)').selectOption(loc.id);
+  await chooseOption(page.getByLabel('Obra (origen)'), loc.id);
   await expect(page.getByText(/Saldo actual en/)).toBeVisible();
   const dest = page.getByLabel('Devolver a (galpón o patio)');
-  const opt = dest.locator('option').filter({ hasText: 'GAL-01' });
-  await dest.selectOption((await opt.getAttribute('value'))!);
+  await chooseOption(dest,{label:'GAL-01'});
   await page.getByLabel(/^Cantidad/).fill('2');
   await noHorizontalScroll(page, 'devolución');
   await page.screenshot({ path: `${EVID}/20-movil-devolucion-jefe.png`, fullPage: true });

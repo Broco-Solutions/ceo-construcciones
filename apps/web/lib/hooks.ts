@@ -21,9 +21,9 @@ export function useApi<T>(path: string | null, query?: Query) {
     setError(null);
     api
       .get<T>(path, query, ctrl.signal)
-      .then((d) => setData(d))
+      .then((d) => { if (!ctrl.signal.aborted) setData(d); })
       .catch((e) => {
-        if (e?.name !== 'AbortError') setError(e instanceof ApiError ? e : new ApiError(0, 'NETWORK', String(e)));
+        if (!ctrl.signal.aborted && e?.name !== 'AbortError') setError(e instanceof ApiError ? e : new ApiError(0, 'NETWORK', String(e)));
       })
       .finally(() => {
         if (!ctrl.signal.aborted) setLoading(false);
@@ -62,11 +62,14 @@ export function useAll<T>(path: string | null, query?: Query) {
       setError(null);
       try {
         const all: T[] = [];
+        let complete=false;
         for (let page = 1; page < 200; page++) {
           const r = await api.get<Page<T>>(path, { ...query, page, pageSize: 100 });
           all.push(...r.data);
-          if (all.length >= r.pagination.total || r.data.length === 0) break;
+          if (all.length >= r.pagination.total) {complete=true;break;}
+          if(r.data.length===0)break;
         }
+        if(!complete)throw new ApiError(422,'CATALOG_LIMIT','No se pudo cargar el catálogo completo. Acotá los filtros; no se muestran resultados truncados.');
         if (!cancelled) setRows(all);
       } catch (e) {
         if (!cancelled) setError(e as ApiError);

@@ -1,5 +1,7 @@
 'use client';
+import { FilterToolbar } from '@/components/FilterToolbar';
 import { useAppRouter } from '@/lib/navigation';
+import { EntitySearch } from '@/components/EntitySearch';
 import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 import { Page } from '@/components/shell';
@@ -29,6 +31,7 @@ export default function ObrasPage() {
   const router = useAppRouter();
   const [status, setStatus] = useState('');
   const [q, setQ] = useState('');
+  const [entityId,setEntityId]=useState('');
   const [clientId, setClientId] = useState('');
   const clients = useAll<Schemas['Client']>(
     can('readClients') ? '/clients' : null,
@@ -41,6 +44,7 @@ export default function ObrasPage() {
     {
       status: status || undefined,
       q: search || undefined,
+      id: entityId || undefined,
       clientId: clientId || undefined,
     },
     50,
@@ -60,17 +64,17 @@ export default function ObrasPage() {
       }
     >
       <Card bodyClass="">
-        <div className="filters">
+        <FilterToolbar primary={<EntitySearch inputId="q-obra" resource="works" text={q} id={entityId} placeholder="Nombre o código" query={{clientId:clientId||undefined,status:status||undefined}} onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>} activeCount={Number(!!clientId)+Number(!!status)} onClear={()=>{setClientId('');setStatus('');setEntityId('');}}>
           {can('readClients') && clients.rows.length > 0 && (
             <SelectField
-              label="Cliente"
+              entity="clients" label="Cliente"
               value={clientId}
               placeholder="Todos"
               options={clients.rows.map((c) => ({
                 value: c.id,
                 label: c.name,
               }))}
-              onChange={(e) => setClientId(e.target.value)}
+              onChange={(e) => {setClientId(e.target.value);setEntityId('');}}
             />
           )}
           <SelectField
@@ -81,21 +85,7 @@ export default function ObrasPage() {
             placeholder="Todos"
             options={WORK_STATUS_OPTIONS}
           />
-          <div className="field">
-            <label htmlFor="q-obra">Buscar</label>
-            <div className="row" style={{ gap: 6 }}>
-              <Search size={16} aria-hidden className="muted" />
-              <input
-                id="q-obra"
-                className="input"
-                type="search"
-                placeholder="Nombre o código"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </div>
-          </div>
-        </div>
+        </FilterToolbar>
         {list.error ? (
           <div className="bd">
             <ErrorBox error={list.error} onRetry={list.reload} />
@@ -103,7 +93,7 @@ export default function ObrasPage() {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable
+          <DataTable collection={{resource:"works",filters:{status:status||undefined,q:search||undefined,id:entityId||undefined,clientId:clientId||undefined},total:list.pagination?.total,reload:list.reload}}
             rows={rows}
             rowKey={(w) => w.id}
             onRowClick={(w) => router.push(`/obras/${w.id}`)}

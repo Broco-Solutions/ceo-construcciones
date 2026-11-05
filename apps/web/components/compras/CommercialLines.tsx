@@ -1,9 +1,12 @@
 'use client';
+import { MaterialMultiPicker } from '@/components/MaterialMultiPicker';
 // Editor de renglones comerciales (cotización / OC): material, presentación, cantidad, precio y cantidad base del precio.
-import { useId } from 'react';
+import { useId, useState } from 'react';
+import { EntityPicker } from '@/components/EntityPicker';
+import { unitSymbol } from '@/lib/units';
+
 import { Trash2 } from 'lucide-react';
 import type { Schemas } from '@/lib/api';
-import { useAll } from '@/lib/hooks';
 import { decimalToInput, parseDecimalInput } from '@/lib/format';
 import { MaterialPicker } from '@/components/catalogo/MaterialPicker';
 import { positiveQty, type useLookups } from './common';
@@ -55,46 +58,28 @@ export function CommercialLines({
   currency?: string;
 }) {
   const uid = useId();
-  const pres = useAll<Schemas['Presentation']>('/presentations');
+  const [chosen,setChosen]=useState<Record<string,Schemas['Material']>>({}),[notice,setNotice]=useState('');
   const set = (i: number, patch: Partial<LineDraft>) => onChange(lines.map((l, n) => (n === i ? { ...l, ...patch } : l)));
   return (
     <div className="stack">
+      {notice&&<p className="note" role="status">{notice}</p>}
       {errors[-1] && <div className="alert bad">{errors[-1]}</div>}
       {lines.map((l, i) => {
-        const unit = lk.unitOf(l.materialId);
-        const options = pres.rows.filter((p) => p.active && p.materialId === l.materialId && (!p.supplierId || p.supplierId === supplierId));
+        const unit = chosen[l.materialId]?.unit ? unitSymbol(chosen[l.materialId].unit) : lk.unitOf(l.materialId);
         return (
           <div key={i} className="card" style={{ padding: 12 }}>
             <div className="stack" style={{ gap: 10 }}>
               {lockMaterials ? (
                 <b>{lk.materialLabel(l.materialId)}</b>
               ) : (
-                <MaterialPicker value={l.materialId || null} onChange={(m) => set(i, { materialId: m?.id ?? '', presentationId: '' })} />
+                <MaterialPicker value={l.materialId || null} onChange={m=>{if(m)setChosen(old=>({...old,[m.id]:{...m,unit:m.unit??undefined}}));const previous=chosen[l.materialId]??lk.material(l.materialId),differentUnit=!!m&&!!previous&&previous.unitId!==m.unitId;if(l.materialId)setNotice('Al cambiar el material se retiraron el precio y la presentación anteriores.'+(differentUnit?' La cantidad queda pendiente por el cambio de unidad.':''));set(i,{materialId:m?.id??'',presentationId:'',baseQuantity:'1',unitPrice:'',...(differentUnit?{quantity:''}:{})});}}/>
               )}
               <div className="formgrid">
                 <div className="field">
                   <label htmlFor={`${uid}-q-${i}`}>Cantidad ({unit || 'unidad base'})</label>
                   <input id={`${uid}-q-${i}`} className="input" inputMode="decimal" value={l.quantity} onChange={(e) => set(i, { quantity: e.target.value })} />
                 </div>
-                <div className="field">
-                  <label htmlFor={`${uid}-p-${i}`}>Presentación</label>
-                  <select
-                    id={`${uid}-p-${i}`}
-                    className="input"
-                    value={l.presentationId}
-                    onChange={(e) => {
-                      const p = options.find((x) => x.id === e.target.value);
-                      set(i, { presentationId: e.target.value, baseQuantity: p ? decimalToInput(p.baseQuantity) : l.baseQuantity });
-                    }}
-                  >
-                    <option value="">Sin presentación (precio por unidad base)</option>
-                    {options.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({decimalToInput(p.baseQuantity)} {unit})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <EntityPicker<Schemas['Presentation']> resource="presentations" label="Presentación" value={l.presentationId} disabled={!l.materialId} query={{materialId:l.materialId,active:true,supplierId:supplierId||undefined}} onChange={p=>set(i,{presentationId:p?.id??'',baseQuantity:p?decimalToInput(p.baseQuantity):'1'})} placeholder="Sin presentación (precio por unidad base)"/>
                 <div className="field">
                   <label htmlFor={`${uid}-u-${i}`}>Precio{currency ? ` (${currency})` : ''}</label>
                   <input id={`${uid}-u-${i}`} className="input" inputMode="decimal" value={l.unitPrice} onChange={(e) => set(i, { unitPrice: e.target.value })} />
@@ -119,7 +104,8 @@ export function CommercialLines({
         );
       })}
       {!lockMaterials && (
-        <div>
+        <div className="stack">
+          <MaterialMultiPicker existingIds={lines.map(l=>l.materialId).filter(Boolean)} onAdd={materials=>{setChosen(old=>({...old,...Object.fromEntries(materials.map(m=>[m.id,m]))}));const next=[...lines];for(const material of materials){const empty=next.findIndex(l=>!l.materialId&&!l.quantity&&!l.unitPrice&&!l.presentationId);if(empty>=0)next[empty]=emptyLine(material.id);else next.push(emptyLine(material.id));}onChange(next);}}/>
           <button type="button" className="btn sec" onClick={() => onChange([...lines, emptyLine()])}>
             Agregar renglón
           </button>

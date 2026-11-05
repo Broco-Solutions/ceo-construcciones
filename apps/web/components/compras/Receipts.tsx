@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { PackageCheck } from 'lucide-react';
 import { api, type Schemas } from '@/lib/api';
-import { useApi, useMutation } from '@/lib/hooks';
+import { useApi, useMutation, usePaged } from '@/lib/hooks';
 import { formatDateTime, formatQty } from '@/lib/format';
-import { Button, Card, Confirm, ErrorBox, Loading, SelectField, TextField, useToast } from '@/components/ui';
+import { Button, Card, Confirm, DataTable, ErrorBox, Loading, PagerBar, SelectField, TextField, useToast } from '@/components/ui';
 import { LOCATION_KIND, QtyInput, positiveQty, type Receipt, type useLookups, type VisibleOrder } from './common';
 
 /** OrderDetail y ChiefOrder informan pendingQuantity por renglón (calculado por el servidor). */
@@ -135,10 +135,11 @@ export function ReceiptForm({ order, lk, onDone }: { order: VisibleOrder; lk: Re
 }
 
 export function ReceiptHistory({ order, lk }: { order: VisibleOrder; lk: ReturnType<typeof useLookups> }) {
-  const r = useApi<{ data: Receipt[] }>(`/purchase-orders/${order.id}/receipts`, { pageSize: 100 });
+  const r = usePaged<Receipt>(`/purchase-orders/${order.id}/receipts`,{},50);
   const lines = order.lines as Line[];
   return (
     <Card title="Entregas recibidas">
+      <details><summary>Seleccionar y exportar recepciones de esta OC</summary><DataTable rows={r.rows} rowKey={rc=>rc.id} collection={{resource:'receipts',filters:{orderId:order.id},total:r.pagination?.total,reload:r.reload}} columns={[{key:'note',header:'Remito',render:rc=>rc.deliveryNote??'Sin remito'},{key:'date',header:'Fecha',render:rc=>formatDateTime(rc.createdAt)},{key:'actor',header:'Registrado por',render:rc=>rc.actorName??'Usuario'},{key:'lines',header:'Materiales',render:rc=>rc.lines.map(l=>`${l.materialName??'Renglón'}: ${formatQty(l.quantity,l.unit)}`).join('; ')}]} mobile={rc=><div><b>{rc.deliveryNote??'Sin remito'}</b><p>{formatDateTime(rc.createdAt)}</p></div>}/></details>
       {r.loading && !r.data ? (
         <Loading />
       ) : r.error ? (
@@ -170,6 +171,7 @@ export function ReceiptHistory({ order, lk }: { order: VisibleOrder; lk: ReturnT
           ))}
         </ol>
       )}
+      <PagerBar pagination={r.pagination} page={r.page} setPage={r.setPage}/>
     </Card>
   );
 }

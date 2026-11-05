@@ -58,7 +58,7 @@ function ReservasInner() {
       <Card bodyClass="">
         <div className="filters">
           <div style={{ minWidth: 220 }}>
-            <SelectField label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
           </div>
           <div style={{ minWidth: 260 }}>
             <MaterialSelect value={materialId} onChange={setMaterialId} materials={lk.materials} placeholder="Todos" />

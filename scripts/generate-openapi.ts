@@ -1,3 +1,11 @@
+import {
+  minimumBatchSchema,
+  movementBatchSchema,
+} from "../apps/api/src/modules/inventory-batches";
+import {
+  selectionSchema,
+  selectionExportSchema,
+} from "../apps/api/src/modules/selections";
 import { writeFileSync, mkdirSync } from "node:fs";
 import {
   laborResourceSchema,
@@ -161,12 +169,17 @@ schemas.Work.required = schemas.Work.required.filter(
 schemas.ApuItem.required = schemas.ApuItem.required.filter(
   (name: string) => name !== "directCost",
 );
+schemas.MaterialPrice.properties.material=obj({id,code:str,name:str,unitId:id,unit:obj({id,code:str,name:str,symbol:nullable(str)})});
+schemas.MaterialPrice.properties.supplier=nullable(obj({id,code:str,name:str}));
+schemas.MaterialPrice.properties.presentation=nullable(obj({id,name:str,baseQuantity:dec,active:bool}));
 schemas.MaterialPrice.properties.referenceDate = nullable(str);
 schemas.MaterialPrice.properties.referenceDatePrecision = {
   enum: ["DAY", "MONTH", "UNKNOWN"],
 };
-schemas.MaterialPrice.properties.referenceState = { enum: ["HISTORICAL", "REVIEW_REQUIRED"] };
-schemas.LaborRate.properties.referenceState={enum:['HISTORICAL','USER']};
+schemas.MaterialPrice.properties.referenceState = {
+  enum: ["HISTORICAL", "REVIEW_REQUIRED"],
+};
+schemas.LaborRate.properties.referenceState = { enum: ["HISTORICAL", "USER"] };
 add(
   "Pagination",
   obj({
@@ -222,6 +235,10 @@ for (const [name, schema] of Object.entries({
   PriceInput: priceSchema,
   ReservationInput: reserveSchema,
   MovementInput: moveSchema,
+  MinimumBatchInput: minimumBatchSchema,
+  MovementBatchInput: movementBatchSchema,
+  SelectionInput: selectionSchema,
+  SelectionExportInput: selectionExportSchema,
   ApuInput: itemSchema,
   ComputationInput: computationSchema,
   ComputationPatch: computationPatchSchema,
@@ -336,6 +353,7 @@ extend("MovementDetail", "StockMovement", {
   destination: nullable(ref("LocationSummary")),
   actorName: str,
 });
+schemas.MovementDetail.properties.batchId = id;
 schemas.MovementDetail.description =
   "Ubicaciones mínimas sin saldos. Para Jefe, source/destination de obras no asignadas se proyectan null, incluso si el movimiento llega a su obra autorizada. Los IDs escalares se conservan como referencia histórica; no conceden acceso.";
 // Keep strict GET DTOs; historical idempotency snapshots have a separate union.
@@ -415,6 +433,7 @@ extend("OrderDetail", "PurchaseOrder", {
     anyOf: [{ const: "ROUNDING_POLICY_REQUIRED" }, { type: "null" }],
   },
 });
+schemas.OrderDetail.properties.notesPublic = bool;
 schemas.OrderDetail.description =
   "OC nuevas: HALF_UP a 2 decimales por importe extendido, total como suma de líneas; precios y equivalencias originales intactos, sin agregar IVA. OC históricas sin política: importes exactos hasta 8 decimales; si no son representables, null y ROUNDING_POLICY_REQUIRED.";
 extend("LegacyOrderDetail", "PurchaseOrder", {
@@ -468,6 +487,11 @@ extend(
   },
   ["idempotencyKey"],
 );
+Object.assign(schemas.ReceiptLine.properties, {
+  materialCode: str,
+  materialName: str,
+  unit: str,
+});
 extend("LegacyReceiptDetail", "Receipt", { lines: arr(ref("ReceiptLine")) }, [
   "idempotencyKey",
 ]);
@@ -485,7 +509,9 @@ extend("ApuDetail", "ApuItem", {
   components: arr(ref("ApuComponent")),
 });
 schemas.ApuDetail.properties.referenceCost = obj({
-  laborCost: nullable(dec), totalUnitCost: nullable(dec), currency: str,
+  laborCost: nullable(dec),
+  totalUnitCost: nullable(dec),
+  currency: str,
   taxBasis: ref("TaxBasis"),
 });
 extend("ComputationDetail", "Computation", {
@@ -788,6 +814,24 @@ add(
   }),
 );
 add(
+  "ExecutivePoint",
+  obj({ key: str, label: str, currency: str, taxBasis: str, amount: dec }),
+);
+add(
+  "ExecutiveSummary",
+  obj({
+    activeWorks: integer,
+    pendingOrders: integer,
+    orderCount: integer,
+    orderStates: arr(obj({ status: str, count: integer })),
+    purchasesByMonth: arr(ref("ExecutivePoint")),
+    purchasesBySupplier: arr(ref("ExecutivePoint")),
+    purchasesByWork: arr(ref("ExecutivePoint")),
+    budgetedByClient: arr(ref("ExecutivePoint")),
+    budgetedByWork: arr(ref("ExecutivePoint")),
+  }),
+);
+add(
   "ClientIndicatorRow",
   obj({
     clientId: nullable(id),
@@ -838,6 +882,8 @@ add(
   "PurchasesReport",
   obj({ rows: arr(ref("PurchaseReportRow")), totals: ref("ManagementTotals") }),
 );
+schemas.ClientIndicators.properties.executive = ref("ExecutiveSummary");
+schemas.PurchasesReport.properties.executive = ref("ExecutiveSummary");
 add(
   "VersionMaterials",
   obj({
@@ -983,6 +1029,12 @@ const errors = Object.fromEntries(
     },
   ]),
 );
+schemas.MaterialReport.properties.summary = obj({
+  materials: integer,
+  withoutPlanned: integer,
+  withPendingPurchase: integer,
+  withPendingRequest: integer,
+});
 function operation(
   path: string,
   method: string,
@@ -1333,24 +1385,40 @@ zod("LaborResourceInput", laborResourceSchema);
 zod("LaborResourcePatch", laborResourcePatchSchema);
 zod("CostReviewInput", costReviewSchema);
 zod("CostApplyInput", costApplySchema);
-zod('CompositionReplacement', compositionReplacementSchema);
+zod("CompositionReplacement", compositionReplacementSchema);
 add(
   "ReferenceCostChange",
-  obj({
-    key: str,
-    lineKey: id,
-    kind: { enum: ["MATERIAL", "LABOR", "COMPOSITION"] },
-    index: integer,
-    name: str,
-    previous: nullable(dec),
-    next: dec,
-    sourceId: id,
-    source: nullable(str),
-    dateLabel: nullable(str),
-    datePrecision: str,
-    manual: bool,
-    replacement: ref('CompositionReplacement'),
-  }, ['key', 'lineKey', 'kind', 'index', 'name', 'previous', 'next', 'sourceId', 'source', 'dateLabel', 'datePrecision', 'manual']),
+  obj(
+    {
+      key: str,
+      lineKey: id,
+      kind: { enum: ["MATERIAL", "LABOR", "COMPOSITION"] },
+      index: integer,
+      name: str,
+      previous: nullable(dec),
+      next: dec,
+      sourceId: id,
+      source: nullable(str),
+      dateLabel: nullable(str),
+      datePrecision: str,
+      manual: bool,
+      replacement: ref("CompositionReplacement"),
+    },
+    [
+      "key",
+      "lineKey",
+      "kind",
+      "index",
+      "name",
+      "previous",
+      "next",
+      "sourceId",
+      "source",
+      "dateLabel",
+      "datePrecision",
+      "manual",
+    ],
+  ),
 );
 add(
   "ReferenceCostReview",
@@ -1904,6 +1972,7 @@ operation(
     roles: buyers,
     input: obj(
       {
+        notesPublic: bool,
         notes: { type: "string", maxLength: 4000 },
         lines: {
           type: "array",
@@ -2029,7 +2098,10 @@ operation(
   "get",
   "Historial de movimientos",
   ref("MovementDetail"),
-  { list: true, queries: [q("materialId"), q("workId"), q("locationId")] },
+  {
+    list: true,
+    queries: [q("materialId"), q("workId"), q("locationId"), q("batchId")],
+  },
 );
 operation(
   "/movements",
@@ -2046,6 +2118,155 @@ operation(
   },
 );
 
+add(
+  "SelectionSnapshot",
+  obj({
+    token: id,
+    rows: arr({ type: "object", additionalProperties: true }),
+    total: integer,
+    expiresInSeconds: integer,
+  }),
+);
+add(
+  "MinimumBatchPlan",
+  obj({
+    planHash: id,
+    rows: arr(
+      obj({
+        materialId: id,
+        locationId: id,
+        minimum: nullable(dec),
+        index: integer,
+        material: str,
+        unitId: id,
+        location: str,
+        general: dec,
+        own: nullable(dec),
+        effective: dec,
+        nextEffective: dec,
+        source: { enum: ["LOCATION", "MATERIAL", "NONE"] },
+        change: { enum: ["CREATE", "CHANGE", "UNCHANGED"] },
+      }),
+    ),
+    created: integer,
+    changed: integer,
+    unchanged: integer,
+  }),
+);
+add(
+  "MovementBatchPlan",
+  obj({
+    planHash: id,
+    rows: arr({ type: "object", additionalProperties: true }),
+  }),
+);
+add(
+  "InventoryBatchResult",
+  obj({
+    batchId: id,
+    count: integer,
+    rows: arr({ type: "object", additionalProperties: true }),
+  }),
+);
+operation(
+  "/selections",
+  "post",
+  "Congelar identidades autorizadas del filtro",
+  ref("SelectionSnapshot"),
+  {
+    input: ref("SelectionInput"),
+    roles: operational,
+    description:
+      "Máximo 2.000 registros; actor/consulta/versiones persistidos por 30 minutos. ids limita la página; omitir ids selecciona todo el filtro. previousToken amplía sin cambiar versiones previas. No incorpora registros nuevos automáticamente.",
+  },
+);
+operation(
+  "/selections/export",
+  "post",
+  "Exportar filtro o identidades congeladas",
+  { type: "string", format: "binary" },
+  {
+    input: ref("SelectionExportInput"),
+    roles: operational,
+    raw: true,
+    mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    description:
+      "Sin token exporta todo el filtro autorizado; con token valida identidades/versiones y exclusiones. No sólo la página. Límite explícito 2.000.",
+  },
+);
+for (const [route, schema, plan, roles] of [
+  ["stock-minimum-batches", "MinimumBatchInput", "MinimumBatchPlan", buyers],
+  [
+    "movement-batches",
+    "MovementBatchInput",
+    "MovementBatchPlan",
+    ["GERENCIA", "COMPRAS", "JEFE_OBRA"],
+  ],
+] as const) {
+  operation(
+    "/" + route + "/preview",
+    "post",
+    "Revisar lote sin escribir",
+    ref(plan),
+    { input: ref(schema), roles: [...roles] },
+  );
+  operation(
+    "/" + route,
+    "post",
+    "Confirmar lote atómico revisado",
+    ref("InventoryBatchResult"),
+    {
+      input: ref(schema),
+      roles: [...roles],
+      status: 201,
+      idempotent: true,
+      description:
+        "planHash de preview obligatorio. Revalida permisos, filas y estado dentro de la transacción serializable. Conflicto o fila inválida no deja cambios parciales. Máximos: 200 mínimos / 100 movimientos; duplicados rechazados.",
+    },
+  );
+}
+
+for (const resource of [
+  "clients",
+  "works",
+  "suppliers",
+  "materials",
+  "apu-items",
+  "categories",
+  "units",
+  "locations",
+  "labor-resources",
+  "presentations",
+  "reservations",
+]) {
+  const get = paths["/" + resource]?.get;
+  if (!get) continue;
+  for (const name of ["search", "q", "id"])
+    if (!get.parameters?.some((p: any) => p.name === name))
+      get.parameters.push(q(name));
+  if (
+    resource === "apu-items" &&
+    !get.parameters?.some((p: any) => p.name === "active")
+  )
+    get.parameters.push(q("active", { type: "boolean" }));
+  get.description =
+    (get.description ?? "") +
+    " Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.";
+}
+
+for (const [path, names] of [
+  ["/presentations", ["materialId", "supplierId", "active"]],
+  ["/reservations", ["sourceId", "status"]],
+  ["/reports/clients", ["general"]],
+  ["/reports/purchases", ["general"]],
+] as const) {
+  const get = paths[path]?.get;
+  if (get)
+    for (const name of names)
+      if (!get.parameters.some((p: any) => p.name === name))
+        get.parameters.push(q(name));
+}
+for(const path of ['/clients','/works','/suppliers','/materials','/apu-items','/stock','/stock/alerts','/movements','/audit','/budgets','/requests','/purchase-orders','/prices','/purchase-orders/{id}/receipts']){const get=paths[path]?.get;if(get&&!get.parameters.some((p:any)=>p.name==='ids'))get.parameters.push(q('ids',str,false));}
 const reportQueries = [
   q("workId", id, true),
   q("categoryId"),

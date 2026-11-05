@@ -4593,7 +4593,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -4619,6 +4619,22 @@
           },
           {
             "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
             "in": "query",
             "required": false,
             "schema": {
@@ -7262,6 +7278,14 @@
               "maximum": 100,
               "default": 50
             }
+          },
+          {
+            "name": "general",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7678,6 +7702,14 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50
+            }
+          },
+          {
+            "name": "general",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -8951,7 +8983,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -8993,6 +9025,22 @@
           },
           {
             "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
             "in": "query",
             "required": false,
             "schema": {
@@ -9674,7 +9722,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -9724,6 +9772,22 @@
                 "true",
                 "false"
               ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -10403,7 +10467,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -10425,6 +10489,30 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -11105,7 +11193,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -11127,6 +11215,30 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -11806,7 +11918,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -11856,6 +11968,22 @@
                 "true",
                 "false"
               ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -12535,7 +12663,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -12593,6 +12721,22 @@
                 "true",
                 "false"
               ]
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -13276,7 +13420,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -13302,6 +13446,46 @@
           },
           {
             "name": "materialId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
             "in": "query",
             "required": false,
             "schema": {
@@ -14038,6 +14222,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -14539,7 +14731,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras.",
+        "description": "Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -14561,6 +14753,30 @@
               "minimum": 1,
               "maximum": 100,
               "default": 50
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -15348,6 +15564,14 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15507,7 +15731,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Paginación: page=1; pageSize=25 por defecto (máximo 100).",
+        "description": "Paginación: page=1; pageSize=25 por defecto (máximo 100). Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -15533,6 +15757,46 @@
           },
           {
             "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "ids",
             "in": "query",
             "required": false,
             "schema": {
@@ -16982,6 +17246,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -18419,6 +18691,14 @@
             "schema": {
               "$ref": "#/components/schemas/RequestStatus"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -19550,6 +19830,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -20232,6 +20520,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "notesPublic": {
+                    "type": "boolean"
+                  },
                   "notes": {
                     "type": "string",
                     "maxLength": 4000
@@ -21981,6 +22272,14 @@
               "maximum": 100,
               "default": 50
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22329,6 +22628,14 @@
           },
           {
             "name": "locationId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
             "in": "query",
             "required": false,
             "schema": {
@@ -22742,6 +23049,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -22902,7 +23217,7 @@
           "COMPUTO",
           "JEFE_OBRA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.",
         "parameters": [
           {
             "name": "page",
@@ -22936,6 +23251,46 @@
           },
           {
             "name": "materialId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
             "in": "query",
             "required": false,
             "schema": {
@@ -23671,6 +24026,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "batchId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -24000,6 +24371,1102 @@
                 "materialId": "ejemplo",
                 "quantity": "1",
                 "destinationId": "ubicacion-id"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/selections": {
+      "post": {
+        "operationId": "post__selections",
+        "summary": "Congelar identidades autorizadas del filtro",
+        "tags": [
+          "selections"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO",
+          "JEFE_OBRA"
+        ],
+        "description": "Máximo 2.000 registros; actor/consulta/versiones persistidos por 30 minutos. ids limita la página; omitir ids selecciona todo el filtro. previousToken amplía sin cambiar versiones previas. No incorpora registros nuevos automáticamente.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/SelectionSnapshot"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionInput"
+              },
+              "example": {
+                "resource": "clients"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/selections/export": {
+      "post": {
+        "operationId": "post__selections_export",
+        "summary": "Exportar filtro o identidades congeladas",
+        "tags": [
+          "selections"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "COMPUTO",
+          "JEFE_OBRA"
+        ],
+        "description": "Sin token exporta todo el filtro autorizado; con token valida identidades/versiones y exclusiones. No sólo la página. Límite explícito 2.000.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectionExportInput"
+              },
+              "example": {}
+            }
+          }
+        }
+      }
+    },
+    "/stock-minimum-batches/preview": {
+      "post": {
+        "operationId": "post__stock_minimum_batches_preview",
+        "summary": "Revisar lote sin escribir",
+        "tags": [
+          "stock-minimum-batches"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MinimumBatchPlan"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MinimumBatchInput"
+              },
+              "example": {
+                "rows": [
+                  {
+                    "materialId": "ejemplo",
+                    "locationId": "ejemplo",
+                    "minimum": "1"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stock-minimum-batches": {
+      "post": {
+        "operationId": "post__stock_minimum_batches",
+        "summary": "Confirmar lote atómico revisado",
+        "tags": [
+          "stock-minimum-batches"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS"
+        ],
+        "description": "planHash de preview obligatorio. Revalida permisos, filas y estado dentro de la transacción serializable. Conflicto o fila inválida no deja cambios parciales. Máximos: 200 mínimos / 100 movimientos; duplicados rechazados.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "description": "Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409."
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/InventoryBatchResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MinimumBatchInput"
+              },
+              "example": {
+                "rows": [
+                  {
+                    "materialId": "ejemplo",
+                    "locationId": "ejemplo",
+                    "minimum": "1"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movement-batches/preview": {
+      "post": {
+        "operationId": "post__movement_batches_preview",
+        "summary": "Revisar lote sin escribir",
+        "tags": [
+          "movement-batches"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "JEFE_OBRA"
+        ],
+        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/MovementBatchPlan"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovementBatchInput"
+              },
+              "example": {
+                "header": {
+                  "type": "INITIAL"
+                },
+                "rows": [
+                  {
+                    "materialId": "ejemplo",
+                    "quantity": "1"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/movement-batches": {
+      "post": {
+        "operationId": "post__movement_batches",
+        "summary": "Confirmar lote atómico revisado",
+        "tags": [
+          "movement-batches"
+        ],
+        "x-roles": [
+          "GERENCIA",
+          "COMPRAS",
+          "JEFE_OBRA"
+        ],
+        "description": "planHash de preview obligatorio. Revalida permisos, filas y estado dentro de la transacción serializable. Conflicto o fila inválida no deja cambios parciales. Máximos: 200 mínimos / 100 movimientos; duplicados rechazados.",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "description": "Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409."
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Operación completada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/InventoryBatchResult"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON/entrada inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sesión requerida/vencida o credenciales inválidas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Rol, recurso u Origin prohibido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Método no permitido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de negocio, concurrencia o idempotencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Cuerpo demasiado grande",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validación o integridad fallida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Demasiados intentos de acceso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Error interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Configuración Origin faltante",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MovementBatchInput"
+              },
+              "example": {
+                "header": {
+                  "type": "INITIAL"
+                },
+                "rows": [
+                  {
+                    "materialId": "ejemplo",
+                    "quantity": "1"
+                  }
+                ]
               }
             }
           }
@@ -32058,6 +33525,132 @@
               }
             ]
           },
+          "material": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "unitId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "unit": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "symbol": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name",
+                  "symbol"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "name",
+              "unitId",
+              "unit"
+            ],
+            "additionalProperties": false
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "presentation": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "baseQuantity": {
+                    "type": "string",
+                    "pattern": "^-?\\d+(\\.\\d+)?$",
+                    "description": "Decimal serializado como texto, nunca float."
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "baseQuantity",
+                  "active"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "referenceDate": {
             "anyOf": [
               {
@@ -32989,6 +34582,15 @@
             "type": "string",
             "pattern": "^-?\\d+(\\.\\d+)?$",
             "description": "Decimal serializado como texto, nunca float."
+          },
+          "materialCode": {
+            "type": "string"
+          },
+          "materialName": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
           }
         },
         "required": [
@@ -34337,6 +35939,260 @@
           }
         ]
       },
+      "MinimumBatchInput": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "locationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "minimum": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "materialId",
+                "locationId",
+                "minimum"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 200
+          },
+          "planHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "rows"
+        ],
+        "additionalProperties": false
+      },
+      "MovementBatchInput": {
+        "type": "object",
+        "properties": {
+          "header": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "INITIAL",
+                  "TRANSFER",
+                  "CONSUMPTION",
+                  "RETURN",
+                  "ADJUSTMENT"
+                ]
+              },
+              "sourceId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "destinationId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "workId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "IN",
+                  "OUT"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^(0|[1-9]\\d{0,15})(\\.\\d{1,8})?$"
+                },
+                "categoryId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "reservationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                }
+              },
+              "required": [
+                "materialId",
+                "quantity"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
+          "planHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "header",
+          "rows"
+        ],
+        "additionalProperties": false
+      },
+      "SelectionInput": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "enum": [
+              "clients",
+              "works",
+              "suppliers",
+              "materials",
+              "apu-items",
+              "stock",
+              "stock/alerts",
+              "movements",
+              "audit",
+              "budgets",
+              "requests",
+              "purchase-orders",
+              "receipts",
+              "prices",
+              "order-administration"
+            ]
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "boolean",
+                "number"
+              ]
+            },
+            "default": {}
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "maxItems": 2000
+          },
+          "previousToken": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "expectedTotal": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "resource"
+        ],
+        "additionalProperties": false
+      },
+      "SelectionExportInput": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "maxItems": 2000
+          },
+          "resource": {
+            "type": "string",
+            "enum": [
+              "clients",
+              "works",
+              "suppliers",
+              "materials",
+              "apu-items",
+              "stock",
+              "stock/alerts",
+              "movements",
+              "audit",
+              "budgets",
+              "requests",
+              "purchase-orders",
+              "receipts",
+              "prices",
+              "order-administration"
+            ]
+          },
+          "filters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "boolean",
+                "number"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "ApuInput": {
         "type": "object",
         "properties": {
@@ -35003,6 +36859,9 @@
               "EXCLUDED"
             ]
           },
+          "notesPublic": {
+            "type": "boolean"
+          },
           "notes": {
             "type": "string",
             "maxLength": 4000
@@ -35659,6 +37518,11 @@
           },
           "actorName": {
             "type": "string"
+          },
+          "batchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
           }
         },
         "required": [
@@ -37068,6 +38932,9 @@
                 "type": "null"
               }
             ]
+          },
+          "notesPublic": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -41512,6 +43379,107 @@
               }
             ]
           },
+          "material": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "code": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "unitId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "unit": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "symbol": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name",
+                  "symbol"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "code",
+              "name",
+              "unitId",
+              "unit"
+            ],
+            "additionalProperties": false
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "code",
+                  "name"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "presentation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Presentation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "referenceDate": {
             "anyOf": [
               {
@@ -41533,16 +43501,6 @@
             "enum": [
               "HISTORICAL",
               "REVIEW_REQUIRED"
-            ]
-          },
-          "presentation": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Presentation"
-              },
-              {
-                "type": "null"
-              }
             ]
           }
         },
@@ -41896,6 +43854,111 @@
         ],
         "additionalProperties": false
       },
+      "ExecutivePoint": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "taxBasis": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "description": "Decimal serializado como texto, nunca float."
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "currency",
+          "taxBasis",
+          "amount"
+        ],
+        "additionalProperties": false
+      },
+      "ExecutiveSummary": {
+        "type": "object",
+        "properties": {
+          "activeWorks": {
+            "type": "integer"
+          },
+          "pendingOrders": {
+            "type": "integer"
+          },
+          "orderCount": {
+            "type": "integer"
+          },
+          "orderStates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "status",
+                "count"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "purchasesByMonth": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePoint"
+            }
+          },
+          "purchasesBySupplier": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePoint"
+            }
+          },
+          "purchasesByWork": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePoint"
+            }
+          },
+          "budgetedByClient": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePoint"
+            }
+          },
+          "budgetedByWork": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePoint"
+            }
+          }
+        },
+        "required": [
+          "activeWorks",
+          "pendingOrders",
+          "orderCount",
+          "orderStates",
+          "purchasesByMonth",
+          "purchasesBySupplier",
+          "purchasesByWork",
+          "budgetedByClient",
+          "budgetedByWork"
+        ],
+        "additionalProperties": false
+      },
       "ClientIndicatorRow": {
         "type": "object",
         "properties": {
@@ -42083,6 +44146,9 @@
           },
           "totals": {
             "$ref": "#/components/schemas/ManagementTotals"
+          },
+          "executive": {
+            "$ref": "#/components/schemas/ExecutiveSummary"
           }
         },
         "required": [
@@ -42102,6 +44168,9 @@
           },
           "totals": {
             "$ref": "#/components/schemas/ManagementTotals"
+          },
+          "executive": {
+            "$ref": "#/components/schemas/ExecutiveSummary"
           }
         },
         "required": [
@@ -42899,6 +44968,30 @@
             "items": {
               "$ref": "#/components/schemas/ReportRow"
             }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "materials": {
+                "type": "integer"
+              },
+              "withoutPlanned": {
+                "type": "integer"
+              },
+              "withPendingPurchase": {
+                "type": "integer"
+              },
+              "withPendingRequest": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "materials",
+              "withoutPlanned",
+              "withPendingPurchase",
+              "withPendingRequest"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -45000,6 +47093,212 @@
           "laborMode",
           "labor",
           "materials"
+        ],
+        "additionalProperties": false
+      },
+      "SelectionSnapshot": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "expiresInSeconds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "token",
+          "rows",
+          "total",
+          "expiresInSeconds"
+        ],
+        "additionalProperties": false
+      },
+      "MinimumBatchPlan": {
+        "type": "object",
+        "properties": {
+          "planHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "materialId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "locationId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "minimum": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Decimal serializado como texto, nunca float."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "index": {
+                  "type": "integer"
+                },
+                "material": {
+                  "type": "string"
+                },
+                "unitId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "location": {
+                  "type": "string"
+                },
+                "general": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Decimal serializado como texto, nunca float."
+                },
+                "own": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^-?\\d+(\\.\\d+)?$",
+                      "description": "Decimal serializado como texto, nunca float."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "effective": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Decimal serializado como texto, nunca float."
+                },
+                "nextEffective": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Decimal serializado como texto, nunca float."
+                },
+                "source": {
+                  "enum": [
+                    "LOCATION",
+                    "MATERIAL",
+                    "NONE"
+                  ]
+                },
+                "change": {
+                  "enum": [
+                    "CREATE",
+                    "CHANGE",
+                    "UNCHANGED"
+                  ]
+                }
+              },
+              "required": [
+                "materialId",
+                "locationId",
+                "minimum",
+                "index",
+                "material",
+                "unitId",
+                "location",
+                "general",
+                "own",
+                "effective",
+                "nextEffective",
+                "source",
+                "change"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "created": {
+            "type": "integer"
+          },
+          "changed": {
+            "type": "integer"
+          },
+          "unchanged": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "planHash",
+          "rows",
+          "created",
+          "changed",
+          "unchanged"
+        ],
+        "additionalProperties": false
+      },
+      "MovementBatchPlan": {
+        "type": "object",
+        "properties": {
+          "planHash": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [
+          "planHash",
+          "rows"
+        ],
+        "additionalProperties": false
+      },
+      "InventoryBatchResult": {
+        "type": "object",
+        "properties": {
+          "batchId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "count": {
+            "type": "integer"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          }
+        },
+        "required": [
+          "batchId",
+          "count",
+          "rows"
         ],
         "additionalProperties": false
       },

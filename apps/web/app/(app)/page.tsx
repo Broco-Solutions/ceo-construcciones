@@ -150,7 +150,7 @@ function Home() {
   }[];
 
   return (
-    <Page title={`Hola, ${user?.name.split(' ')[0] ?? ''}`} crumb="Inicio">
+    <Page title={`Hola, ${user?.name.split(' ')[0] ?? ''}`} crumb="Inicio" actions={<>{can('readEconomic')&&<Link href="/indicadores" className="btn sec">Visión ejecutiva</Link>}{can('reports')&&<Link href="/reportes" className="btn sec">Seguimiento físico</Link>}</>}>
       {jefe && (
         <div className="formgrid">
           {acts.map((a) => (

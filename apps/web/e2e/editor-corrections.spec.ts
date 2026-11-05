@@ -1,3 +1,4 @@
+import { chooseOption } from './helpers';
 import { test, expect, type Page } from '@playwright/test';
 import {
   apiAs,
@@ -126,7 +127,7 @@ test('H03: cancelar cambio de valoración no altera costos', async ({
   await page
     .getByRole('tab', { name: 'Presentación y PDF', exact: true })
     .click();
-  await page.getByLabel('Moneda', { exact: true }).selectOption('USD');
+  await chooseOption(page.getByLabel('Moneda', { exact: true }), 'USD');
   const dialog = page.getByRole('dialog', { name: 'Cambiar moneda o IVA' });
   await expect(dialog).toBeVisible({ timeout: 3000 });
   await dialog
@@ -414,7 +415,7 @@ test('H03: cambio confirmado se revisa y puede restaurar el borrador completo', 
   await page
     .getByLabel('Cantidad · Actividad de revisión', { exact: true })
     .fill('2');
-  await page.getByLabel('Moneda', { exact: true }).selectOption('USD');
+  await chooseOption(page.getByLabel('Moneda', { exact: true }), 'USD');
   await page
     .getByRole('button', { name: 'Cambiar y revisar costos', exact: true })
     .click();
@@ -508,9 +509,8 @@ test('H04/H05: catálogo, equivalencias, precio manual y teclado en una sola cap
     })
     .click();
   await expect(page.getByRole('dialog')).toHaveCount(1);
-  await page
-    .getByLabel('Proveedor 1', { exact: true })
-    .selectOption(supplier.id);
+  await chooseOption(page
+    .getByLabel('Proveedor 1', { exact: true }), supplier.id);
   await page
     .getByRole('button', { name: 'Usar este precio', exact: true })
     .click();

@@ -16,7 +16,7 @@ Base remota revalidada `121264563b73f141e118a2a9f8093c727cc907b8`; rama `codex/c
 
 ## Registro histórico del cierre inicial — PR8, 03/11/2026
 
-El plan rector es [CEO_PLAN_MAESTRO_CODEX.md](../CEO_PLAN_MAESTRO_CODEX.md). Codex tiene autorización full stack, incluidos frontend, contratos y migraciones de aplicación. Las asignaciones exclusivas a Claude y restricciones funcionales de los registros de octubre que siguen son antecedentes históricos, superados por las decisiones del plan para esta misión.
+El plan rector es [CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md](../CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md). Codex tiene autorización full stack, incluidos frontend, contratos y migraciones de aplicación. Las asignaciones exclusivas a Claude y restricciones funcionales de los registros de octubre que siguen son antecedentes históricos, superados por las decisiones del plan para esta misión.
 
 Estado verificable y resultados por hito: [ESTADO-CIERRE-ETAPA-1.md](ESTADO-CIERRE-ETAPA-1.md). Matriz requisito → código → prueba → evidencia: [REQUISITOS-ETAPA-1-CIERRE.md](REQUISITOS-ETAPA-1-CIERRE.md). Continúa en la rama `codex/cierre-etapa1-20261102-234511-12781`; main base `a9a075dc159c8c59d075aa5894534e3dbaae961e`. F1–F8 implementadas y verificadas: API163 + runtime3, web47, E2E53; BASE/DG reales y compatibilidad binaria/navegador V1→ampliada aprobadas. F9 en [PR #8](https://github.com/Broco-Solutions/ceo-construcciones/pull/8); consultar checks, estado de merge y SHA final en ese registro. Habilitación productiva pendiente de migración de aplicación autorizada; infraestructura sin modificaciones.
 
@@ -48,7 +48,7 @@ Rama `claude/ux-notificaciones-unidades` desde `main`, con PR propio sin merge. 
 ## Referencias de continuidad
 
 - [PRD Etapa 1 v1.0](PRD-ETAPA-1.md), sujeto a contrato/Anexo I y validaciones CEO pendientes.
-- [Plan y decisiones de misión](PLAN-BACKEND-V1.md).
+- [Decisiones funcionales](DECISIONES-CIERRE.md).
 - [Modelo de datos e importaciones](MODELO-DATOS.md).
 - [OpenAPI 3.1](api/openapi.json) y [guía para Claude Code](INTEGRACION-CLAUDE-CODE.md).
 - [Operación, inicialización y pasos productivos](OPERACION-BACKEND.md).
@@ -145,3 +145,21 @@ Validación del candidato: `CEO_Verificar_Local.sh api` **195 pruebas + 3 runtim
 ## Accesos DEMO por identidad y mínimo autorizado — 05/11/2026
 
 Por decisión expresa posterior del usuario, el mínimo general pasa a 8 caracteres (máximo 128), sincronizado entre hash, administración, contrato y formulario. El auxiliar de cuentas usa IDs/auditoría para reconocer las identidades PR17 renombradas y rechaza recrearlas a partir de un paquete anterior. No hay claves en Git ni cambios de login, permisos, infraestructura, DNS, migraciones o carga de catálogos. La rotación puntual y los cinco accesos públicos se registran sin secretos en el cierre del PR y en `online/access-change/` privado; [guía](DEMO-ONLINE.md).
+
+## Cuenta permanente Broco verificada — 05/11/2026
+
+Se reutilizó `admin@brocosolutions.com` (GERENCIA activa), conservando ID, clave e historial; sólo se ajustó el nombre a Broco Solutions — Administración mediante PATCH auditado. Acceso/logout reales y todos los módulos/tres obras verificados; los cinco DEMO conservan claves, roles y asignaciones. Huellas de 43 tablas de negocio, PDFs, usuarios/sesiones ajenos y archivos de credenciales DEMO/locales sin cambios. Archivo privado separado `online/credenciales-broco-admin.json`. Preservación permanente y exclusión de limpiezas DEMO documentadas en [guía online](DEMO-ONLINE.md). Tarea de datos: sin cambios de código, migraciones, cargas, semillas, infraestructura, PR o redespliegue.
+
+### UX transversal — implementación en curso
+
+Rama `codex/ux-transversal-etapa-1`, base `2859bff`: combobox/búsqueda, selección/exportación, lotes de mínimos/movimientos, PDF V2 con V1 preservada e informes en desarrollo y pruebas incrementales. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`; evidencia en `docs/UX-TRANSVERSAL-ETAPA-1.md`. No integrado ni desplegado todavía; sin cambios de infraestructura, usuarios o datos online. Limpieza documental prevista al cierre, en commit separado.
+
+### UX transversal — hito de verificación local (05/11/2026)
+
+Rama `codex/ux-transversal-etapa-1`, main remoto revalidado en `2859bff`. Implementados combobox compartido, filtros, selección congelada/exportación, mínimos y movimientos atómicos, PDF V2 con V1 conservada e informes. Verificador API final: **211 pruebas + 3 runtime**, tipos/build y salida 0, log privado `ux-transversal/final-api.log`. Web unitarias 60 y E2E focalizado 10/10 aprobados, incluidos 115 clientes en tres páginas, mínimos sin saldo/conflicto, transferencia/reserva/doble clic y actividades múltiples sin alterar líneas previas. Hubo fallas reales de interacción (foco, respuesta visual del checkbox y reset tardío de paginación del combobox), corregidas con regresiones; los verificadores completos web/E2E y la revisión visual final siguen pendientes. Aún sin PR, merge ni despliegue de este incremento. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`; matriz y excepciones en `docs/UX-TRANSVERSAL-ETAPA-1.md`. Sin migraciones ni operaciones online en este hito.
+
+### Candidato PR19 y limpieza documental
+
+[PR19](https://github.com/Broco-Solutions/ceo-construcciones/pull/19), aplicación `6b30db6` y corrección de selector de prueba `2fbc5db`. API V1 de GitHub pasó (base nueva); local integral E2E: 78 aprobados y un selector ambiguo por sugerencia/fila, corregido sin reducir assertions; el archivo afectado pasa 7/7. Validación integral final del candidato en CI, aún sin declarar merge/despliegue. Revisión renderizada 1440/1280/768/390/360 sin errores JS ni desborde; PDF sintéticos de 29 y 12 páginas renderizados e inspeccionados, V1 golden preservada.
+
+Limpieza acotada: reglas funcionales a DECISIONES-CIERRE, T01–T54 a ACEPTACION, convenciones API a su README y preparación a la guía manual. Se retiraron seis planes/prompts superados, conservando Git y documentos específicos. README índice y AGENTS actualizados; único plan activo `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. Dos metadatos Windows locales retirados con copia recuperable fuera del árbol; logo aportado y todos los datos/credenciales/fuentes/pruebas/migraciones conservados.

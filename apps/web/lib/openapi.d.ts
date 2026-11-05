@@ -449,7 +449,7 @@ export interface paths {
         };
         /**
          * Consultar conceptos y referencias de mano de obra
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__labor_resources"];
         put?: never;
@@ -813,7 +813,7 @@ export interface paths {
         };
         /**
          * Listar works
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__works"];
         put?: never;
@@ -861,7 +861,7 @@ export interface paths {
         };
         /**
          * Listar clients
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__clients"];
         put?: never;
@@ -909,7 +909,7 @@ export interface paths {
         };
         /**
          * Listar units
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__units"];
         put?: never;
@@ -957,7 +957,7 @@ export interface paths {
         };
         /**
          * Listar categories
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__categories"];
         put?: never;
@@ -1005,7 +1005,7 @@ export interface paths {
         };
         /**
          * Listar suppliers
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__suppliers"];
         put?: never;
@@ -1053,7 +1053,7 @@ export interface paths {
         };
         /**
          * Listar materials
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__materials"];
         put?: never;
@@ -1101,7 +1101,7 @@ export interface paths {
         };
         /**
          * Listar presentations
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__presentations"];
         put?: never;
@@ -1193,7 +1193,7 @@ export interface paths {
         };
         /**
          * Listar ubicaciones
-         * @description Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras.
+         * @description Jefe recibe obras asignadas y metadatos mínimos id/code/name/kind/active de galpones/patios activos para devolver. No habilita stock global ni otras obras. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__locations"];
         put?: never;
@@ -1261,7 +1261,7 @@ export interface paths {
         };
         /**
          * Listar apu-items
-         * @description Paginación: page=1; pageSize=25 por defecto (máximo 100).
+         * @description Paginación: page=1; pageSize=25 por defecto (máximo 100). Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__apu_items"];
         put?: never;
@@ -1901,7 +1901,7 @@ export interface paths {
         };
         /**
          * Listar reservas
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos. Búsqueda por tokens normalizados (tildes/caso/espacios) antes de paginar. id restringe a una sugerencia explícita; nunca amplía autorización.
          */
         get: operations["get__reservations"];
         put?: never;
@@ -1974,6 +1974,126 @@ export interface paths {
          * @description INITIAL/ADJUSTMENT: GERENCIA; TRANSFER: GERENCIA/COMPRAS; CONSUMPTION/RETURN: también JEFE_OBRA en sus obras. INITIAL sólo apertura material/ubicación sin movimientos previos; ajustes requieren reason y direction. Transferencia puede satisfacer reserva parcial. CONSUMPTION exige sourceId de obra; RETURN de obra a galpón/patio; workId si informado debe coincidir.
          */
         post: operations["post__movements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Congelar identidades autorizadas del filtro
+         * @description Máximo 2.000 registros; actor/consulta/versiones persistidos por 30 minutos. ids limita la página; omitir ids selecciona todo el filtro. previousToken amplía sin cambiar versiones previas. No incorpora registros nuevos automáticamente.
+         */
+        post: operations["post__selections"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/selections/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exportar filtro o identidades congeladas
+         * @description Sin token exporta todo el filtro autorizado; con token valida identidades/versiones y exclusiones. No sólo la página. Límite explícito 2.000.
+         */
+        post: operations["post__selections_export"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stock-minimum-batches/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revisar lote sin escribir
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         */
+        post: operations["post__stock_minimum_batches_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stock-minimum-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar lote atómico revisado
+         * @description planHash de preview obligatorio. Revalida permisos, filas y estado dentro de la transacción serializable. Conflicto o fila inválida no deja cambios parciales. Máximos: 200 mínimos / 100 movimientos; duplicados rechazados.
+         */
+        post: operations["post__stock_minimum_batches"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/movement-batches/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revisar lote sin escribir
+         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         */
+        post: operations["post__movement_batches_preview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/movement-batches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar lote atómico revisado
+         * @description planHash de preview obligatorio. Revalida permisos, filas y estado dentro de la transacción serializable. Conflicto o fila inválida no deja cambios parciales. Máximos: 200 mínimos / 100 movimientos; duplicados rechazados.
+         */
+        post: operations["post__movement_batches"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2764,6 +2884,30 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             source: string | null;
+            material?: {
+                id: string;
+                code: string;
+                name: string;
+                unitId: string;
+                unit: {
+                    id: string;
+                    code: string;
+                    name: string;
+                    symbol: string | null;
+                };
+            };
+            supplier?: {
+                id: string;
+                code: string;
+                name: string;
+            } | null;
+            presentation?: {
+                id: string;
+                name: string;
+                /** @description Decimal serializado como texto, nunca float. */
+                baseQuantity: string;
+                active: boolean;
+            } | null;
             referenceDate?: string | null;
             /** @enum {unknown} */
             referenceDatePrecision?: "DAY" | "MONTH" | "UNKNOWN";
@@ -2970,6 +3114,9 @@ export interface components {
             orderLineId: string;
             /** @description Decimal serializado como texto, nunca float. */
             quantity: string;
+            materialCode?: string;
+            materialName?: string;
+            unit?: string;
         };
         StockBalance: {
             id: string;
@@ -3227,6 +3374,53 @@ export interface components {
             /** @constant */
             direction?: "OUT";
         })));
+        MinimumBatchInput: {
+            rows: {
+                materialId: string;
+                locationId: string;
+                minimum: string | null;
+            }[];
+            planHash?: string;
+        };
+        MovementBatchInput: {
+            header: {
+                /** @enum {string} */
+                type: "INITIAL" | "TRANSFER" | "CONSUMPTION" | "RETURN" | "ADJUSTMENT";
+                sourceId?: string;
+                destinationId?: string;
+                workId?: string;
+                reason?: string;
+                /** @enum {string} */
+                direction?: "IN" | "OUT";
+            };
+            rows: {
+                materialId: string;
+                quantity: string;
+                categoryId?: string;
+                reservationId?: string;
+            }[];
+            planHash?: string;
+        };
+        SelectionInput: {
+            /** @enum {string} */
+            resource: "clients" | "works" | "suppliers" | "materials" | "apu-items" | "stock" | "stock/alerts" | "movements" | "audit" | "budgets" | "requests" | "purchase-orders" | "receipts" | "prices" | "order-administration";
+            /** @default {} */
+            filters: {
+                [key: string]: string | boolean | number;
+            };
+            ids?: string[];
+            previousToken?: string;
+            expectedTotal?: number;
+        };
+        SelectionExportInput: {
+            token?: string;
+            ids?: string[];
+            /** @enum {string} */
+            resource?: "clients" | "works" | "suppliers" | "materials" | "apu-items" | "stock" | "stock/alerts" | "movements" | "audit" | "budgets" | "requests" | "purchase-orders" | "receipts" | "prices" | "order-administration";
+            filters?: {
+                [key: string]: string | boolean | number;
+            };
+        };
         ApuInput: {
             code?: string | null;
             name: string;
@@ -3352,6 +3546,7 @@ export interface components {
             currency: string;
             /** @enum {string} */
             taxBasis: "UNSPECIFIED" | "INCLUDED" | "EXCLUDED";
+            notesPublic?: boolean;
             notes?: string;
             lines: {
                 materialId: string;
@@ -3466,6 +3661,7 @@ export interface components {
             source: components["schemas"]["LocationSummary"] | null;
             destination: components["schemas"]["LocationSummary"] | null;
             actorName: string;
+            batchId?: string;
         };
         /** @description Nuevas intenciones devuelven MovementDetail. Replay de claves guardadas con el contrato anterior puede devolver StockMovement sin metadatos; GET /movements los incluye sin repetir la operación. */
         MovementWriteResult: components["schemas"]["MovementDetail"] | components["schemas"]["StockMovement"];
@@ -3735,6 +3931,7 @@ export interface components {
             invoiceLoadedByName: string | null;
             totalAmount: string | null;
             amountWarning: "ROUNDING_POLICY_REQUIRED" | null;
+            notesPublic?: boolean;
         };
         LegacyOrderDetail: {
             id: string;
@@ -4648,12 +4845,29 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             source: string | null;
+            material?: {
+                id: string;
+                code: string;
+                name: string;
+                unitId: string;
+                unit: {
+                    id: string;
+                    code: string;
+                    name: string;
+                    symbol: string | null;
+                };
+            };
+            supplier?: {
+                id: string;
+                code: string;
+                name: string;
+            } | null;
+            presentation: components["schemas"]["Presentation"] | null;
             referenceDate?: string | null;
             /** @enum {unknown} */
             referenceDatePrecision?: "DAY" | "MONTH" | "UNKNOWN";
             /** @enum {unknown} */
             referenceState?: "HISTORICAL" | "REVIEW_REQUIRED";
-            presentation: components["schemas"]["Presentation"] | null;
         };
         PriceComparison: {
             material: {
@@ -4716,6 +4930,28 @@ export interface components {
             budgeted: components["schemas"]["MoneyGroup"][];
             unvaluedPurchases: number;
         };
+        ExecutivePoint: {
+            key: string;
+            label: string;
+            currency: string;
+            taxBasis: string;
+            /** @description Decimal serializado como texto, nunca float. */
+            amount: string;
+        };
+        ExecutiveSummary: {
+            activeWorks: number;
+            pendingOrders: number;
+            orderCount: number;
+            orderStates: {
+                status: string;
+                count: number;
+            }[];
+            purchasesByMonth: components["schemas"]["ExecutivePoint"][];
+            purchasesBySupplier: components["schemas"]["ExecutivePoint"][];
+            purchasesByWork: components["schemas"]["ExecutivePoint"][];
+            budgetedByClient: components["schemas"]["ExecutivePoint"][];
+            budgetedByWork: components["schemas"]["ExecutivePoint"][];
+        };
         ClientIndicatorRow: {
             clientId: string | null;
             name: string;
@@ -4754,10 +4990,12 @@ export interface components {
         ClientIndicators: {
             rows: components["schemas"]["ClientIndicatorRow"][];
             totals: components["schemas"]["ManagementTotals"];
+            executive?: components["schemas"]["ExecutiveSummary"];
         };
         PurchasesReport: {
             rows: components["schemas"]["PurchaseReportRow"][];
             totals: components["schemas"]["ManagementTotals"];
+            executive?: components["schemas"]["ExecutiveSummary"];
         };
         VersionMaterials: {
             versionId: string;
@@ -4906,6 +5144,12 @@ export interface components {
                 categoryAttribution: string;
             };
             rows: components["schemas"]["ReportRow"][];
+            summary?: {
+                materials: number;
+                withoutPlanned: number;
+                withPendingPurchase: number;
+                withPendingRequest: number;
+            };
         };
         UserInput: {
             /** Format: email */
@@ -5291,6 +5535,53 @@ export interface components {
                 detail: string;
                 evidence: string;
             };
+        };
+        SelectionSnapshot: {
+            token: string;
+            rows: {
+                [key: string]: unknown;
+            }[];
+            total: number;
+            expiresInSeconds: number;
+        };
+        MinimumBatchPlan: {
+            planHash: string;
+            rows: {
+                materialId: string;
+                locationId: string;
+                minimum: string | null;
+                index: number;
+                material: string;
+                unitId: string;
+                location: string;
+                /** @description Decimal serializado como texto, nunca float. */
+                general: string;
+                own: string | null;
+                /** @description Decimal serializado como texto, nunca float. */
+                effective: string;
+                /** @description Decimal serializado como texto, nunca float. */
+                nextEffective: string;
+                /** @enum {unknown} */
+                source: "LOCATION" | "MATERIAL" | "NONE";
+                /** @enum {unknown} */
+                change: "CREATE" | "CHANGE" | "UNCHANGED";
+            }[];
+            created: number;
+            changed: number;
+            unchanged: number;
+        };
+        MovementBatchPlan: {
+            planHash: string;
+            rows: {
+                [key: string]: unknown;
+            }[];
+        };
+        InventoryBatchResult: {
+            batchId: string;
+            count: number;
+            rows: {
+                [key: string]: unknown;
+            }[];
         };
         Import_clients_Row: {
             externalCode: string;
@@ -8680,6 +8971,8 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 q?: string;
+                search?: string;
+                id?: string;
             };
             header?: never;
             path?: never;
@@ -10522,6 +10815,7 @@ export interface operations {
                 status?: string;
                 page?: number;
                 pageSize?: number;
+                general?: string;
             };
             header?: never;
             path?: never;
@@ -10779,6 +11073,7 @@ export interface operations {
                 status?: string;
                 page?: number;
                 pageSize?: number;
+                general?: string;
             };
             header?: never;
             path?: never;
@@ -11685,6 +11980,8 @@ export interface operations {
                 status?: components["schemas"]["WorkStatus"];
                 q?: string;
                 search?: string;
+                id?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -12199,6 +12496,8 @@ export interface operations {
                 search?: string;
                 q?: string;
                 active?: "true" | "false";
+                id?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -12710,6 +13009,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                search?: string;
+                q?: string;
+                id?: string;
             };
             header?: never;
             path?: never;
@@ -13221,6 +13523,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                search?: string;
+                q?: string;
+                id?: string;
             };
             header?: never;
             path?: never;
@@ -13735,6 +14040,8 @@ export interface operations {
                 search?: string;
                 q?: string;
                 active?: "true" | "false";
+                id?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -14250,6 +14557,8 @@ export interface operations {
                 q?: string;
                 categoryId?: string;
                 active?: "true" | "false";
+                id?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -14763,6 +15072,11 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 materialId?: string;
+                search?: string;
+                q?: string;
+                id?: string;
+                supplierId?: string;
+                active?: string;
             };
             header?: never;
             path?: never;
@@ -15281,6 +15595,7 @@ export interface operations {
                 pageSize?: number;
                 materialId?: string;
                 supplierId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -15664,6 +15979,9 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                search?: string;
+                q?: string;
+                id?: string;
             };
             header?: never;
             path?: never;
@@ -16192,6 +16510,7 @@ export interface operations {
                 action?: string;
                 from?: string;
                 to?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -16318,6 +16637,11 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 categoryId?: string;
+                search?: string;
+                q?: string;
+                id?: string;
+                active?: boolean;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -17370,6 +17694,7 @@ export interface operations {
                 page?: number;
                 pageSize?: number;
                 workId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -18404,6 +18729,7 @@ export interface operations {
                 workId?: string;
                 categoryId?: string;
                 status?: components["schemas"]["RequestStatus"];
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -19189,6 +19515,7 @@ export interface operations {
                 requestId?: string;
                 quotationId?: string;
                 destinationId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -19592,6 +19919,7 @@ export interface operations {
             content: {
                 /** @example {} */
                 "application/json": {
+                    notesPublic?: boolean;
                     notes?: string;
                     lines?: components["schemas"]["CommercialLineInput"][];
                 };
@@ -20748,6 +21076,7 @@ export interface operations {
             query?: {
                 page?: number;
                 pageSize?: number;
+                ids?: string;
             };
             header?: never;
             path: {
@@ -21140,6 +21469,7 @@ export interface operations {
                 pageSize?: number;
                 materialId?: string;
                 locationId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -21404,6 +21734,7 @@ export interface operations {
                 pageSize?: number;
                 materialId?: string;
                 locationId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -21531,6 +21862,11 @@ export interface operations {
                 pageSize?: number;
                 workId?: string;
                 materialId?: string;
+                search?: string;
+                q?: string;
+                id?: string;
+                sourceId?: string;
+                status?: string;
             };
             header?: never;
             path?: never;
@@ -22044,6 +22380,8 @@ export interface operations {
                 materialId?: string;
                 workId?: string;
                 locationId?: string;
+                batchId?: string;
+                ids?: string;
             };
             header?: never;
             path?: never;
@@ -22196,6 +22534,820 @@ export interface operations {
                 content: {
                     "application/json": {
                         data: components["schemas"]["MovementWriteResult"];
+                    };
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__selections: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "resource": "clients"
+                 *     } */
+                "application/json": components["schemas"]["SelectionInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["SelectionSnapshot"];
+                    };
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__selections_export: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {} */
+                "application/json": components["schemas"]["SelectionExportInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__stock_minimum_batches_preview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "rows": [
+                 *         {
+                 *           "materialId": "ejemplo",
+                 *           "locationId": "ejemplo",
+                 *           "minimum": "1"
+                 *         }
+                 *       ]
+                 *     } */
+                "application/json": components["schemas"]["MinimumBatchInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MinimumBatchPlan"];
+                    };
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__stock_minimum_batches: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409. */
+                "Idempotency-Key": string;
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "rows": [
+                 *         {
+                 *           "materialId": "ejemplo",
+                 *           "locationId": "ejemplo",
+                 *           "minimum": "1"
+                 *         }
+                 *       ]
+                 *     } */
+                "application/json": components["schemas"]["MinimumBatchInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InventoryBatchResult"];
+                    };
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__movement_batches_preview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "header": {
+                 *         "type": "INITIAL"
+                 *       },
+                 *       "rows": [
+                 *         {
+                 *           "materialId": "ejemplo",
+                 *           "quantity": "1"
+                 *         }
+                 *       ]
+                 *     } */
+                "application/json": components["schemas"]["MovementBatchInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["MovementBatchPlan"];
+                    };
+                };
+            };
+            /** @description JSON/entrada inválida */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sesión requerida/vencida o credenciales inválidas */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Rol, recurso u Origin prohibido */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Recurso inexistente */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Método no permitido */
+            405: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Conflicto de negocio, concurrencia o idempotencia */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Cuerpo demasiado grande */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Validación o integridad fallida */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiados intentos de acceso */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Error interno */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Configuración Origin faltante */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    post__movement_batches: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Clave única por actor, alcance y evento. Repetir mismo cuerpo devuelve el resultado original; otro cuerpo produce 409. */
+                "Idempotency-Key": string;
+                /** @description Origen público exacto APP_ORIGIN; el proxy debe preservarlo. No usar cookies de terceros. */
+                Origin: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "header": {
+                 *         "type": "INITIAL"
+                 *       },
+                 *       "rows": [
+                 *         {
+                 *           "materialId": "ejemplo",
+                 *           "quantity": "1"
+                 *         }
+                 *       ]
+                 *     } */
+                "application/json": components["schemas"]["MovementBatchInput"];
+            };
+        };
+        responses: {
+            /** @description Operación completada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["InventoryBatchResult"];
                     };
                 };
             };

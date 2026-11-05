@@ -63,7 +63,7 @@ function Cotizaciones() {
       <LookupGate lk={lk}>
         <Card title="Pedidos que necesitan compra">
           <div className="filters">
-            <SelectField label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
+            <SelectField entity="works" label="Obra" value={workId} onChange={(e) => setWorkId(e.target.value)} placeholder="Todas" options={lk.works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />
           </div>
         </Card>
         {NEEDS_PURCHASE.map((g) => (

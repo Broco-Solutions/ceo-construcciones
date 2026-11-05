@@ -315,11 +315,11 @@ function CostingForm({
               return (
                 <div className="formgrid" key={index}>
                   <SelectField
-                    label="Concepto de mano de obra"
+                    searchable label="Concepto de mano de obra"
                     value={l.resourceId}
                     placeholder="Elegir concepto"
                     options={resources.rows
-                      .filter((r) => r.active)
+                      .filter((r) => r.active || r.id===l.resourceId)
                       .map((r) => ({
                         value: r.id,
                         label: `${r.name} · ${r.unit}`,

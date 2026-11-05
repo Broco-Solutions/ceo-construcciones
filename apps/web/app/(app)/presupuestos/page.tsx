@@ -54,7 +54,7 @@ function BudgetList() {
         actions={
           <div className="filters">
             <SelectField
-              label="Obra"
+              entity="works" label="Obra"
               value={workId}
               placeholder="Todas"
               options={works.rows.map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))}
@@ -69,7 +69,7 @@ function BudgetList() {
           <ErrorBox error={list.error} onRetry={list.reload} />
         ) : (
           <>
-            <DataTable
+            <DataTable collection={{resource:"budgets",filters:{workId:workId||undefined},total:list.pagination?.total,reload:list.reload}}
               rows={list.rows}
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/presupuestos/${r.id}`)}

@@ -1,5 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useAppRouter } from '@/lib/navigation';
+import { BarChart } from '@/components/reportes/BarChart';
+
 import Link from 'next/link';
 import { Page, RequirePerm } from '@/components/shell';
 import {
@@ -21,10 +25,11 @@ export default function Indicators() {
   const { can } = useSession();
   return (
     <RequirePerm ok={can('readEconomic')}>
-      <Reports />
+      <Suspense fallback={<Loading/>}><Reports /></Suspense>
     </RequirePerm>
   );
 }
+const taxLabel=(tax:string)=>({EXCLUDED:'IVA no incluido',INCLUDED:'IVA incluido',UNSPECIFIED:'IVA no especificado'}[tax]??tax);
 const groups = (values: Schemas['MoneyGroup'][]) =>
   values.length ? (
     values.map((g) => (
@@ -45,32 +50,14 @@ const groups = (values: Schemas['MoneyGroup'][]) =>
     <span className="small muted">Sin importe comercial disponible</span>
   );
 function Reports() {
-  const { user } = useSession(),
-    [kind, setKind] = useState<'clients' | 'purchases'>(
-      user?.role === 'GERENCIA' ? 'clients' : 'purchases',
-    ),
-    [clientId, setClient] = useState(''),
-    [workId, setWork] = useState(''),
-    [supplierId, setSupplier] = useState(''),
-    [from, setFrom] = useState(''),
-    [to, setTo] = useState(''),
-    [status, setStatus] = useState(''),
-    [page, setPage] = useState(1),
-    [downloadError, setDownloadError] = useState<unknown>();
-  const clients = useAll<Schemas['Client']>('/clients'),
-    works = useAll<Schemas['WorkList']>(
-      '/works',
-      clientId ? { clientId } : undefined,
-    ),
-    suppliers = useAll<Schemas['Supplier']>('/suppliers');
-  const filters = {
-    clientId: clientId || undefined,
-    workId: workId || undefined,
-    supplierId: supplierId || undefined,
-    from: from || undefined,
-    to: to || undefined,
-    status: status || undefined,
-  };
+  const {user}=useSession(),router=useAppRouter(),sp=useSearchParams();
+  const kind=sp.get('kind')==='purchases'||user?.role!=='GERENCIA'?'purchases':'clients';
+  const clientId=sp.get('clientId')??'',workId=sp.get('workId')??'',supplierId=sp.get('supplierId')??'',from=sp.get('from')??'',to=sp.get('to')??'',status=sp.get('status')??'',general=sp.get('general')??'';
+  const [page,setPage]=useState(1),[downloadError,setDownloadError]=useState<unknown>();
+  const clients={rows:[] as Schemas['Client'][],error:null},works={rows:[] as Schemas['WorkList'][],error:null},suppliers={rows:[] as Schemas['Supplier'][],error:null};
+  const filters={general:general||undefined,clientId:clientId||undefined,workId:workId||undefined,supplierId:supplierId||undefined,from:from||undefined,to:to||undefined,status:status||undefined};
+  function update(patch:Record<string,string>){const next=new URLSearchParams(sp.toString());for(const [key,value] of Object.entries(patch))value?next.set(key,value):next.delete(key);setPage(1);router.replace('/indicadores'+(next.size?'?'+next.toString():''));}
+  const setKind=(kind:string)=>update({kind}),setClient=(clientId:string)=>update({clientId,workId:'',general:''}),setWork=(workId:string)=>update({workId,general:''}),setSupplier=(supplierId:string)=>update({supplierId}),setFrom=(from:string)=>update({from}),setTo=(to:string)=>update({to}),setStatus=(status:string)=>update({status});
   const q = useApi<{
     data: Schemas['ClientIndicators'] | Schemas['PurchasesReport'];
     pagination: Schemas['Pagination'];
@@ -82,6 +69,7 @@ function Reports() {
   return (
     <Page
       title="Clientes, obras y compras"
+      crumb={<Link href="/reportes">Seguimiento físico y stock</Link>}
       actions={
         <Button
           variant="sec"
@@ -102,6 +90,7 @@ function Reports() {
       }
     >
       <Card>
+        <Button size="sm" variant="ghost" onClick={()=>router.replace('/indicadores')}>Restablecer filtros</Button>
         <div className="formgrid">
           <SelectField
             label="Informe"
@@ -117,26 +106,25 @@ function Reports() {
             }
           />
           <SelectField
-            label="Cliente"
+            entity="clients" label="Cliente"
             value={clientId}
             placeholder="Todos"
             options={clients.rows.map((c) => ({ value: c.id, label: c.name }))}
             onChange={(e) =>
               change(() => {
                 setClient(e.target.value);
-                setWork('');
               })
             }
           />
           <SelectField
-            label="Obra"
+            entity="works" entityQuery={{clientId:clientId||undefined}} label="Obra"
             value={workId}
             placeholder="Todas / compras generales"
             options={works.rows.map((w) => ({ value: w.id, label: w.name }))}
             onChange={(e) => change(() => setWork(e.target.value))}
           />
           <SelectField
-            label="Proveedor"
+            entity="suppliers" label="Proveedor"
             value={supplierId}
             placeholder="Todos"
             options={suppliers.rows.map((s) => ({
@@ -181,29 +169,16 @@ function Reports() {
           />
         </div>
       </Card>
-      <Card title="Totales del filtro completo">
-        {!!q.data?.data.totals.unvaluedPurchases && (
-          <p className="note">
-            {q.data.data.totals.unvaluedPurchases} OC históricas sin importe
-            comparable: no se suman como cero. Revisá la política de importes en
-            sus documentos.
-          </p>
-        )}
-        <div className="grid2">
-          <div>
-            <p>Presupuestado vigente</p>
-            {groups(q.data?.data.totals.budgeted ?? [])}
-          </div>
-          <div>
-            <p>Compras registradas</p>
-            {groups(q.data?.data.totals.purchases ?? [])}
-          </div>
-        </div>
-        <p className="small muted">
-          Se conservan separadas monedas y bases impositivas. No se suman
-          revisiones anteriores ni se calcula beneficio realizado.
-        </p>
-      </Card>
+      {q.loading?<Loading/>:!q.error&&q.data&&<>
+      <div className="report-kpis">
+       {q.data.data.executive&&<><Card title="Obras activas"><b className="kpi-number">{q.data.data.executive.activeWorks}</b><small>Estado actual · cliente/obra seleccionados</small></Card><Card title="OC pendientes de recepción"><b className="kpi-number">{q.data.data.executive.pendingOrders}</b><small>Órdenes emitidas o parciales del filtro</small></Card></>}
+       {kind==='clients'&&<Card title="Presupuestado comercial vigente">{groups(q.data.data.totals.budgeted)}</Card>}
+       <Card title="Compras registradas">{groups(q.data.data.totals.purchases)}</Card>
+      </div>
+      <p className="small muted">Compras por fecha de creación de OC y estado actual. Presupuestado: última revisión emitida de cada presupuesto, por fecha de emisión. Proveedor y estado sólo limitan compras; obras activas no usa período. Monedas/IVA separados, sin cálculo de beneficio realizado.</p>
+      {!!q.data.data.totals.unvaluedPurchases&&<p className="alert warn">{q.data.data.totals.unvaluedPurchases} OC sin importe comparable: no se suman como cero.</p>}
+      {q.data.data.executive&&<ExecutiveCharts kind={kind} data={q.data.data.executive} filters={filters} onDrill={update}/>}
+      </>}
       <ErrorBox
         error={
           q.error ??
@@ -215,7 +190,7 @@ function Reports() {
       />
       {q.loading ? (
         <Loading />
-      ) : (
+      ) : q.error ? null : (
         <Card bodyClass="">
           {kind === 'clients' ? (
             <DataTable
@@ -299,7 +274,7 @@ function Reports() {
                   header: 'Importe',
                   render: (r) => (
                     <>
-                      {formatMoney(r.totalAmount, r.currency)} · {r.taxBasis}
+                      {formatMoney(r.totalAmount, r.currency)} · {taxLabel(r.taxBasis)}
                     </>
                   ),
                 },
@@ -325,4 +300,15 @@ function Reports() {
       )}
     </Page>
   );
+}
+
+function ExecutiveCharts({kind,data,filters,onDrill}:{kind:string;data:Schemas['ExecutiveSummary'];filters:Record<string,string|undefined>;onDrill:(patch:Record<string,string>)=>void}){
+ const [selected,setSelected]=useState('');
+ const options=[...new Set([...data.purchasesByMonth,...data.budgetedByClient].map(p=>p.currency+':'+p.taxBasis))];
+ const group=options.includes(selected)?selected:options[0]??'',currency=group.split(':')[0];
+ const points=(rows:Schemas['ExecutivePoint'][])=>rows.filter(p=>p.currency+':'+p.taxBasis===group).map(p=>({key:p.key,label:p.label,value:p.amount}));
+ const money=(value:string)=>formatMoney(value,currency);
+ const labels:Record<string,string>={DRAFT:'Borrador',ISSUED:'Emitida',PARTIALLY_RECEIVED:'Recepción parcial',RECEIVED:'Recibida',CANCELLED:'Cancelada'};
+ const chart=<BarChart title={kind==='clients'?'Presupuestado vigente por cliente':'Compras por mes'} description={kind==='clients'?'Una revisión emitida por presupuesto, dentro del período.':'Importes comparables de todas las OC del filtro, por mes de creación en Argentina.'} rows={points(kind==='clients'?data.budgetedByClient:data.purchasesByMonth)} format={money} onSelect={key=>{if(kind==='clients')onDrill({clientId:key==='legacy'?'':key,workId:''});else{const [y,m]=key.split('-').map(Number);onDrill({from:key+'-01',to:new Date(Date.UTC(y,m,0)).toISOString().slice(0,10)});}}}/>;
+ return <><div className="filter-toolbar"><SelectField label="Grupo monetario de los gráficos" value={group} options={options.map(k=>({value:k,label:k.split(':')[0]+' · '+taxLabel(k.split(':')[1])}))} onChange={e=>setSelected(e.target.value)}/><p className="small muted">Los demás grupos se muestran separados en los indicadores y en Excel.</p></div><div className="report-charts">{chart}<BarChart title={kind==='clients'?'Compras por obra':'Compras por proveedor'} description="Todo el filtro autorizado; las compras generales conservan su grupo propio." rows={points(kind==='clients'?data.purchasesByWork:data.purchasesBySupplier)} format={money} onSelect={key=>kind==='clients'?onDrill({workId:key==='general'?'':key,...(key==='general'?{general:'true',clientId:''}:{general:''})}):onDrill({supplierId:key})}/><BarChart title="Estado de órdenes de compra" description="Cantidad de órdenes, según su estado actual. No son cantidades de materiales ni importes." rows={data.orderStates.map(s=>({key:s.status,label:labels[s.status]??s.status,value:String(s.count)}))} format={s=>s+' OC'} onSelect={status=>onDrill({status})}/></div></>;
 }

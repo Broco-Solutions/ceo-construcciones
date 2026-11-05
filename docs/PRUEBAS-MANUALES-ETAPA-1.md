@@ -119,3 +119,24 @@ La evidencia de esta pasada se registra en [aceptación](ACEPTACION-CIERRE-ETAPA
 ## Habilitación online autorizada — 05/11/2026
 
 La misión posterior autorizó y ejecutó respaldo puntual, las siete migraciones pendientes, BASE/DG con vinculación PR15 y accesos/datos DEMO en el entorno online existente. El registro, límites históricos, accesos privados y smoke real del dominio están en [DEMO-ONLINE.md](DEMO-ONLINE.md). Esto no cambia el carácter exclusivamente local de las ejecuciones anteriores ni los controles de sus auxiliares.
+
+## Recorrido UX transversal del candidato
+
+Aplicar después de verificar el SHA/despliegue registrado en estado. Usar el dominio de [demo online](DEMO-ONLINE.md), sus credenciales privadas vigentes y registros nuevos **DEMO UX**; nunca precios BASE ni operaciones ajenas. No ejecutar seeds/runners contra online.
+
+1. Clientes/Obras: escribir nombre/código con tildes, elegir una sugerencia y limpiar; la sugerencia filtra sin navegar.
+2. Abrir un formulario: desplegar el selector sin escribir, buscar entidad, elegir y comprobar etiqueta/ID; Escape cierra primero opciones.
+3. Actividades: buscar código/ítem/descripción combinado con rubro/estado.
+4. Tabla: seleccionar página, todos los resultados del filtro, excluir una fila y paginar; exportar seleccionados. Cambiar filtro limpia la selección visiblemente.
+5. Presupuesto propio: agregar varias actividades, revisar y confirmar; una repetida exige elección expresa. La línea anterior conserva cantidad/composición.
+6. Stock en ubicación DEMO UX: Configurar mínimos, agregar materiales aun sin saldo; probar valores diferentes, 0, herencia y vacío sin cambios. Revisar antes de confirmar.
+7. Con saldos DEMO UX propios: seleccionar materiales del mismo origen, preparar movimiento multilínea, ingresar cantidades y revisar. Confirmar una vez; los movimientos comparten identificador de lote.
+8. Emitir presupuesto DEMO UX nuevo y descargar PDF V2. Descargar una R1 anterior para comprobar su presentación histórica conservada.
+9. OC: nueva muestra ficticia sin comunicación comercial; revisar vista previa, destino, unidades/presentaciones y carácter público de notas. No emitir compras reales.
+10. Inicio → Visión ejecutiva/Seguimiento físico: conservar filtros al abrir detalle, separar moneda/IVA y conciliar con Excel; repetir con otros perfiles sin ampliar permisos.
+
+Reportar fallos con ruta, rol y entidad, sin adjuntar claves ni datos privados. Las limitaciones históricas siguen detalladas por registro; este incremento no completa las 76 composiciones parciales.
+
+## Preparación local preservada
+
+Si el entorno todavía no existe, `bash CEO_Preparar_Local.sh` comprueba el repositorio, Node/pnpm, Git y Docker local, conserva una copia recuperable fuera del árbol y prepara PostgreSQL exclusivo de pruebas. No instala dependencias, no aplica migraciones ni publica código. Cargar `source "$HOME/.local/state/ceo-construcciones-codex/local.env"` sólo para shells locales, sin imprimir su contenido. Los verificadores ocupan 3000/3001 y no deben competir con otro build. La aplicación manual usa 3100/3101 y su propia base persistente. No borrar bases ni reutilizar un contexto Docker remoto para desbloquear pruebas.

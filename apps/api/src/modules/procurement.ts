@@ -1,3 +1,5 @@
+import { listSelection } from "./list-selection";
+import { orderPresentation, orderPdfV2, publicOrderNotes, type OrderPresentation } from "./order-pdf-v2";
 import { z } from "zod";
 import {
   Prisma,
@@ -79,6 +81,7 @@ export const orderSchema = z
     destinationId: id,
     currency,
     taxBasis,
+    notesPublic: z.boolean().optional(),
     notes: z.string().max(4000).optional(),
     lines: z.array(commercialLine).min(1).max(500),
   })
@@ -130,7 +133,9 @@ const orderInclude = {
   work: { select: { id: true, code: true, name: true } },
 } satisfies Prisma.PurchaseOrderInclude;
 const receiptInclude = {
-  lines: true,
+  lines: { include: { orderLine: { select: { material: { select: {
+    code: true, name: true, unit: { select: { code: true, name: true, symbol: true } },
+  } } } } } },
   receivedBy: { select: { name: true } },
   location: { select: { id: true, code: true, name: true, kind: true } },
 } satisfies Prisma.ReceiptInclude;
@@ -187,7 +192,7 @@ export async function createOrder(
         conflict("Precio o presentación difiere de cotización seleccionada");
     }
   }
-  const { lines, ...data } = b;
+  const { lines, notesPublic, ...data } = b;
   const order = await tx.purchaseOrder.create({
     data: { ...data, createdById: actor.id, lines: { create: lines } },
     include: orderInclude,
@@ -195,6 +200,7 @@ export async function createOrder(
   if ((await schemaCapabilities()).coverage)
     await tx.orderAmountPolicy.create({ data: { orderId: order.id } });
   await audit(tx, actor, "CREATE", "PurchaseOrder", order.id, b);
+  await audit(tx, actor, "PDF_VERSION", "PurchaseOrder", order.id, {version:2,notesPublic:notesPublic===true});
   return publicOrder(order, actor, tx);
 }
 async function publicOrder(
@@ -269,7 +275,11 @@ function publicReceipt(
     receivedById: r.receivedById,
     actorName: r.receivedBy.name,
     createdAt: r.createdAt,
-    lines: r.lines,
+    lines: r.lines.map(({ orderLine, ...line }) => ({
+      ...line, materialCode: orderLine.material.code,
+      materialName: orderLine.material.name,
+      unit: orderLine.material.unit.symbol ?? orderLine.material.unit.code,
+    })),
   };
 }
 async function orderAccess(actor: Actor, key: string) {
@@ -342,6 +352,7 @@ export async function handlerProcurement(
         return ok(r);
       }
       const where: Prisma.MaterialRequestWhereInput = {
+        ...listSelection(q),
         workId: q.get("workId") || undefined,
         categoryId: q.get("categoryId") || undefined,
         status: q.has("status")
@@ -647,6 +658,7 @@ export async function handlerProcurement(
     }
     if (method === "GET" && s.length === 1) {
       const where: Prisma.PurchaseOrderWhereInput = {
+        ...listSelection(q),
         workId: q.get("workId") || undefined,
         supplierId: q.get("supplierId") || undefined,
         requestId: q.get("requestId") || undefined,
@@ -679,7 +691,7 @@ export async function handlerProcurement(
       );
     }
     if (method === "GET" && key && s.length === 2)
-      return ok(await publicOrder(await orderAccess(actor, key), actor));
+      return ok({...await publicOrder(await orderAccess(actor, key), actor),...(actor.role!=="JEFE_OBRA"?{notesPublic:await publicOrderNotes(db,key)}:{})});
     if (method === "POST" && !key) {
       requireRoles(actor, "GERENCIA", "COMPRAS");
       const b = await parse(request, orderSchema);
@@ -737,6 +749,10 @@ export async function handlerProcurement(
             data: b,
             include: orderInclude,
           });
+          if(b.status==='ISSUED'){
+            const snapshot=await orderPresentation(tx,r,await publicOrder(r,actor,tx));
+            await audit(tx,actor,'PDF_PRESENTATION','PurchaseOrder',key,JSON.parse(JSON.stringify({...snapshot,date:new Date().toISOString()})));
+          }
           await audit(tx, actor, "STATUS", "PurchaseOrder", key, {
             from: o.status,
             to: b.status,
@@ -751,6 +767,7 @@ export async function handlerProcurement(
         request,
         z
           .object({
+            notesPublic: z.boolean().optional(),
             notes: z.string().max(4000).optional(),
             lines: z.array(commercialLine).min(1).max(500).optional(),
           })
@@ -784,6 +801,7 @@ export async function handlerProcurement(
             }
             await tx.purchaseOrderLine.deleteMany({ where: { orderId: key } });
           }
+          if(b.notesPublic!==undefined)await audit(tx,actor,'PDF_NOTES_VISIBILITY','PurchaseOrder',key,{notesPublic:b.notesPublic});
           const result = await tx.purchaseOrder.update({
             where: { id: key },
             data: {
@@ -992,7 +1010,7 @@ export async function handlerProcurement(
     }
     if (method === "GET" && key && action === "receipts" && s.length === 3) {
       await orderAccess(actor, key);
-      const where = { orderId: key };
+      const where = { orderId: key,...listSelection(q) };
       const [rows, total] = await db.$transaction([
         db.receipt.findMany({
           where,
@@ -1008,6 +1026,12 @@ export async function handlerProcurement(
     if (method === "GET" && key && action === "pdf" && s.length === 3) {
       requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
       const o = await orderAccess(actor, key);
+      const presentation=await db.auditLog.findFirst({where:{entityType:'PurchaseOrder',entityId:key,action:'PDF_PRESENTATION'},orderBy:{createdAt:'asc'}});
+      const marker=await db.auditLog.findFirst({where:{entityType:'PurchaseOrder',entityId:key,action:'PDF_VERSION'}});
+      if(presentation||o.status==='DRAFT'&&marker){
+        const snapshot=presentation?.after as OrderPresentation|null??await orderPresentation(db,o,await publicOrder(o,actor));
+        return new Response(Buffer.from(await orderPdfV2(snapshot,o.status==='CANCELLED'?'CANCELLED':snapshot.status)),{headers:{'content-type':'application/pdf','content-disposition':`attachment; filename="OC-${o.number}.pdf"`}});
+      }
       const vendor = found(
         await db.supplier.findUnique({ where: { id: o.supplierId } }),
       );

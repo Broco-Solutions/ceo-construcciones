@@ -1,4 +1,5 @@
 'use client';
+import { BatchActions } from '@/components/inventario/InventoryBatch';
 import { unitSymbol } from '@/lib/units';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ export default function AlertasPage() {
   const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Alert>('/stock/alerts', { locationId, materialId });
 
   return (
-    <Page title="Alertas de mínimos" crumb="Inventario">
+    <Page title="Alertas de mínimos" crumb="Inventario" actions={<BatchActions locationId={locationId} allowMovement={false} onSaved={reload}/>}>
       <InvNav />
       <div className="note">
         Materiales cuyo disponible está por debajo del mínimo efectivo de la ubicación. Incluye ubicaciones sin movimientos (físico 0). Un mínimo 0 configurado
@@ -35,11 +36,12 @@ export default function AlertasPage() {
         </div>
         <div className="bd">
           <ErrorBox error={error} onRetry={reload} />
-          {loading ? (
+          {loading && !rows.length ? (
             <Loading />
           ) : (
             <>
-              <DataTable
+              <DataTable collection={{resource:"stock/alerts",filters:{locationId,materialId},total:pagination?.total,reload}}
+                selectionActions={({rows,clear})=><BatchActions selected={rows} locationId={locationId} onSaved={()=>{clear();reload();}}/>}
                 rows={rows}
                 rowKey={(r) => `${r.materialId}:${r.locationId}`}
                 empty={<Empty title="Sin alertas">Ningún material está por debajo de su mínimo.</Empty>}

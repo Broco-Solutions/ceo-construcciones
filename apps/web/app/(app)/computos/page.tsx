@@ -68,7 +68,7 @@ function ComputosList() {
         actions={
           <div className="filters">
             <SelectField
-              label="Obra"
+              entity="works" label="Obra"
               value={workId}
               placeholder="Todas"
               options={works.rows.map((w) => ({

@@ -1,3 +1,5 @@
+import { listIds, listSelection } from "./list-selection";
+import { entitySearchWhere } from "./entity-search";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
@@ -224,10 +226,12 @@ export async function handlerInventory(
       });
     // Material minima apply even before the first physical event. Do not create
     // artificial balance records from this read-only query.
+    const selectedKeys=listIds(q);
     const from = Prisma.sql`FROM "Material" m CROSS JOIN "Location" l
    LEFT JOIN "StockBalance" b ON b."materialId"=m.id AND b."locationId"=l.id
    JOIN "Unit" u ON u.id=m."unitId"
    WHERE m.active=true AND l.active=true
+   ${selectedKeys?Prisma.sql`AND (m.id || ':' || l.id) = ANY(${selectedKeys}::text[])`:Prisma.empty}
    AND COALESCE(b.minimum,m.minimum)>0
    AND COALESCE(b.physical,0)-COALESCE(b.reserved,0)<COALESCE(b.minimum,m.minimum)
    ${filters.materialId ? Prisma.sql`AND m.id=${filters.materialId}` : Prisma.empty}
@@ -294,6 +298,7 @@ export async function handlerInventory(
   }
   if (resource === "stock" && s.length === 1 && method === "GET") {
     const where: Prisma.StockBalanceWhereInput = {
+      ...listSelection(q),
       materialId: q.get("materialId") || undefined,
       locationId: q.get("locationId") || undefined,
     };
@@ -364,6 +369,9 @@ export async function handlerInventory(
       const where: Prisma.ReservationWhereInput = {
         workId: q.get("workId") || undefined,
         materialId: q.get("materialId") || undefined,
+        sourceId:q.get("sourceId")||undefined,
+        ...(q.get("status")?{status:z.enum(["ACTIVE","FULFILLED","CANCELLED"]).parse(q.get("status"))}:{}),
+        ...(await entitySearchWhere("reservations",q)),
       };
       if (actor.role === "JEFE_OBRA")
         where.work = { assignments: { some: { userId: actor.id } } };
@@ -450,9 +458,15 @@ export async function handlerInventory(
   if (resource === "movements") {
     if (method === "GET" && s.length === 1) {
       const where: Prisma.StockMovementWhereInput = {
+        ...listSelection(q),
         materialId: q.get("materialId") || undefined,
         workId: q.get("workId") || undefined,
       };
+      if(q.get('batchId')){
+        const batch=await db.auditLog.findFirst({where:{entityType:'InventoryBatch',entityId:id.parse(q.get('batchId')),action:'MOVEMENT_BATCH'}});
+        const ids=(batch?.after as {ids?:unknown}|null)?.ids;
+        where.id={in:Array.isArray(ids)?ids.filter((value):value is string=>typeof value==='string'):[]};
+      }
       if (actor.role === "JEFE_OBRA")
         where.work = { assignments: { some: { userId: actor.id } } };
       if (q.get("locationId"))
@@ -481,14 +495,33 @@ export async function handlerInventory(
       const authorizedWorks = assignments
         ? new Set(assignments.map((assignment) => assignment.workId))
         : undefined;
+      const events=await db.auditLog.findMany({where:{entityType:'StockMovement',entityId:{in:data.map(r=>r.id)}},select:{entityId:true,after:true}});
+      const batches=new Map(events.flatMap(e=>{const batchId=(e.after as {batchId?:unknown}|null)?.batchId;return typeof batchId==='string'?[[e.entityId,batchId] as const]:[];}));
       return listed(
-        data.map((row) => movementDto(row, authorizedWorks)),
+        data.map((row) => ({...movementDto(row, authorizedWorks),...(batches.has(row.id)?{batchId:batches.get(row.id)}:{})})),
         total,
         p,
       );
     }
     if (method === "POST" && s.length === 1) {
       const b = await parse(request, moveSchema);
+      await authorizeMovement(actor, b);
+      return ok(
+        await idempotent(
+          actor,
+          "movement",
+          request.headers.get("idempotency-key") || "",
+          b,
+          (tx) => applyMovement(tx, actor, b, request.headers.get("idempotency-key") || ""),
+        ),
+        201,
+      );
+    }
+  }
+  return null;
+}
+
+export async function authorizeMovement(actor: Actor, b: z.infer<typeof moveSchema>, client: Tx | typeof db = db) {
       if (b.type === "INITIAL" || b.type === "ADJUSTMENT")
         requireRoles(actor, "GERENCIA");
       else if (b.type === "TRANSFER")
@@ -498,27 +531,25 @@ export async function handlerInventory(
       // Recheck authorization before looking it up, without rechecking mutable
       // stock/status/active flags that could invalidate a successful retry.
       if (actor.role === "JEFE_OBRA") {
-        if (b.workId) await requireWork(actor, b.workId);
+        if (b.workId) await requireWork(actor, b.workId, client);
         for (const locationId of [b.sourceId, b.destinationId]) {
           if (!locationId) continue;
           const location = found(
-            await db.location.findUnique({ where: { id: locationId } }),
+            await client.location.findUnique({ where: { id: locationId } }),
             "Ubicación",
           );
-          if (location.workId) await requireWork(actor, location.workId);
+          if (location.workId) await requireWork(actor, location.workId, client);
           else if (locationId === b.sourceId)
             throw new ApiError(403, "FORBIDDEN", "Ubicación no autorizada");
         }
       }
-      return ok(
-        await idempotent(
-          actor,
-          "movement",
-          request.headers.get("idempotency-key") || "",
-          b,
-          async (tx) => {
+
+}
+
+/** Shared by individual and atomic multiline operations. */
+export async function validateMovement(tx: Tx, actor: Actor, b: z.infer<typeof moveSchema>) {
             const qty = D(b.quantity);
-            await validMaterial(tx, b.materialId);
+            const material = await validMaterial(tx, b.materialId);
             const source = b.sourceId
               ? await locationAccess(actor, b.sourceId, tx)
               : null;
@@ -591,6 +622,7 @@ export async function handlerInventory(
             if (b.reservationId && b.type !== "TRANSFER")
               conflict("Solo transferencias pueden satisfacer reservas");
             let release = D(0);
+            let reservation = null;
             if (b.reservationId) {
               const r = found(
                 await tx.reservation.findUnique({
@@ -606,6 +638,19 @@ export async function handlerInventory(
               )
                 conflict("Reserva incompatible o cantidad excedida");
               release = qty;
+              reservation = r;
+
+            }
+            if (source) {
+              const current = await tx.stockBalance.findUnique({where:{materialId_locationId:{materialId:b.materialId,locationId:source.id}}});
+              if ((current?.physical ?? D(0)).minus(current?.reserved ?? D(0)).plus(release).lt(qty) || (current?.reserved ?? D(0)).lt(release)) conflict("Stock disponible insuficiente");
+            }
+            return {material,qty,source,destination,workId,release,reservation};
+}
+
+export async function applyMovement(tx: Tx, actor: Actor, b: z.infer<typeof moveSchema>, key: string, batchId?: string) {
+            const {qty,source,destination,workId,release,reservation} = await validateMovement(tx,actor,b);
+            if (reservation) { const r = reservation;
               const fulfilled = r.fulfilledQuantity.plus(qty);
               await tx.reservation.update({
                 where: { id: r.id },
@@ -634,12 +679,12 @@ export async function handlerInventory(
                 reason: b.reason,
                 idempotencyKey: createHash("sha256")
                   .update(
-                    `${actor.id}:movement:${request.headers.get("idempotency-key")}`,
+                    `${actor.id}:movement:${key}`,
                   )
                   .digest("hex"),
               },
             });
-            await audit(tx, actor, b.type, "StockMovement", movement.id, b);
+            await audit(tx, actor, b.type, "StockMovement", movement.id, { ...b, ...(batchId ? { batchId } : {}) });
             const authorizedWorks =
               actor.role === "JEFE_OBRA"
                 ? new Set(
@@ -651,12 +696,5 @@ export async function handlerInventory(
                     ).map((assignment) => assignment.workId),
                   )
                 : undefined;
-            return movementDto(movement, authorizedWorks);
-          },
-        ),
-        201,
-      );
-    }
-  }
-  return null;
+            return {...movementDto(movement, authorizedWorks),...(batchId?{batchId}:{})};
 }

@@ -1,7 +1,10 @@
 'use client';
+import { FilterToolbar } from '@/components/FilterToolbar';
 import { useAppRouter } from '@/lib/navigation';
 import { unitSymbol } from '@/lib/units';
 import Link from 'next/link';
+import { EntitySearch } from '@/components/EntitySearch';
+import { useDebounced } from '@/components/catalogo/common';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
@@ -40,8 +43,10 @@ function ApuList() {
   const router = useAppRouter();
   const cat = useCatalogs();
   const [categoryId, setCategoryId] = useState('');
+  const [q,setQ]=useState(''),[entityId,setEntityId]=useState(''),[active,setActive]=useState('');
+  const search=useDebounced(q);
   const list = usePaged<Schemas['ApuDetail']>('/apu-items', {
-    categoryId: categoryId || undefined,
+    categoryId: categoryId || undefined, search:search||undefined, id:entityId||undefined, active:active||undefined,
   });
   const edit = can('editBudget');
   const labor = (a: Schemas['ApuDetail']) =>
@@ -64,9 +69,10 @@ function ApuList() {
       <Card
         title="Actividades de obra"
         actions={
-          <div className="filters">
+          <FilterToolbar primary={<EntitySearch resource="apu-items" label="Buscar actividad por ítem, descripción o código" text={q} id={entityId} query={{categoryId:categoryId||undefined,active:active||undefined}} onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>} activeCount={Number(!!categoryId)+Number(!!active)} onClear={()=>{setCategoryId('');setActive('');}}>
+            <SelectField label="Estado" value={active} onChange={e=>setActive(e.target.value)} placeholder="Todos" options={[{value:"true",label:"Activo"},{value:"false",label:"Inactivo"}]}/>
             <SelectField
-              label="Rubro"
+              searchable label="Rubro"
               value={categoryId}
               placeholder="Todos"
               options={cat.categories.rows.map((c) => ({
@@ -75,23 +81,23 @@ function ApuList() {
               }))}
               onChange={(e) => setCategoryId(e.target.value)}
             />
-          </div>
+          </FilterToolbar>
         }
         bodyClass=""
       >
-        {list.loading ? (
+        {list.loading && !list.data ? (
           <Loading />
         ) : list.error ? (
           <ErrorBox error={list.error} onRetry={list.reload} />
         ) : (
           <>
-            <DataTable
+            <DataTable collection={{resource:"apu-items",filters:{categoryId:categoryId||undefined,search:search||undefined,id:entityId||undefined,active:active||undefined},total:list.pagination?.total,reload:list.reload}}
               rows={list.rows}
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/apu/${r.id}`)}
               empty={
                 <Empty
-                  title="Todavía no hay actividades"
+                  title={q||categoryId||active?"No hay actividades con esos filtros":"Todavía no hay actividades"}
                   action={
                     edit && (
                       <Button onClick={() => router.push('/apu/nuevo')}>

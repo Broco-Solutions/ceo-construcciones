@@ -1,3 +1,5 @@
+import { listSelection } from "./list-selection";
+import { entitySearchWhere } from "./entity-search";
 import { z } from "zod";
 import { priceProvenance, retiredPriceIds } from "./price-provenance";
 import { Prisma } from "@prisma/client";
@@ -133,6 +135,7 @@ export async function handlerCatalog(
         "El inicio del intervalo debe ser anterior al fin.",
       );
     const where: Prisma.AuditLogWhereInput = {
+      ...listSelection(q),
       entityType: q.get("entity") || undefined,
       entityId: q.get("entityId") || undefined,
       actorId: q.get("actorId") || undefined,
@@ -189,11 +192,7 @@ export async function handlerCatalog(
         actor.role === "JEFE_OBRA"
           ? { assignments: { some: { userId: actor.id } } }
           : {};
-      if (search)
-        where.OR = [
-          { name: { contains: search, mode: "insensitive" } },
-          { code: { contains: search, mode: "insensitive" } },
-        ];
+      Object.assign(where, await entitySearchWhere('works', q));
       if (q.get("status"))
         where.status = z
           .enum(["ACTIVE", "PAUSED", "COMPLETED"])
@@ -334,21 +333,8 @@ export async function handlerCatalog(
         );
       }
       const where: Prisma.ClientWhereInput = {
+        ...(await entitySearchWhere("clients", q)),
         active,
-        ...(search
-          ? {
-              OR: [
-                { code: { contains: search, mode: "insensitive" } },
-                { name: { contains: search, mode: "insensitive" } },
-                {
-                  taxId: {
-                    contains: canonicalTaxId(search),
-                    mode: "insensitive",
-                  },
-                },
-              ],
-            }
-          : {}),
       };
       const [data, total] = await db.$transaction([
         db.client.findMany({
@@ -436,6 +422,9 @@ export async function handlerCatalog(
               ],
             }
           : {};
+      Object.assign(where, await entitySearchWhere("locations", q));
+      if(q.get("workId")) where.workId = q.get("workId")!;
+      if(active !== undefined) where.active = active;
       const [data, total] = await db.$transaction([
         db.location.findMany({
           where,
@@ -495,6 +484,7 @@ export async function handlerCatalog(
   }
   if (resource === "units" || resource === "categories") {
     if (method === "GET") {
+      const where = await entitySearchWhere(resource, q);
       if (key)
         return ok(
           found(
@@ -505,22 +495,22 @@ export async function handlerCatalog(
         );
       if (resource === "units") {
         const [data, total] = await db.$transaction([
-          db.unit.findMany({
+          db.unit.findMany({ where,
             skip: p.skip,
             take: p.take,
             orderBy: { code: "asc" },
           }),
-          db.unit.count(),
+          db.unit.count({ where }),
         ]);
         return listed(data, total, p);
       }
       const [data, total] = await db.$transaction([
-        db.category.findMany({
+        db.category.findMany({ where,
           skip: p.skip,
           take: p.take,
           orderBy: { code: "asc" },
         }),
-        db.category.count(),
+        db.category.count({ where }),
       ]);
       return listed(data, total, p);
     }
@@ -582,14 +572,7 @@ export async function handlerCatalog(
           ),
         );
       const where: Prisma.MaterialWhereInput = {
-        ...(search
-          ? {
-              OR: [
-                { name: { contains: search, mode: "insensitive" } },
-                { code: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {}),
+        ...(await entitySearchWhere("materials", q)),
         categoryId: q.get("categoryId") || undefined,
         active,
       };
@@ -645,16 +628,8 @@ export async function handlerCatalog(
       if (key)
         return ok(found(await db.supplier.findUnique({ where: { id: key } })));
       const where: Prisma.SupplierWhereInput = {
+        ...(await entitySearchWhere("suppliers", q)),
         active,
-        ...(search
-          ? {
-              OR: [
-                { code: { contains: search, mode: "insensitive" } },
-                { name: { contains: search, mode: "insensitive" } },
-                { taxId: { contains: search, mode: "insensitive" } },
-              ],
-            }
-          : {}),
       };
       const [data, total] = await db.$transaction([
         db.supplier.findMany({
@@ -707,7 +682,7 @@ export async function handlerCatalog(
         return ok(
           found(await db.presentation.findUnique({ where: { id: key } })),
         );
-      const where = { materialId: q.get("materialId") || undefined };
+      const where = { ...(await entitySearchWhere("presentations", q)), materialId: q.get("materialId") || undefined, ...(q.get("supplierId")?{OR:[{supplierId:null},{supplierId:q.get("supplierId")!}]}:{}), ...(active!==undefined?{active}:{}) };
       const [data, total] = await db.$transaction([
         db.presentation.findMany({
           where,
@@ -751,15 +726,17 @@ export async function handlerCatalog(
   if (resource === "prices") {
     requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
     if (method === "GET") {
+      const include={material:{select:{id:true,code:true,name:true,unitId:true,unit:{select:{id:true,code:true,name:true,symbol:true}}}},supplier:{select:{id:true,code:true,name:true}},presentation:{select:{id:true,name:true,baseQuantity:true,active:true}}} as const;
       if (key)
         return ok(
           (
             await priceProvenance([
-              found(await db.materialPrice.findUnique({ where: { id: key } })),
+              found(await db.materialPrice.findUnique({ where: { id: key },include })),
             ])
           )[0],
         );
       const where = {
+        ...listSelection(q),
         id: { notIn: await retiredPriceIds() },
         materialId: q.get("materialId") || undefined,
         supplierId: q.get("supplierId") || undefined,
@@ -767,6 +744,7 @@ export async function handlerCatalog(
       const [data, total] = await db.$transaction([
         db.materialPrice.findMany({
           where,
+          include,
           skip: p.skip,
           take: p.take,
           orderBy: { effectiveAt: "desc" },

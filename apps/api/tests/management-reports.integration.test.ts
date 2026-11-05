@@ -238,6 +238,16 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
       const invalid = await f.call("reports/purchases?from=2026-02-30");
       expect(invalid.status).toBe(422);
     });
+    it("UX: gráficos y KPI usan todo el filtro, monedas separadas y una revisión vigente",async()=>{
+      const r=await f.data(`reports/clients?clientId=${client}&pageSize=1`);
+      expect(r.executive.activeWorks).toBe(1);expect(r.executive.pendingOrders).toBe(2);
+      expect(r.executive.budgetedByClient).toEqual([{key:client,label:'=Cliente sintético',currency:'ARS',taxBasis:'EXCLUDED',amount:'65.00'}]);
+      const p=await f.data(`reports/purchases?clientId=${client}&pageSize=1`);
+      expect(p.rows).toHaveLength(1);expect(p.executive.purchasesByWork).toHaveLength(2);
+      expect(p.executive.purchasesBySupplier.map((g:any)=>({currency:g.currency,taxBasis:g.taxBasis,amount:g.amount})).sort((a:any,b:any)=>a.currency.localeCompare(b.currency))).toEqual(p.totals.purchases);
+      expect(p.executive.orderStates.reduce((a:number,s:any)=>a+s.count,0)).toBe(2);
+      const general=await f.data(`reports/purchases?general=true&supplierId=${supplier}`);expect(general.rows).toHaveLength(1);expect(general.rows[0].workId).toBeNull();expect(general.executive.purchasesByWork[0].key).toBe('general');
+    });
     it("T04/T05/T51: Admin y Jefe no acceden por enlace ni exportación", async () => {
       for (const role of ["ADMINISTRACION", "JEFE_OBRA"] as const)
         for (const path of [

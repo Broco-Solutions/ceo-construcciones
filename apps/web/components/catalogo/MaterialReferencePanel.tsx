@@ -34,11 +34,6 @@ function Inner({ embedded }: { embedded: boolean }) {
   const [k, setK] = useState(0);
   const actions = (
     <>
-      <ExportButton
-        path="/exports/prices"
-        label="Exportar"
-        fallbackName="precios.xlsx"
-      />
       <Link href="/proveedores/importar-precios" className="btn sec">
         Importar Excel / CSV
       </Link>

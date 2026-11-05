@@ -1,6 +1,6 @@
 # API — CEO Construcciones
 
-Backend REST V1 en Next.js App Router y TypeScript, con Prisma/PostgreSQL exclusivamente en esta aplicación. El frontend está en `apps/web` y se desarrolla por separado.
+Backend REST V1 en Next.js App Router y TypeScript, con Prisma/PostgreSQL exclusivamente en esta aplicación. El frontend está en `apps/web` y consume el contrato versionado; la implementación es full stack dentro del monorepo.
 
 Requisitos objetivo: Node.js 24 y pnpm 10.18.3. Desde la raíz del monorepo:
 
@@ -33,3 +33,8 @@ Railway mantiene raíz `/apps/api`, build `npm run build`, inicio `node .next/st
 - [Modelo de datos y plantillas de importación](../../docs/MODELO-DATOS.md).
 - [Estado real de pruebas y despliegues](../../docs/ESTADO-PROYECTO.md).
 - [PRD funcional V1](../../docs/PRD-ETAPA-1.md).
+
+## Convenciones del contrato
+
+
+REST `/api/v1`, nombres de recursos en inglés y mensajes en español. JSON `{data: ...}`; listados `{data: [], pagination: {page,pageSize,total}}`, pageSize <=100. Decimales en strings base 10, nunca floats JSON económicos. Errores `{error:{code,message,details?}}` con 400/401/403/404/409/422/429/500. Fechas ISO UTC. Sesión opaca cookie HttpOnly SameSite Lax Secure en producción y hash persistido; mutaciones con Origin validado contra APP_ORIGIN para proxy same-origin. Auditoría en misma transacción que operación de negocio. Aislamiento Serializable con reintentos limitados; claves de idempotencia para recepciones y movimientos. Datos sensibles no incluidos en errores/logs.

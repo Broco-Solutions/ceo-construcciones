@@ -58,4 +58,4 @@ Monorepo pnpm + TypeScript + dos apps Next.js:
 6. Pedir intervención sólo ante autorización sensible nueva o información crítica irrecuperable; avanzar en el resto.
 7. Separar código integrado, entorno manual probado, limitaciones históricas, aceptación del piloto y habilitación productiva. No atribuir acciones no verificadas.
 
-El plan maestro y las instrucciones posteriores de cierre técnico aportadas por el usuario prevalecen sobre las exclusiones/asignaciones de la versión 1.0 de estas instrucciones. El estado objetivo actual es «cierre técnico listo para pruebas manuales», no aceptación del piloto ni producción habilitada.
+El único plan de trabajo activo es `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. Las decisiones funcionales consolidadas y matrices vigentes conservan los requisitos anteriores, sin reiniciar sus misiones. Consultar `DEMO-ONLINE.md` para distinguir la habilitación efectiva de demo de la aceptación operativa del piloto, que sigue pendiente.

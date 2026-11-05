@@ -1,3 +1,4 @@
+import { monetarySeries } from "./executive-series";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { type Actor, requireRoles } from "../core/auth";
@@ -86,7 +87,10 @@ export async function managementReport(
         client: { select: { id: true, name: true } },
       },
     });
+    const general=q.get('general')==='true';
+    if(general&&(clientId||workId))throw new ApiError(422,'INCOMPATIBLE_FILTERS','Las compras generales no tienen cliente ni obra.');
     const orderWhere: Prisma.PurchaseOrderWhereInput = {
+      ...(general?{workId:null}:{}),
       ...(workId || clientId ? { workId: { in: works.map((w) => w.id) } } : {}),
       supplierId,
       status: status
@@ -297,8 +301,24 @@ export async function managementReport(
               receivedQuantity: l.receivedQuantity.toFixed(),
             })),
           }));
+    const workNames=new Map(works.map(w=>[w.id,w.name]));
+    const purchasePoints=purchases.map(o=>({currency:o.currency,taxBasis:o.taxBasis,amount:o.totalAmount,order:o}));
+    const budgetPoints=[...clientRows.values()].flatMap(r=>serialize(r.budgeted).map(g=>({...g,key:r.clientId??'legacy',label:r.name})));
+    const budgetWorkPoints=budgets.flatMap(b=>{const v=b.versions[0];return v?.issue&&(!period.gte||v.issue.issuedAt>=period.gte)&&(!period.lt||v.issue.issuedAt<period.lt)?[{key:b.workId,label:workNames.get(b.workId)??'Obra sin vincular',currency:v.currency,taxBasis:v.taxBasis,amount:v.issue.commercialTotal.toFixed(2)}]:[];});
+    const executive={
+      activeWorks:works.filter(w=>w.status==='ACTIVE').length,
+      pendingOrders:purchases.filter(o=>['ISSUED','PARTIALLY_RECEIVED'].includes(o.status)).length,
+      orderCount:purchases.length,
+      orderStates:[...new Set(purchases.map(o=>o.status))].map(status=>({status,count:purchases.filter(o=>o.status===status).length})),
+      purchasesByMonth:monetarySeries(purchasePoints.map(p=>({...p,key:new Date(p.order.createdAt.getTime()-3*3600000).toISOString().slice(0,7),label:new Date(p.order.createdAt.getTime()-3*3600000).toISOString().slice(0,7)}))),
+      purchasesBySupplier:monetarySeries(purchasePoints.map(p=>({...p,key:p.order.supplier.id,label:p.order.supplier.name}))),
+      purchasesByWork:monetarySeries(purchasePoints.map(p=>({...p,key:p.order.workId??'general',label:p.order.workId?workNames.get(p.order.workId)??'Obra sin vincular':'Compras generales · sin obra'}))),
+      budgetedByClient:monetarySeries(budgetPoints),
+      budgetedByWork:monetarySeries(budgetWorkPoints),
+    };
     return {
       rows,
+      executive,
       totals: {
         purchases: serialize(purchaseTotals),
         budgeted: serialize(budgetTotals),
@@ -363,6 +383,7 @@ export async function handlerManagementReports(
               ]
             : [],
         ),
+        {filtros:Object.fromEntries(new URL(request.url).searchParams),fechaCompras:"Creación de OC; estado actual",alcance:"Todo el filtro autorizado; monedas/IVA separados"},
       );
     return xlsxResponse(
       "indicadores-clientes",
@@ -421,6 +442,7 @@ export async function handlerManagementReports(
           ];
         });
       }),
+      {filtros:Object.fromEntries(new URL(request.url).searchParams),presupuestos:"Última revisión emitida por presupuesto; fecha de emisión",compras:"Fecha de creación de OC; estado actual"},
     );
   }
   return Response.json({
@@ -430,6 +452,7 @@ export async function handlerManagementReports(
         report.pagination.page * report.pagination.pageSize,
       ),
       totals: report.totals,
+      executive: report.executive,
     },
     pagination: report.pagination,
   });
