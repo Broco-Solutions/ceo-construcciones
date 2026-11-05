@@ -23,7 +23,7 @@ Actualizar este archivo al avanzar; evidencia detallada y matriz pantalla → c�
 | P4 | PDF V2 presupuesto/OC con marca y paginación; V1/bytes/hash preservados | Implementado; golden V1/integración/PDF V2 aprobados; 29 páginas presupuesto y 12 OC renderizadas e inspeccionadas |
 | P5 | Informes ejecutivos y físicos, KPI/series servidor conciliables, gráficos accesibles y navegación contextual | Implementado; 5 pruebas reales de informes pasan; visual/smoke final pendiente |
 | P6 | Tipos/builds/unitarias/integración/E2E completos; visual/PDF; PR/checks/merge/despliegue/smoke público | API final 211 + 3 runtime, tipos/build salida 0; web/E2E completos y publicación en curso |
-| Cierre documental | Inventariar, consolidar y retirar sólo duplicados/superados; enlaces y verificaciones; commit separado | Pendiente, después de implementar |
+| Cierre documental | Inventariar, consolidar y retirar sólo duplicados/superados; enlaces y verificaciones; commit separado | Consolidado en fuentes específicas y retirados seis planes/prompts; copia recuperable de dos metadatos locales; enlaces/sintaxis revisados |
 
 ### Controles comunes y adopción
 

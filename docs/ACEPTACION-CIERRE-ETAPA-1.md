@@ -66,3 +66,67 @@ La aceptación técnica no equivale a aprobación del piloto por CEO. DG permite
 ## Incremento de carga inicial y costos — 04/11/2026
 
 El incremento posterior a PR13 incorpora catálogos BASE y referencias materiales/MO conectadas, sin reiniciar F0–F9. La aceptación técnica CI-01…CI-48, resultados reales, trazabilidad, visual/PDF y estado de integración están en [estado de costos](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Los resultados anteriores de este documento son históricos y no sustituyen esa matriz. No se declara aceptación de piloto ni habilitación productiva.
+
+## Catálogo de criterios T01–T54
+
+Consolidado desde el plan anterior. Un criterio definido no equivale a prueba aprobada; consultar resultados por candidato y la matriz vigente.
+
+
+| Test | Escenario y resultado esperado |
+|---|---|
+| T01 | Crear cliente con dos obras; ficha/obras/enlaces/filtrado muestran asociaciones correctas. |
+| T02 | Inactivar cliente preserva obras y revisiones; altas nuevas exigen cliente; histórica sin vínculo sigue consultable sin inventar identidad. |
+| T03 | Gerencia/Compras/Cómputo ven todas las obras según módulo; Jefe solo asignadas, también por ID directo, búsquedas y exportación. |
+| T04 | Administración entra a OC/factura informativa y no a clientes globales, presupuestos, actividades, costos, stock, usuarios ni reportes económicos generales. |
+| T05 | DTO restringidos no filtran campos sensibles; no basta con ocultar botones. Probar enlaces, filtros y exportaciones existentes con el rol nuevo. |
+| T06 | Proveedor/material/unidad existente conserva historia; proveedor inactivo no se ofrece para alta nueva y sus OC siguen accesibles. |
+| T07 | Ninguna pantalla habitual, error o etiqueta accesible exige APU/BOM/snapshot/override. Un enlace antiguo válido no se rompe. |
+| T08 | Crear desde BASE y desde otra revisión copia rubros/actividades/orden; editar nueva obra no altera la fuente ni su historial. |
+| T09 | Cambiar cantidad actualiza costo unitario/subtotal/total sin perder foco ni guardar una revisión; backend y pantalla coinciden. |
+| T10 | Cambiar catálogo/precios no cambia emitidos; actualización de borrador tiene diferencias visibles y respeta ajustes particulares. |
+| T11 | VARIOS permite cantidad y costo directo; no fabrica materiales ni impone 4%. Partida incluida/excluida no duplica costo o demanda. |
+| T12 | Costo 3.000.000 y recargo 50% → venta 4.500.000; excepción reemplaza general sin stacking; precio cambia, materiales no. |
+| T13 | Operación aritmética sencilla resuelve cantidad; expresiones maliciosas/inválidas no ejecutan código ni guardan valores falsos. |
+| T14 | Dos editores o respuestas de cálculo fuera de orden no pisan cambios silenciosamente; conflicto útil y último input preservado. |
+| T15 | Guardar borrador cinco veces no crea cinco revisiones; preview tampoco. Emitir crea R1. |
+| T16 | Descargar R1 repetidamente o reintentar la emisión sin cambios no duplica revisión. |
+| T17 | Editar un emitido crea trabajo editable, no sobrescribe R1; emitir crea R2; cliente/condiciones/precios congelados de R1 se conservan. |
+| T18 | Referencia de abastecimiento y revisión vigente se manejan separadas; emitir otro presupuesto no cambia la referencia seleccionada de forma sorpresiva. |
+| T19 | PDF contiene cliente, obra, revisión, cantidades, precio comercial, moneda/IVA y condiciones; no contiene costos ni recargo internos. |
+| T20 | PDF largo con m²/m³/acentos/nombres largos/totales grandes no corta renglones o totales; subtotales visibles suman el total. |
+| T21 | Cambiar datos maestros después de emitir no cambia el PDF histórico; preview corresponde al contenido que se emite. |
+| T22 | Nuevo precio conserva anterior; una fecha futura no se usa como vigente; precios explícitos cero/faltante se distinguen. |
+| T23 | Comparar tres proveedores por misma unidad/IVA/moneda; marcar menor/empates; incompatibles y faltantes no se muestran como mejores. |
+| T24 | Recordatorio mensual aparece según fecha de revisión, cambia de mes correctamente y no requiere job/servicio externo. |
+| T25 | XLSX con columnas reordenadas/hojas distintas: mapear, ver valores normalizados y diferencias, confirmar y consultar historia. |
+| T26 | Material desconocido, unidad incompatible, IVA ambiguo, duplicado, número local o fórmula no verificable se identifica con fila y no modifica datos antes de confirmar. |
+| T27 | Reintento de lote no duplica; lote cambiado invalida huella; rechazo no deja importación parcial invisible. |
+| T28 | Compras/Cómputo importan precios sin acceso a importaciones administrativas; archivos excesivos/activos/enlaces externos no se ejecutan. |
+| T29 | Pedido manual funciona sin presupuesto; material sugerido puede ajustarse y cantidad mayor se advierte sin imponer aprobación. |
+| T30 | Previsto 100/pedido 40 → falta 60; vincular OC por 40 no cambia el faltante a 20. |
+| T31 | Recibir 20, consumir 5 y trasladar cobertura asignada mantiene el total cubierto coherente sin contar pedido/OC/recepción dos veces. |
+| T32 | Stock general 40 no se asigna automáticamente a dos obras. Reserva/traslado explícito de esas unidades evita doble cobertura. |
+| T33 | Cancelación válida de pendiente, devolución y cambio de referencia recalculan faltante/exceso sin borrar historia; faltante mínimo cero. |
+| T34 | Dos confirmaciones simultáneas revalidan cobertura; IDs/reintentos no duplican pedidos involuntarios; no ocultar históricos sin vínculo. |
+| T35 | Compras crea/emite OC sin Gerencia; estados e historial correctos; mantiene pedido/cotización/proveedor/destino. |
+| T36 | Jefe recibe solo en su obra; Compras en galpón/patio; delegado recibe únicamente destino asignado sin ver economía ni otro stock. |
+| T37 | OC borrador editable; emitida se conserva; cancelar sin recepción no borra auditoría; parcial no puede cancelarse destructivamente. |
+| T38 | Recepción doble/excedida/concurrente no duplica físico; estado parcial/recibida se actualiza con las mismas cantidades. |
+| T39 | Registrar número/importe y marcar Pagado/Pendiente deja actor/fecha; Administración no edita conceptos fuera de su permiso ni ejecuta pagos. |
+| T40 | Galpón 100 → transferir 30 a obra: galpón70/obra30/consumo0; consumir5: obra25/consumo5; devolución/ajuste conservan trazas y mínimos. |
+| T41 | Cliente con dos obras y presupuestos R1/R2: tarjetas suman solo la revisión vigente por presupuesto; borradores e históricos no duplican. |
+| T42 | OC con varias líneas no multiplica importe por joins; compra general sin obra no se imputa a cada cliente receptor. |
+| T43 | ARS/USD y bases impositivas incompatibles se separan; valor faltante no se representa como cero ni como beneficio calculado. |
+| T44 | Filtros por cliente/obra/proveedor/período y totales servidor coinciden con exportación, incluso con varias páginas y corte horario Argentina. |
+| T45 | Migración dry-run concilia creados/vinculados/rechazados y no escribe; ejecución aislada idempotente no duplica. |
+| T46 | DG 1153 con fuentes reales y precios históricos: verificar costo, particularidades comerciales, materiales y PDF; registrar diferencias de revisión/redondeo sin hardcodear total. |
+| T47 | Migrar esquema V1 poblado con obras sin cliente, snapshots antiguos, precios, OC parciales y stock: datos previos intactos y legibles. |
+| T48 | Desktop: flujo completo con nombres largos, errores y carga grande; teclado/foco; sin grillas desalineadas, colores o botones inconsistentes. |
+| T49 | Móvil 360/390: pedido, recepción, consumo/devolución y navegación sin desborde general ni acciones tapadas. |
+| T50 | Flujo integral: cliente → dos obras → plantilla → cantidades → costo → recargo → R1/PDF → R2 → pedido neto → OC → recepción → consumo → indicadores. |
+| T51 | Seguridad de aplicación: sesión, CSRF/origen, validación, exportaciones seguras, rechazo de roles no autorizados, sin secretos en logs ni fixtures. |
+| T52 | Compatibilidad de release: binario nuevo contra schema V1 preserva las funciones existentes o el merge inseguro se detiene con motivo; con schema expandido todas las funciones nuevas pasan. |
+| T53 | Versión V1 de costos conserva lectura, comparación y referencia de materiales; no se presenta como venta emitida ni se fabrica precio comercial para indicadores. |
+| T54 | OC con unidades de presentación y fracciones recurrentes obtiene importes mostrados/totales coherentes con la política explícita; no modifica el precio de origen ni suma IVA por suposición. |
+
+Los IDs agrupan varios tests cuando sea necesario. No inventar un requisito de «54 pruebas exactas»: importa cobertura demostrada y resultados reales.

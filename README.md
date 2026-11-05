@@ -1,65 +1,25 @@
 # CEO Construcciones
 
-Monorepo del sistema de obras, presupuestos, compras e inventario de CEO Construcciones. El backend V1 se implementa en `apps/api`; su revisión, pruebas y estado de despliegue se registran en [ESTADO-PROYECTO.md](docs/ESTADO-PROYECTO.md). Las validaciones operativas con CEO siguen abiertas según el [PRD Etapa 1 v1.0](docs/PRD-ETAPA-1.md); el contrato y Anexo I prevalecen.
+Sistema de obras, presupuestos, compras e inventario. Monorepo pnpm/TypeScript con Next.js en `apps/web` y `apps/api`; Prisma/PostgreSQL exclusivamente en API. Node 24, pnpm 10.18.3. La demo online no equivale a aceptación operativa del piloto.
 
-## Arquitectura
+- **Aplicación:** https://ceo-construcciones.brocosolutions.com
+- **Estado, candidato y checks:** [ESTADO-PROYECTO](docs/ESTADO-PROYECTO.md).
+- **Único plan activo:** [UX/UI transversal](CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md); [matriz y evidencias](docs/UX-TRANSVERSAL-ETAPA-1.md).
+- **Alcance:** [PRD](docs/PRD-ETAPA-1.md), [decisiones](docs/DECISIONES-CIERRE.md), [requisitos/trazabilidad](docs/REQUISITOS-ETAPA-1-CIERRE.md) y [aceptación](docs/ACEPTACION-CIERRE-ETAPA-1.md). Contrato/Anexo I prevalecen; pendientes conservados.
+- **Operación:** [demo online y accesos privados](docs/DEMO-ONLINE.md), [pruebas manuales/local](docs/PRUEBAS-MANUALES-ETAPA-1.md), [backend](docs/OPERACION-BACKEND.md) y [compatibilidad/release](docs/RELEASE-CIERRE-ETAPA-1.md).
+- **Contratos:** [API y comandos](apps/api/README.md), [OpenAPI](docs/api/openapi.json), [integración web](docs/INTEGRACION-CLAUDE-CODE.md), [modelo](docs/MODELO-DATOS.md).
+- **Datos CEO:** [resultados de carga](docs/CARGA-INICIAL-RESULTADOS.md), [aceptación de costos](docs/ESTADO-CARGA-INICIAL-Y-COSTOS.md) y [conciliación DG](docs/DG-1153-RECONCILIACION.md). Las 76 composiciones parciales no se completan por suposición.
+- **Trabajo de agentes:** [AGENTS](AGENTS.md) e [instrucciones de continuidad](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md).
 
-- Node.js 24, pnpm 10.18.3, TypeScript y Next.js App Router.
-- `apps/api`: API REST `/api/v1`, Prisma/PostgreSQL y Railway.
-- `apps/web`: frontend Next.js en Vercel. Durante el cierre de Etapa 1 puede ser implementado por Codex junto al contrato API.
-- Sesiones seguras, autorización por rol/obra y auditoría en backend.
-- Stock físico, reservas y disponibilidad separados; operaciones transaccionales.
-- Sin microservicios, Redis, colas, IA integrada ni servicios externos nuevos.
-
-## Trabajo local
-
-Con Node 24 y una base PostgreSQL local aislada:
+## Trabajo y comprobaciones locales
 
 ```bash
-corepack enable
-corepack prepare pnpm@10.18.3 --activate
 pnpm install --frozen-lockfile
-pnpm --filter @ceo/api db:generate
+pnpm --dir apps/api db:generate
+bash CEO_Manual_Local.sh start
+bash CEO_Verificar_Local.sh api
+bash CEO_Verificar_Local.sh web
+bash CEO_Verificar_Local.sh e2e
 ```
 
-Configurar DATABASE_URL y APP_ORIGIN en un entorno seguro; ver [guía de operación](docs/OPERACION-BACKEND.md) para crear la base aislada y el primer administrador.
-
-```bash
-pnpm --filter @ceo/api db:deploy
-pnpm dev:api
-```
-
-La API de desarrollo escucha en 3001. `GET /api/health` verifica PostgreSQL; HTTP 200 indica conectado y HTTP 503 indisponible. El frontend se ejecuta por separado con `pnpm dev:web`.
-
-## Verificación
-
-```bash
-pnpm --filter @ceo/api typecheck
-pnpm --filter @ceo/api test
-RUN_INTEGRATION=1 pnpm --filter @ceo/api test
-pnpm --filter @ceo/api build
-```
-
-Las integraciones sólo aceptan una base de loopback cuyo nombre contenga `test`. Sin RUN_INTEGRATION se omiten; no interpretar una ejecución sin esa variable como prueba contra PostgreSQL.
-
-## Despliegue y seguridad
-
-Proyecto Railway: [ceo-construcciones](https://railway.com/project/d2fb9213-5508-4b3d-91a8-b6bd86451ceb). Vercel: [ceo-construcciones-web](https://vercel.com/broco-solutions/ceo-construcciones-web). La API inicial existente no acredita que la V1 de esta misión ya esté desplegada.
-
-Railway mantiene la raíz `/apps/api`, inicio `node .next/standalone/server.js` y healthcheck `/api/health`. Build y preparación standalone se documentan en la guía de operación. DATABASE_URL pertenece exclusivamente al backend. La integración web usa proxy same-origin para las cookies de sesión; no exponer secretos en Vercel ni depender de cookies de terceros.
-
-No aplicar migraciones, mergear ni desplegar producción sin revisión y autorización explícita. Antes de una migración productiva: backup restaurable, comprobación de retención y plan de recuperación. El contrato exige backups al menos semanales con 30 días de retención; sólo se consideran operativos con evidencia verificable.
-
-## Documentación
-
-- [PRD Etapa 1 v1.0](docs/PRD-ETAPA-1.md): alcance y validaciones pendientes.
-- [Operación del backend](docs/OPERACION-BACKEND.md): instalación, variables, pruebas, bootstrap, backups y pasos productivos pendientes de autorización.
-- [Modelo de datos e importaciones](docs/MODELO-DATOS.md): entidades, integridad, snapshots y plantillas controladas.
-- [API](apps/api/README.md): comandos y convenciones.
-- [Análisis del Excel](docs/ANALISIS-EXCEL-PRESUPUESTOS.md): APU y ambigüedades de origen.
-- [Estado del proyecto](docs/ESTADO-PROYECTO.md): hechos verificados y pendientes reales.
-- [Instrucciones globales](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md) y [AGENTS.md](AGENTS.md): continuidad y responsabilidades.
-
-El cierre funcional de Etapa 1 está regido por `CEO_PLAN_MAESTRO_CODEX.md`: incluye clientes/obras, Actividades de obra, costos y presentación comercial, compras, importaciones e indicadores. No modifica infraestructura ni ejecuta cambios sobre producción.
-
-La carga inicial incremental incorpora rubros, unidades, materiales, actividades y composiciones verificables de los Excel entregados, con BASE como fuente principal y DG como complemento histórico documentado. Precios de materiales y tarifas de mano de obra se mantienen por separado; las actividades calculan su costo con referencias seleccionadas o importes directos explícitos. Los borradores se actualizan tras revisar diferencias y las revisiones emitidas se conservan. La carga no genera clientes, obras, proveedores operativos ni movimientos de stock a partir de supuestos. Estado y evidencias de ejecución: [carga inicial y costos](docs/ESTADO-CARGA-INICIAL-Y-COSTOS.md).
+Consultar la guía manual antes de preparar el entorno. Los verificadores API/E2E usan bases aisladas nuevas; la base manual es persistente y distinta. No compilar sobre una app activa ni usar credenciales productivas para tests. El arranque no carga producción ni restablece usuarios. Seguridad, permisos, cálculos decimales e históricos se validan en servidor.

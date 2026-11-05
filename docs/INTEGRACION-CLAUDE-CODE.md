@@ -1,6 +1,6 @@
 # Integración frontend — backend V1
 
-Guía histórica de integración V1. Para el cierre de Etapa 1, `CEO_PLAN_MAESTRO_CODEX.md` prevalece y Codex trabaja full stack, incluido `apps/web`. El contrato vigente es `docs/api/openapi.json`. No interpretar la división original entre agentes como restricción actual.
+Guía histórica de integración V1. Para el cierre de Etapa 1, `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md` prevalece y Codex trabaja full stack, incluido `apps/web`. El contrato vigente es `docs/api/openapi.json`. No interpretar la división original entre agentes como restricción actual.
 
 Las decisiones actuales agregan clientes/obras, Actividades de obra, plantillas, borradores y revisiones comerciales/PDF, recargo, revisión/importación de precios, cobertura neta, recepción delegada, Administración restringida e indicadores. Las reglas y permisos detallados son los del plan §5; las rutas V1 se mantienen para compatibilidad.
 

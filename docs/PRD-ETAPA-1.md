@@ -5,7 +5,7 @@
 **Plazo de referencia:** 10 semanas desde los hitos contractuales de pago, entrega de archivos y accesos.
 **No es una ampliación comercial:** prevalece el contrato y Anexo I; los detalles internos sirven para materializar su alcance.
 
-> Actualización de ejecución (02/11/2026): para la misión autorizada en `CEO_PLAN_MAESTRO_CODEX.md`, las decisiones posteriores del usuario prevalecen sobre las exclusiones históricas de este PRD: experiencia de Actividades de obra, clientes con varias obras, costos directos/VARIOS, recargo comercial, borradores/revisiones/PDF comercial, importación Excel, necesidades netas, Administración restringida e indicadores. Se mantienen los límites de seguridad, privacidad, integridad y la prohibición de configurar infraestructura o ejecutar cambios productivos.
+> Actualización de ejecución (02/11/2026): para la misión autorizada en `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`, las decisiones posteriores del usuario prevalecen sobre las exclusiones históricas de este PRD: experiencia de Actividades de obra, clientes con varias obras, costos directos/VARIOS, recargo comercial, borradores/revisiones/PDF comercial, importación Excel, necesidades netas, Administración restringida e indicadores. Se mantienen los límites de seguridad, privacidad, integridad y la prohibición de configurar infraestructura o ejecutar cambios productivos.
 
 ## 1. Fuentes y jerarquía
 1. **Contrato y Anexo I — Etapa 1:** https://docs.google.com/document/d/1KAc0AJrNjK-miwRIr6Bc8NmOCUB0As1E/edit

@@ -44,3 +44,9 @@ El usuario priorizó publicar el candidato actual para su demo y pidió detener 
 - PDF: todos los PNG de 29 páginas sintéticas de presupuesto y 12 de OC renderizados e inspeccionados en privado. Golden V1 e integración histórica pasan. El dominio no cambió aún; no se declara comprobación online de este incremento.
 
 Excepciones: estados/moneda/IVA/tipos cortos siguen nativos; rubros/unidades/ubicaciones pequeños pueden usar opciones locales completas. Usuarios no tiene acción masiva; recepción continúa por OC y su historia permite exportar, sin recibir OC en bloque. La selección/exportación tiene límite explícito de 2.000 resultados y vencimiento de 30 minutos; mínimos 200 filas, movimientos 100. Las OC históricas sin presentación congelada conservan el renderer anterior; no se inventa retrospectivamente un historial.
+
+## Limpieza documental acotada
+
+Inventario previo: seis planes/prompts de ejecución superados. Sus reglas detalladas se consolidaron en `DECISIONES-CIERRE.md`, criterios T01–T54 en `ACEPTACION-CIERRE-ETAPA-1.md`, convenciones REST en el README API y preparación local en la guía manual. Se retiraron el plan maestro anterior, reanudación TXT, LEEME de desbloqueo y los planes/misión backend y cierre; su historial permanece en Git. README ahora es índice y AGENTS apunta a fuentes vigentes. Se conserva documentación específica de contratos, operación/demo, migración, fuentes, conciliación, pruebas y evidencias históricas. El preparador valida el plan y estado vigentes.
+
+Dos metadatos Windows `:Zone.Identifier` sin seguimiento se copiaron de forma recuperable a `~/.local/state/ceo-construcciones-codex/ux-transversal/limpieza-local/` antes de retirarlos. El logo azul local del usuario, originales, credenciales, bases, respaldos, migraciones, fixtures, pruebas y referencias visuales se conservaron. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. No hubo limpieza de datos ni de usuarios.

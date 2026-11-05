@@ -9,14 +9,14 @@ Leé primero README.md, docs/PRD-ETAPA-1.md y docs/ESTADO-PROYECTO.md. El **PRD 
 - Secretos solo en variables seguras, nunca en commits, logs ni fixtures.
 - Las migraciones Prisma deben ser versionadas y revisadas; antes de migraciones destructivas o cambios en producción, backup y autorización explícita.
 
-## Responsabilidades durante el cierre de Etapa 1
-- La misión de habilitación demo online autorizada el 05/11/2026 permite, sólo en el proyecto/entorno existentes identificados en `docs/DEMO-ONLINE.md`, respaldo puntual, migraciones versionadas pendientes, carga CEO verificada y datos/accesos DEMO. Sustituye las prohibiciones productivas anteriores únicamente para esas acciones; conserva controles locales, seguridad, integridad y límites de infraestructura.
-- El encargo incremental de carga inicial y costos de referencia recibido el 04/11/2026 autoriza a Codex full stack, migraciones aditivas y carga verificada exclusivamente local. Incluye MO por referencias y actividades vinculadas, sin nómina. El texto completo adjunto por el usuario prevalece en este incremento; no se reinicia el plan maestro ni se habilitan operaciones productivas.
-- Para la misión de cierre definida en `CEO_PLAN_MAESTRO_CODEX.md`, **Codex** trabaja full stack: dominio, API, autenticación/RBAC, Prisma, contratos, `apps/web`, pruebas y documentación. La autorización no permite cambiar infraestructura, secretos, backups, Railway/Vercel ni datos productivos.
-- Fuera de esa misión, el frontend debe seguir consumiendo contratos versionados y no crear modelos paralelos ni endpoints inventados.
-- Trabajar en **ramas/PR independientes por tarea**. No ejecutar ambos agentes editando el mismo archivo en paralelo. No mergear ni desplegar cambios funcionales sin revisión/consentimiento del usuario.
-- Contratos OpenAPI documentados antes de integrar pantallas. Mantener documentación del contrato coherente con backend.
-- No modificar ajustes Railway/Vercel sin necesidad justificada y verificable.
+## Responsabilidades y fuentes vigentes
+- Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. Actualizar ese archivo, sin generar copias por fase. Matriz y evidencias del incremento: `docs/UX-TRANSVERSAL-ETAPA-1.md`.
+- Codex trabaja full stack en `apps/api`, `apps/web`, Prisma, contratos, pruebas y documentación; no hay exclusividad de frontend asignada a otro agente.
+- Requisitos base en `docs/PRD-ETAPA-1.md`, decisiones detalladas en `docs/DECISIONES-CIERRE.md`, aceptación/matriz en `docs/ACEPTACION-CIERRE-ETAPA-1.md` y `docs/REQUISITOS-ETAPA-1-CIERRE.md`. Los registros de cierres anteriores son evidencia histórica, no misiones para reiniciar.
+- La habilitación online del 05/11/2026 y sus destinos/autorizaciones están en `docs/DEMO-ONLINE.md`. La misión UX autoriza publicación del código y smoke pequeño con registros nuevos DEMO UX; no autoriza modificar usuarios, credenciales, cargas CEO, operaciones ajenas o infraestructura. Cualquier ampliación productiva exige autorización y recuperación verificable.
+- Trabajar en ramas/PR independientes. Preservar cambios locales; no editar el mismo archivo simultáneamente. Integrar sólo el candidato revisado y autorizado, con checks verdes, sin force-push ni bypass.
+- OpenAPI y tipos deben quedar sincronizados antes de integrar pantallas. No crear modelos paralelos ni endpoints inventados.
+- No modificar ajustes Railway/Vercel. Verificar compatibilidad y observar el autodespliegue existente sin configurarlo.
 
 ## Reglas de negocio críticas de V1
 - Cinco perfiles: Gerencia, Compras, Cómputo/Presupuestos, Jefe de Obra y Administración restringida. El jefe de obra y Administración no reciben precios/costos salvo los DTO expresamente autorizados; validar autorización en backend.

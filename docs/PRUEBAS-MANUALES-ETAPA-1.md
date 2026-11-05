@@ -136,3 +136,7 @@ Aplicar después de verificar el SHA/despliegue registrado en estado. Usar el do
 10. Inicio → Visión ejecutiva/Seguimiento físico: conservar filtros al abrir detalle, separar moneda/IVA y conciliar con Excel; repetir con otros perfiles sin ampliar permisos.
 
 Reportar fallos con ruta, rol y entidad, sin adjuntar claves ni datos privados. Las limitaciones históricas siguen detalladas por registro; este incremento no completa las 76 composiciones parciales.
+
+## Preparación local preservada
+
+Si el entorno todavía no existe, `bash CEO_Preparar_Local.sh` comprueba el repositorio, Node/pnpm, Git y Docker local, conserva una copia recuperable fuera del árbol y prepara PostgreSQL exclusivo de pruebas. No instala dependencias, no aplica migraciones ni publica código. Cargar `source "$HOME/.local/state/ceo-construcciones-codex/local.env"` sólo para shells locales, sin imprimir su contenido. Los verificadores ocupan 3000/3001 y no deben competir con otro build. La aplicación manual usa 3100/3101 y su propia base persistente. No borrar bases ni reutilizar un contexto Docker remoto para desbloquear pruebas.
