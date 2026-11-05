@@ -59,10 +59,10 @@ export function UserForm({ open, user, onClose, onSaved }: { open: boolean; user
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required={!user}
-          minLength={12}
+          minLength={8}
           maxLength={128}
           autoComplete="new-password"
-          hint="Mínimo 12 caracteres. Comunicala al usuario por un canal seguro."
+          hint="Mínimo 8 caracteres. Comunicala al usuario por un canal seguro."
           error={fe.password}
         />
         {user && (

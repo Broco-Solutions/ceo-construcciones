@@ -35,7 +35,7 @@ async function main() {
 main()
   .catch(() => {
     console.error(
-      "No se pudo crear administrador. Verifique entorno, contraseña de 12–128 caracteres y base vacía.",
+      "No se pudo crear administrador. Verifique entorno, contraseña de 8–128 caracteres y base vacía.",
     );
     process.exitCode = 1;
   })

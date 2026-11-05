@@ -1075,7 +1075,7 @@ function operation(
 const userInput = obj({
   email: { type: "string", format: "email", maxLength: 254 },
   name: { type: "string", minLength: 1, maxLength: 200 },
-  password: { type: "string", minLength: 12, maxLength: 128, writeOnly: true },
+  password: { type: "string", minLength: 8, maxLength: 128, writeOnly: true },
   role: ref("Role"),
 });
 add("UserInput", userInput);
