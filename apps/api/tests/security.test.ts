@@ -22,6 +22,15 @@ describe("seguridad de credenciales y cookies", () => {
     expect(await verifyPassword("clave-equivocada", "invalid")).toBe(false);
     await expect(hashPassword("corta")).rejects.toMatchObject({ status: 400 });
   });
+  it("accepts the authorized eight-character boundary and keeps lower/upper limits", async () => {
+    for (const length of [8, 9, 11, 128]) {
+      const value = "x".repeat(length);
+      const encoded = await hashPassword(value);
+      expect(await verifyPassword(value, encoded)).toBe(true);
+    }
+    for (const length of [0, 7, 129])
+      await expect(hashPassword("x".repeat(length))).rejects.toMatchObject({ status: 400 });
+  });
   it("rejects forbidden roles and admits explicitly listed roles", () => {
     expect(() =>
       requireRoles(

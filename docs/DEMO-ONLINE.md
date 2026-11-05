@@ -42,7 +42,7 @@ Permanecen los 76 casos parciales con causas por registro en [resultados de carg
 
 ## Accesos y datos DEMO
 
-Credenciales online **distintas de las locales**: `~/.local/state/ceo-construcciones-codex/online/credenciales-online.json` (600). Abrir ese archivo privado para consultar cada contraseña. Gerencia: `gerencia@demo.ceo.invalid`. Cinco perfiles: GERENCIA, COMPUTO, COMPRAS, JEFE_OBRA y ADMINISTRACION; contraseñas aleatorias únicas. Cuentas anteriores intactas. Creación auditada con actor Gerencia existente; la reejecución nunca resetea una cuenta y rechaza conflictos.
+Credenciales online **distintas de las locales**: `~/.local/state/ceo-construcciones-codex/online/credenciales-online.json` (600). Consultar exclusivamente ese archivo privado para los correos y claves vigentes de los cinco perfiles. Las identidades creadas en PR17 conservan su ID, rol, asignaciones e historial al cambiar el acceso. El auxiliar reconoce el ID y la auditoría de creación; nunca recrea una identidad ausente ni vuelve a instalar el correo anterior. Cuentas anteriores y credenciales locales intactas. No hay contraseñas predeterminadas ni reset al arrancar.
 
 Muestra separada, con prefijo DEMO: cliente ficticio con dos obras, Galpón/Patio, tres corralones ficticios, un material/presentación/actividad y plantilla sintéticos. No hay comunicaciones reales. El Jefe está asignado sólo a la primera obra. Los aumentos numéricos se registraron exclusivamente en el material DEMO, **nunca en las series BASE**.
 
@@ -76,3 +76,9 @@ El código integrado/checks/despliegues definitivos se registran en el cierre de
 | Accesos aislados y preservación | `online-demo-accounts.ts` | integración PostgreSQL: crear/repetir/preservar/rollback; `accounts.out` |
 | Permisos y recorrido público | `demo-online-smoke.mjs` | `online-smoke-result.json`, capturas y PDFs privados |
 | Regresión completa aislada | verificadores api/web/e2e | `local-api-final.log` (195+3), `local-web-check.log` (52), `local-e2e-check.log` (73), salida 0 |
+
+## Simplificación posterior de accesos DEMO
+
+El usuario autorizó renombrar/restablecer exclusivamente las cinco identidades DEMO de PR17 y, tras comprobar la restricción anterior, reducir el mínimo general de contraseña a **8 caracteres** (máximo 128). Hash scrypt, límites de intentos, cookies, controles de origen, roles y autorización permanecen. Administración sigue restringida independientemente del nombre de su correo. Contrato API, formulario y ayuda de bootstrap reflejan el mismo mínimo; ninguna clave se publica en el código o documentación.
+
+La operación de datos se realiza por `PATCH /users/{id}` autenticado, con Gerencia al final, preflight de colisiones, auditoría y revocación sólo de sesiones de cada identidad modificada. El registro privado bajo `online/access-change/` conserva correspondencias, comparaciones de asignaciones/datos y resultados de los cinco logins públicos; no se ejecutan migraciones, cargas ni semillas. Verificar allí el resultado efectivamente aplicado.

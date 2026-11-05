@@ -16,11 +16,11 @@ export const sessionHash = (token: string) =>
   createHash("sha256").update(token).digest("hex");
 
 export async function hashPassword(password: string): Promise<string> {
-  if (password.length < 12 || password.length > 128)
+  if (password.length < 8 || password.length > 128)
     throw new ApiError(
       400,
       "VALIDATION_ERROR",
-      "La contraseña debe tener entre 12 y 128 caracteres.",
+      "La contraseña debe tener entre 8 y 128 caracteres.",
     );
   const salt = randomBytes(16).toString("hex");
   const key = (await scrypt(password, salt, 64)) as Buffer;

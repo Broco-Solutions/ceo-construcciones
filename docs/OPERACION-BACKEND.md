@@ -58,7 +58,7 @@ La segunda ejecución de tests activa **todos** los archivos de integración; si
 | COOKIE_SECURE | `true` únicamente cuando se necesita forzar Secure fuera de producción. |
 | BOOTSTRAP_ADMIN_EMAIL | Correo del primer usuario, sólo durante bootstrap. |
 | BOOTSTRAP_ADMIN_NAME | Nombre del primer usuario, sólo durante bootstrap. |
-| BOOTSTRAP_ADMIN_PASSWORD | Contraseña inicial de 12–128 caracteres, sólo durante bootstrap. |
+| BOOTSTRAP_ADMIN_PASSWORD | Contraseña inicial de 8–128 caracteres, sólo durante bootstrap. |
 | RUN_INTEGRATION | `1` exclusivamente para activar las pruebas contra PostgreSQL aislado. |
 
 Las tres variables BOOTSTRAP se retiran al terminar. No hay credenciales iniciales predeterminadas ni claves de sesión estáticas; las sesiones usan tokens aleatorios y la base conserva únicamente su hash. No exponer DATABASE_URL ni variables BOOTSTRAP en Vercel, respuestas HTTP, logs o archivos versionados. El archivo `apps/api/.env.example` contiene sólo ejemplos locales; la fuente de verdad productiva es el entorno seguro de Railway.
@@ -70,7 +70,7 @@ Con las migraciones aplicadas a una base **sin usuarios**, inyectar DATABASE_URL
 ```bash
 read -r -p 'Correo inicial: ' BOOTSTRAP_ADMIN_EMAIL
 read -r -p 'Nombre inicial: ' BOOTSTRAP_ADMIN_NAME
-read -r -s -p 'Contraseña inicial (12–128 caracteres): ' BOOTSTRAP_ADMIN_PASSWORD
+read -r -s -p 'Contraseña inicial (8–128 caracteres): ' BOOTSTRAP_ADMIN_PASSWORD
 export BOOTSTRAP_ADMIN_EMAIL BOOTSTRAP_ADMIN_NAME BOOTSTRAP_ADMIN_PASSWORD
 pnpm --filter @ceo/api db:admin
 unset BOOTSTRAP_ADMIN_EMAIL BOOTSTRAP_ADMIN_NAME BOOTSTRAP_ADMIN_PASSWORD
