@@ -426,7 +426,7 @@ test('filtros del servidor y paginación con total coherente', async ({
     page.locator('#contenido table tbody tr').locator('visible=true'),
   ).toHaveCount(1);
   await expect(
-    page.getByText(`Material filtro ${SUF}`).locator('visible=true'),
+    page.locator('#contenido table tbody').getByText(`Material filtro ${SUF}`).locator('visible=true'),
   ).toBeVisible();
 
   // Pedidos: obra + estado; el total coincide con el del servidor.
