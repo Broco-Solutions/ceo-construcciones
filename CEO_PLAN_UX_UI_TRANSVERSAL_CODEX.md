@@ -1,6 +1,6 @@
 # CEO — misión vigente de UX/UI transversal
 
-Único plan activo. Reúne el encargo recibido en Markdown y su copia TXT: son una sola misión. Base comprobada `2859bff9106d6d995cd240b5b0ab18e754abe35d`; rama `codex/ux-transversal-etapa-1`. No autoriza retroceder el árbol. Estado: **implementación en curso, sin aceptación ni publicación de este incremento**.
+Único plan activo. Reúne el encargo recibido en Markdown y su copia TXT: son una sola misión. Base comprobada `2859bff9106d6d995cd240b5b0ab18e754abe35d`; rama `codex/ux-transversal-etapa-1`. No autoriza retroceder el árbol. Estado funcional: **integrado y verificado en el dominio online**, aplicación main `23a2d7e`. El cierre del auxiliar de compatibilidad y sus checks se registra en [PR20](https://github.com/Broco-Solutions/ceo-construcciones/pull/20); no implica aceptación del piloto.
 
 ## Resultado y límites
 
@@ -17,12 +17,12 @@ Actualizar este archivo al avanzar; evidencia detallada y matriz pantalla → c�
 | Fase | Entregable y controles obligatorios | Estado |
 |---|---|---|
 | P0 | Inspección de main/árbol/reglas/diseño; preservar cambios locales; baseline público y PDF históricos | Baseline capturado en privado; inventario inicial realizado |
-| P1 | Combobox APG compartido, filtros coherentes, búsqueda normalizada en servidor y selección estable | Primitiva y adaptadores adoptados; 5 unitarias de combobox y 3 de selección pasan; revisión visual final pendiente |
+| P1 | Combobox APG compartido, filtros coherentes, búsqueda normalizada en servidor y selección estable | Primitiva/adaptadores adoptados; unitarias, E2E y revisión visual aprobados |
 | P2 | Adopción en catálogos/formularios/presupuestos/compras/inventario/informes; actividades múltiples; selección y Excel con alcance idéntico | Implementado; E2E real de 115 resultados/3 páginas, exclusión, Excel y actividades múltiples aprobado |
-| P3 | Mínimos y movimientos multilínea atómicos, preview, conflictos, idempotencia y reglas compartidas | API y UI implementadas; integración y E2E de mínimos/conflicto/reserva/transferencia/doble clic aprobados; regresión final pendiente |
+| P3 | Mínimos y movimientos multilínea atómicos, preview, conflictos, idempotencia y reglas compartidas | Integración/E2E aprobados; mínimos/transferencia/reintento comprobados también online en DEMO UX |
 | P4 | PDF V2 presupuesto/OC con marca y paginación; V1/bytes/hash preservados | Implementado; golden V1/integración/PDF V2 aprobados; 29 páginas presupuesto y 12 OC renderizadas e inspeccionadas |
-| P5 | Informes ejecutivos y físicos, KPI/series servidor conciliables, gráficos accesibles y navegación contextual | Implementado; 5 pruebas reales de informes pasan; visual/smoke final pendiente |
-| P6 | Tipos/builds/unitarias/integración/E2E completos; visual/PDF; PR/checks/merge/despliegue/smoke público | API final 211 + 3 runtime, tipos/build salida 0; web/E2E completos y publicación en curso |
+| P5 | Informes ejecutivos y físicos, KPI/series servidor conciliables, gráficos accesibles y navegación contextual | Cinco integraciones, revisión responsive y consulta pública filtrada aprobadas |
+| P6 | Tipos/builds/unitarias/integración/E2E completos; visual/PDF; PR/checks/merge/despliegue/smoke público | API CI 212 + 3 runtime, web 60, E2E 79/79; release HTTP/navegador aprobado en aislado; aplicación desplegada y smoke de cinco roles aprobado; checks auxiliares en PR20 |
 | Cierre documental | Inventariar, consolidar y retirar sólo duplicados/superados; enlaces y verificaciones; commit separado | Consolidado en fuentes específicas y retirados seis planes/prompts; copia recuperable de dos metadatos locales; enlaces/sintaxis revisados |
 
 ### Controles comunes y adopción

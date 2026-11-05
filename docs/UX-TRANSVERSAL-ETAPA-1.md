@@ -6,15 +6,15 @@ Base real: main `2859bff9106d6d995cd240b5b0ab18e754abe35d`. Se conservan las dos
 
 | Pantalla/control | Cambio / acción | Rol vigente | Prueba y estado |
 |---|---|---|---|
-| Catálogos, filtros y formularios extensos | Combobox común remoto/local, búsqueda normalizada y dependencias | Autorización de cada entidad en servidor | P1–P2 en ejecución; aún no aceptado |
-| Actividades / presupuesto / cómputo | Buscar por ítem/código/nombre, incorporar varias tras revisar | Gerencia/Cómputo; consulta económica existente | P1–P2 pendiente de prueba |
-| Tablas operativas y exportación | Página / filtro congelado / exclusiones, Excel con el mismo alcance | Permisos existentes; sin cambios de usuarios en lote | P2 pendiente de prueba |
-| Stock, alertas y ubicación sin saldo | Mínimos por lote, cero/herencia, revisión y atomicidad | Gerencia/Compras | P3 pendiente de prueba |
-| Movimientos | Multilínea, validación compartida, reservas, idempotencia y rollback | Según tipo/asignación actuales | P3 pendiente de prueba |
-| Presupuesto PDF | V1 conservada; V2 sólo nuevas emisiones y preview | Permisos económicos actuales | P4 pendiente de prueba |
-| OC PDF | Presentación versionada al emitir sin recalcular histórico | Gerencia/Compras/Cómputo según lectura vigente | P4 pendiente de inspección/prueba |
-| Informes e Inicio | KPI/series servidor, grupos monetarios y gráficos con detalle accesible | Cliente sólo Gerencia; ámbito actual de otros perfiles | P5 pendiente de prueba |
-| Entorno online | Smoke pequeño sólo con registros nuevos DEMO UX | Credenciales vigentes, sin resets | P6 pendiente de integración |
+| Catálogos, filtros y formularios extensos | Combobox común remoto/local, búsqueda normalizada y dependencias | Autorización de cada entidad en servidor | Combobox/EntityPicker/EntitySearch; unitarias, E2E y revisión responsive aprobados |
+| Actividades / presupuesto / cómputo | Buscar por ítem/código/nombre, incorporar varias tras revisar | Gerencia/Cómputo; consulta económica existente | ActivityMultiPicker; revisión, duplicación expresa y líneas anteriores inalteradas aprobadas |
+| Tablas operativas y exportación | Página / filtro congelado / exclusiones, Excel con el mismo alcance | Permisos existentes; sin cambios de usuarios en lote | DataTable/selections; tres páginas, exclusión y Excel aprobados |
+| Stock, alertas y ubicación sin saldo | Mínimos por lote, cero/herencia, revisión y atomicidad | Gerencia/Compras | Integración/atomicidad/concurrencia y E2E aprobados; smoke público DEMO UX |
+| Movimientos | Multilínea, validación compartida, reservas, idempotencia y rollback | Según tipo/asignación actuales | Integración/atomicidad/concurrencia y E2E aprobados; smoke público DEMO UX |
+| Presupuesto PDF | V1 conservada; V2 sólo nuevas emisiones y preview | Permisos económicos actuales | Golden V1 e integración histórica aprobados; V2 renderizada e inspeccionada |
+| OC PDF | Presentación versionada al emitir sin recalcular histórico | Gerencia/Compras/Cómputo según lectura vigente | OC V2/snapshot público aprobados; 12 páginas inspeccionadas |
+| Informes e Inicio | KPI/series servidor, grupos monetarios y gráficos con detalle accesible | Cliente sólo Gerencia; ámbito actual de otros perfiles | Cinco integraciones, revisión responsive y consulta online aprobados |
+| Entorno online | Smoke pequeño sólo con registros nuevos DEMO UX | Credenciales vigentes, sin resets | Aplicación main 23a2d7e desplegada y smoke de cinco perfiles aprobado |
 
 ## Excepciones previstas que requieren verificación
 
@@ -34,9 +34,9 @@ Estados, moneda, IVA y tipos cortos conservan selección nativa. Usuarios no rec
 
 Referencias de interacción: [APG combobox](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/), [APG checkbox](https://www.w3.org/WAI/ARIA/apg/patterns/checkbox/) y [gráficos accesibles](https://www.w3.org/WAI/tutorials/images/complex/). La revisión React usa el skill `vercel:react-best-practices`; se conservan los componentes/tokens de este repositorio.
 
-## Candidato para integración inmediata
+## Checkpoint previo a integración (histórico de esta pasada)
 
-El usuario priorizó publicar el candidato actual para su demo y pidió detener los ajustes adicionales. La limpieza documental final y la evidencia visual ampliada aún no se declaran completadas. Se conserva un único plan activo. No hay migraciones, cambios de roles/credenciales/configuración cloud ni recargas BASE/DG.
+El usuario priorizó publicar el candidato actual para su demo y pidió detener los ajustes adicionales. En ese checkpoint faltaban limpieza y evidencia final, completadas más abajo. Se conserva un único plan activo. No hay migraciones, cambios de roles/credenciales/configuración cloud ni recargas BASE/DG.
 
 - API: verificador aislado completo aprobado, **211 + 3 runtime**, tipos/build salida 0 (`ux-transversal/final-api.log`). Se agregó después una prueba de seguridad Excel (aprobada) y se repiten los controles en CI sobre una base nueva. Un intento adicional sobre una base de diagnóstico reutilizada falló en dos fixtures que requieren instalación inicial (BASE y cuentas DEMO ya presentes); no se borró esa base ni se quitaron assertions.
 - Web: **60 pruebas**, typecheck/build salida 0 (`ux-transversal/final-web.log`); se corrigió después una advertencia CSS de compatibilidad sin cambiar comportamiento.
@@ -50,3 +50,13 @@ Excepciones: estados/moneda/IVA/tipos cortos siguen nativos; rubros/unidades/ubi
 Inventario previo: seis planes/prompts de ejecución superados. Sus reglas detalladas se consolidaron en `DECISIONES-CIERRE.md`, criterios T01–T54 en `ACEPTACION-CIERRE-ETAPA-1.md`, convenciones REST en el README API y preparación local en la guía manual. Se retiraron el plan maestro anterior, reanudación TXT, LEEME de desbloqueo y los planes/misión backend y cierre; su historial permanece en Git. README ahora es índice y AGENTS apunta a fuentes vigentes. Se conserva documentación específica de contratos, operación/demo, migración, fuentes, conciliación, pruebas y evidencias históricas. El preparador valida el plan y estado vigentes.
 
 Dos metadatos Windows `:Zone.Identifier` sin seguimiento se copiaron de forma recuperable a `~/.local/state/ceo-construcciones-codex/ux-transversal/limpieza-local/` antes de retirarlos. El logo azul local del usuario, originales, credenciales, bases, respaldos, migraciones, fixtures, pruebas y referencias visuales se conservaron. Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. No hubo limpieza de datos ni de usuarios.
+
+## Publicación y verificación online — 05/11/2026
+
+PR19 fue integrado por el colaborador en `23a2d7e21edaf37b7d11c717766e038858b42a26`. Web Vercel `dpl_Ay8c8Beuhdvsm6qp3zWeTzXnE16i` READY y API Railway `b1d55bc1-3d99-47f2-b679-0ed9a06c9c4c` SUCCESS, mismo SHA y dominio existente. El último commit local de evidencia/auxiliar no llegó por un fallo HTTP 408/TLS; se conservó en la rama local. El auxiliar se integra por PR20, sin cambios funcionales. No se declara que el PR19 tuviera todos los checks verdes al integrarse: 79 E2E pasaron y falló el auxiliar de compatibilidad por usar selectOption; la corrección pasó en aislado y se comprueba íntegra en PR20.
+
+Smoke público final aprobado a las 17:51 UTC: login/cookie segura/logout de los cinco perfiles, permisos de servidor y obra ajena rechazada para Jefe; Administración continúa restringida. Mínimos propios 6 y 0 sobre ubicación nueva sin saldo ni movimientos; dos aperturas DEMO UX de 10 y transferencia multilínea 2/3, saldos 8/7 y reintento sin duplicación. Presupuesto comercial R1 V2 y PDF real, OC sintética sólo borrador y PDF, selección/exportación, informes filtrados y capturas 1440/360 sin errores JS/desborde.
+
+Se compararon por ID las cuentas, asignaciones, clientes, obras, materiales, proveedores, actividades, precios, saldos, movimientos, presupuestos y OC preexistentes: sin alteraciones. Los tres PDF emitidos anteriores conservaron su SHA byte a byte. No se cambiaron credenciales ni permisos. Datos nuevos separados: un cliente DEMO UX, dos obras, galpón/patio, dos materiales sintéticos, un proveedor ficticio, mínimos, dos aperturas y dos transferencias, un presupuesto/R1 y una OC borrador. Sin OC real, recepción, correo, recarga CEO, migración ni cambio de infraestructura.
+
+Evidencia y recibo del respaldo puntual: `~/.local/state/ceo-construcciones-codex/ux-transversal/online/` (`smoke-result.json`, `demo-ux-state.json`, PDF y capturas; respaldo verificado 593.836 bytes/285 entradas). Evidencia sintética compartible en `apps/web/docs/evidencia/ux-transversal/`; las galerías completas y revisión 1440/1280/768/390/360 permanecen privadas. Los límites históricos de 76 actividades parciales siguen vigentes.
