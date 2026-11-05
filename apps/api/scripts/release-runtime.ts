@@ -187,9 +187,10 @@ export async function runtimeReleaseCheck(
           .getByLabel("Nombre", { exact: true })
           .fill(`Obra navegador ${expanded ? "ampliada" : "V1"}`);
         if (expanded) {
-          await dialog
-            .getByLabel("Cliente principal")
-            .selectOption({ index: 1 });
+          const customer=dialog.getByLabel("Cliente principal");
+          await customer.click();
+          await page.getByRole("listbox", {name:"Opciones disponibles"}).getByRole("option").first().click();
+          assert.ok(await customer.getAttribute("data-selected-id"), "Se seleccionó un cliente real");
         } else {
           await dialog
             .getByText(/Los datos de clientes todavía no están habilitados/)
