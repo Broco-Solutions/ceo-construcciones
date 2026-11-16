@@ -65,6 +65,30 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
       await db.$disconnect();
     });
 
+    it("rechaza una sesión vencida persistida y tokens inválidos sin devolver identidad", async () => {
+      const expiredToken = randomBytes(32).toString("hex");
+      await db.session.create({
+        data: {
+          userId: users[0],
+          tokenHash: sessionHash(expiredToken),
+          expiresAt: new Date(Date.now() - 1000),
+        },
+      });
+      for (const token of [expiredToken, randomBytes(32).toString("hex"), "malformed"]) {
+        const response = await dispatch(
+          new Request("http://localhost:3001/api/v1/auth/me", {
+            headers: { cookie: `ceo_session=${token}` },
+          }),
+          ["auth", "me"],
+        );
+        expect(response.status).toBe(401);
+        const result = await response.json();
+        expect(result.error.code).toBe("UNAUTHENTICATED");
+        expect(result).not.toHaveProperty("data");
+        expect(response.headers.get("cache-control")).toBe("no-store");
+      }
+    });
+
     for (const role of restrictedRoles) {
       it(`rechaza todas las operaciones que OpenAPI excluye para ${role}`, async () => {
         let checked = 0;
