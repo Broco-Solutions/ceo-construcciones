@@ -29,7 +29,7 @@ export default function MaterialesPage() {
     return () => clearTimeout(t);
   }, [q]);
   // search/categoryId/active se aplican en el servidor antes de paginar.
-  const list = usePaged<Material>('/materials', { id:entityId||undefined,search: search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const list = usePaged<Material>('/materials', { id:entityId||undefined,search: entityId ? undefined : search || undefined, categoryId: categoryId || undefined, active: active === 'all' ? undefined : active === 'yes' });
   const rows = list.rows;
   // Relaciones incluidas en el DTO; el catálogo sólo como respaldo.
   const unit = (m: Material) => unitSymbol(m.unit ?? units.map.get(m.unitId));
@@ -67,7 +67,7 @@ export default function MaterialesPage() {
           <Loading />
         ) : (
           <>
-            <DataTable collection={{resource:"materials",filters:{id:entityId||undefined,search:search||undefined,categoryId:categoryId||undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
+            <DataTable collection={{resource:"materials",filters:{id:entityId||undefined,search: entityId ? undefined : search || undefined,categoryId:categoryId||undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
               rows={rows}
               rowKey={(m) => m.id}
               onRowClick={(m) => router.push(`/materiales/${m.id}`)}

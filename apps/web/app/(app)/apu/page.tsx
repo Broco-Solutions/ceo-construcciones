@@ -46,7 +46,7 @@ function ApuList() {
   const [q,setQ]=useState(''),[entityId,setEntityId]=useState(''),[active,setActive]=useState('');
   const search=useDebounced(q);
   const list = usePaged<Schemas['ApuDetail']>('/apu-items', {
-    categoryId: categoryId || undefined, search:search||undefined, id:entityId||undefined, active:active||undefined,
+    categoryId: categoryId || undefined, search: entityId ? undefined : search || undefined, id:entityId||undefined, active:active||undefined,
   });
   const edit = can('editBudget');
   const labor = (a: Schemas['ApuDetail']) =>
@@ -91,7 +91,7 @@ function ApuList() {
           <ErrorBox error={list.error} onRetry={list.reload} />
         ) : (
           <>
-            <DataTable collection={{resource:"apu-items",filters:{categoryId:categoryId||undefined,search:search||undefined,id:entityId||undefined,active:active||undefined},total:list.pagination?.total,reload:list.reload}}
+            <DataTable collection={{resource:"apu-items",filters:{categoryId:categoryId||undefined,search: entityId ? undefined : search || undefined,id:entityId||undefined,active:active||undefined},total:list.pagination?.total,reload:list.reload}}
               rows={list.rows}
               rowKey={(r) => r.id}
               onRowClick={(r) => router.push(`/apu/${r.id}`)}

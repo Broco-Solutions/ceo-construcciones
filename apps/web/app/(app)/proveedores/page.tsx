@@ -29,7 +29,7 @@ function Inner({ canEdit }: { canEdit: boolean }) {
   const [creating, setCreating] = useState(false);
   const n = useDebounced(q.trim());
   // Búsqueda y estado los filtra el servidor antes de paginar.
-  const list = usePaged<Supplier>('/suppliers', { id:entityId||undefined,search: n || undefined, active: active === 'all' ? undefined : active === 'yes' });
+  const list = usePaged<Supplier>('/suppliers', { id:entityId||undefined,search: entityId ? undefined : n || undefined, active: active === 'all' ? undefined : active === 'yes' });
   const rows = list.rows;
   return (
     <Page
@@ -63,7 +63,7 @@ function Inner({ canEdit }: { canEdit: boolean }) {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable<Supplier> collection={{resource:"suppliers",filters:{id:entityId||undefined,search:n||undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
+          <DataTable<Supplier> collection={{resource:"suppliers",filters:{id:entityId||undefined,search: entityId ? undefined : n || undefined,active:active==='all'?undefined:active==='yes'},total:list.pagination?.total,reload:list.reload}}
             rows={rows}
             rowKey={(s) => s.id}
             onRowClick={(s) => router.push(`/proveedores/${s.id}`)}

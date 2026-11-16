@@ -38,7 +38,7 @@ function Clients() {
   const search = useDebounced(q.trim());
   const list = usePaged<Schemas['Client']>(
     '/clients',
-    { q: search || undefined, id:entityId||undefined },
+    { q: entityId ? undefined : search || undefined, id:entityId||undefined },
     50,
   );
   return (
@@ -63,7 +63,7 @@ function Clients() {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable collection={{resource:"clients",filters:{q:search||undefined,id:entityId||undefined},total:list.pagination?.total,reload:list.reload}}
+          <DataTable collection={{resource:"clients",filters:{q: entityId ? undefined : search || undefined,id:entityId||undefined},total:list.pagination?.total,reload:list.reload}}
             rows={list.rows}
             rowKey={(c) => c.id}
             onRowClick={(c) => router.push(`/clientes/${c.id}`)}

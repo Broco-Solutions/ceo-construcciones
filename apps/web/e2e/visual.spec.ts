@@ -5,7 +5,7 @@ import { login, type RoleKey } from './helpers';
 
 const OUT = process.env.E2E_VISUAL_DIR; // opcional: carpeta para capturas de revisión (fuera del repo)
 
-async function audit(page: Page, path: string) {
+async function audit(page: Page, path: string, role: RoleKey) {
   await page.goto(path);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await page.waitForLoadState('networkidle');
@@ -75,15 +75,17 @@ async function audit(page: Page, path: string) {
   expect(r.nameless, `botones/enlaces sin nombre en ${path}`).toEqual([]);
   if (OUT)
     await page.screenshot({
-      path: `${OUT}/${page.viewportSize()!.width}-${path.replace(/\W+/g, '_')}.png`,
+      path: `${OUT}/${role}-${page.viewportSize()!.width}-${path.replace(/\W+/g, '_')}.png`,
       fullPage: true,
     });
 }
 
-const SCREENS: Record<Exclude<RoleKey, 'JEFE_OBRA'>, string[]> = {
+const SCREENS: Record<RoleKey, string[]> = {
   ADMINISTRACION: ['/administracion', '/recepcion-delegada'],
+  JEFE_OBRA: ['/', '/pedidos', '/pedidos/nuevo', '/recepciones', '/stock', '/stock/movimientos/nuevo'],
   GERENCIA: [
     '/',
+    '/clientes',
     '/obras',
     '/materiales',
     '/catalogo',
@@ -141,6 +143,34 @@ for (const [role, paths] of Object.entries(SCREENS) as [RoleKey, string[]][]) {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 1280, height: 800 });
     await login(page, role);
-    for (const p of paths) await audit(page, p);
+    for (const p of paths) await audit(page, p, role);
   });
+}
+
+// Misión 02: los mismos controles y rutas, en los dos anchos mínimos autorizados.
+const MOBILE_SCREENS: Record<RoleKey, string[]> = {
+  GERENCIA: ['/', '/clientes', '/obras', '/presupuestos', '/ordenes', '/stock', '/reportes'],
+  COMPUTO: ['/apu', '/computos', '/presupuestos'],
+  COMPRAS: ['/pedidos', '/cotizaciones', '/ordenes', '/recepciones', '/stock'],
+  JEFE_OBRA: SCREENS.JEFE_OBRA,
+  ADMINISTRACION: SCREENS.ADMINISTRACION,
+};
+for (const width of [360, 390]) {
+  for (const [role, paths] of Object.entries(MOBILE_SCREENS) as [RoleKey, string[]][]) {
+    test(`revisión móvil ${width}px: ${role}`, async ({ browser }) => {
+      test.setTimeout(180_000);
+      const context = await browser.newContext({ viewport: { width, height: 800 }, isMobile: true, hasTouch: true });
+      try {
+        const page = await context.newPage();
+        await login(page, role);
+        const identity = await (await page.request.get('/api/v1/auth/me')).json();
+        for (const path of paths) {
+          await audit(page, path, role);
+          expect(await (await page.request.get('/api/v1/auth/me')).json()).toEqual(identity);
+        }
+      } finally {
+        await context.close();
+      }
+    });
+  }
 }

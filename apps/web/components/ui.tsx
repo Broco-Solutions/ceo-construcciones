@@ -28,14 +28,18 @@ export function Field({ label, error, hint, children, htmlFor }: { label: string
     <div className="field">
       <label htmlFor={htmlFor}>{label}</label>
       {children}
-      {hint && !error && <span className="hint">{hint}</span>}
+      {hint && !error && <span id={htmlFor ? `${htmlFor}-feedback` : undefined} className="hint">{hint}</span>}
       {error && (
-        <span className="err" role="alert">
+        <span id={htmlFor ? `${htmlFor}-feedback` : undefined} className="err" role="alert">
           {error}
         </span>
       )}
     </div>
   );
+}
+
+function fieldDescription(id: string, hint?: string, error?: string, existing?: string) {
+  return [existing, hint || error ? `${id}-feedback` : undefined].filter(Boolean).join(' ') || undefined;
 }
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string; suffix?: React.ReactNode };
@@ -46,11 +50,11 @@ export function TextField({ label, error, hint, id, className = '', suffix, ...r
     <Field label={label} error={error} hint={hint} htmlFor={iid}>
       {suffix != null ? (
         <div className="input-with-suffix">
-          <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} />
+          <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} aria-describedby={fieldDescription(iid, hint, error, rest['aria-describedby'])} />
           <span className="input-suffix">{suffix}</span>
         </div>
       ) : (
-        <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} />
+        <input id={iid} className={`input ${className}`} aria-invalid={error ? true : undefined} {...rest} aria-describedby={fieldDescription(iid, hint, error, rest['aria-describedby'])} />
       )}
     </Field>
   );
@@ -79,7 +83,7 @@ export function SelectField({ label, error, hint, options, placeholder, id, enti
   if (searchable) return <Combobox label={label} value={String(rest.value ?? '')} options={options} onChange={row=>onPick(row?.value??'')} id={iid} error={error} hint={hint} placeholder={placeholder} disabled={rest.disabled} required={rest.required} clearable={placeholder !== undefined}/>;
   return (
     <Field label={label} error={error} hint={hint} htmlFor={iid}>
-      <select id={iid} className="input" aria-invalid={error ? true : undefined} {...rest}>
+      <select id={iid} className="input" aria-invalid={error ? true : undefined} {...rest} aria-describedby={fieldDescription(iid, hint, error, rest['aria-describedby'])}>
         {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((o) => (
           <option key={o.value} value={o.value} disabled={o.disabled}>
@@ -96,7 +100,7 @@ export function TextArea({ label, error, hint, id, ...rest }: React.TextareaHTML
   const iid = id ?? auto;
   return (
     <Field label={label} error={error} hint={hint} htmlFor={iid}>
-      <textarea id={iid} className="input" aria-invalid={error ? true : undefined} {...rest} />
+      <textarea id={iid} className="input" aria-invalid={error ? true : undefined} {...rest} aria-describedby={fieldDescription(iid, hint, error, rest['aria-describedby'])} />
     </Field>
   );
 }

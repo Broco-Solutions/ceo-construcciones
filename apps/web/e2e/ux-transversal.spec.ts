@@ -99,6 +99,12 @@ test("tres páginas: página/todos/exclusión/exportación/invalidez del filtro 
   await page.getByLabel("Buscar", { exact: true }).fill(tag);
   await page.keyboard.press("Escape");
   await expect(page.locator(".selection-bar")).toContainText("115 resultados");
+  const filteredDownload = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Exportar filtrados", exact: true }).click();
+  const filteredBook = new ExcelJS.Workbook();
+  await filteredBook.xlsx.load(await readFile((await (await filteredDownload).path())!) as any);
+  expect(filteredBook.worksheets[0].rowCount).toBe(116);
+  expect(filteredBook.worksheets[0].getColumn(2).values.slice(2).sort()).toEqual(clients.map(c => c.name).sort());
   await page.getByLabel("Seleccionar página visible").check();
   await expect(page.locator(".selection-bar")).toContainText(
     "50 seleccionados",
@@ -440,3 +446,99 @@ test("mínimos comunes respetan la identidad de la unidad aun con el mismo símb
     (await api.list("/stock?materialId=" + material.id)).data,
   ).toHaveLength(0);
 });
+
+
+test("filtros y Excel representativos: obras, materiales, proveedores, pedidos, OC y stock en escritorio/móvil", async ({ page }) => {
+  test.setTimeout(240_000);
+  const supplier = await api.send("POST", "/suppliers", { code: "AUTO", name: tag + " · Proveedor Álamo" });
+  const category = (await api.list("/categories")).data[0];
+  await api.send("POST", "/requests", { workId: work.id, categoryId: category.id, requiredAt: new Date(Date.now() + 86400000).toISOString(), lines: [{ materialId: materials[0].id, quantity: "1" }] });
+  await api.send("POST", "/purchase-orders", { workId: work.id, supplierId: supplier.id, destinationId: destination.id, currency: "ARS", taxBasis: "UNSPECIFIED", lines: [{ materialId: materials[0].id, quantity: "1", unitPrice: "1", baseQuantity: "1" }] }, "m02-order-" + tag);
+  const cases = [
+    { path: "/obras", label: "Buscar", text: work.code, resource: "works", filters: { id: work.id } },
+    { path: "/materiales", label: "Buscar materiales", text: materials[0].code, resource: "materials", filters: { id: materials[0].id, active: true } },
+    { path: "/proveedores", label: "Buscar proveedores", text: supplier.code, resource: "suppliers", filters: { id: supplier.id, active: true } },
+    { path: "/pedidos", label: "Obra", id: work.id, resource: "requests", filters: { workId: work.id } },
+    { path: "/ordenes", label: "Proveedor", id: supplier.id, resource: "purchase-orders", filters: { supplierId: supplier.id } },
+    { path: "/stock?locationId=" + warehouse.id, label: "Material", id: materials[0].id, resource: "stock", filters: { locationId: warehouse.id, materialId: materials[0].id } },
+  ];
+  await login(page, "GERENCIA");
+  for (const width of [1280, 360, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const c of cases) {
+      await page.goto(c.path);
+      const input = page.getByLabel(c.label, { exact: true });
+      if (c.text) {
+        await input.fill("  " + c.text + "  ");
+        await page.getByRole("option").filter({ hasText: c.text }).first().click();
+      } else await chooseOption(input, c.id!);
+      await expect(page.locator(".selection-bar")).toContainText("1 resultados");
+      const expected = await api.list("/" + c.resource + "?" + new URLSearchParams(Object.entries(c.filters).map(([k,v]) => [k,String(v)])));
+      expect(expected.total).toBe(1);
+      const scope = width < 820 ? page.locator(".mcards:visible") : page.locator(".t:visible");
+      await scope.getByRole("checkbox").first().check();
+      expect(new URL(page.url()).pathname).toBe(c.path.split("?")[0]);
+      await expect(page.locator(".selection-bar")).toContainText("1 seleccionados");
+      for (const action of ["Exportar filtrados", "Exportar seleccionados"]) {
+        const download = page.waitForEvent("download");
+        await page.getByRole("button", { name: action, exact: true }).click();
+        const book = new ExcelJS.Workbook();
+        await book.xlsx.load(await readFile((await (await download).path())!) as any);
+        expect(book.worksheets[0].rowCount).toBe(2);
+        // Identidad pública de la fila: código o relaciones visibles del DTO.
+        const cells = JSON.stringify(book.worksheets[0].getRow(2).values);
+        expect(cells).toContain(expected.data[0].code ?? expected.data[0].supplier?.name ?? expected.data[0].material?.code ?? expected.data[0].lines?.[0]?.materialId);
+      }
+      await expect(page.locator(".selection-bar")).toHaveAttribute("aria-busy", "false");
+      const selectedRow = scope.getByRole("checkbox", { name: /^Seleccionar fila/ }).first();
+      await expect(selectedRow).toBeChecked();
+      await selectedRow.uncheck();
+      await expect(page.getByRole("button", { name: "Exportar seleccionados", exact: true })).toHaveCount(0);
+      if (c.resource === "materials" || c.resource === "suppliers") {
+        if (width < 820) await page.getByRole("button", { name: /^Filtros/ }).click();
+        await page.getByLabel("Estado", { exact: true }).selectOption("no");
+        await expect(page.locator(".selection-bar")).toContainText("0 resultados");
+        await page.getByRole("button", { name: "Limpiar filtros", exact: true }).click();
+        await expect(page.locator(".selection-bar")).toContainText("1 resultados");
+      }
+    }
+    await page.goto("/reportes");
+    await chooseOption(page.getByLabel("Obra", { exact: true }), work.id);
+    await chooseOption(page.getByLabel("Material", { exact: true }), materials[0].id);
+    const reportRows = page.locator(width < 820 ? ".mcards:visible .pcard" : ".t:visible tbody tr");
+    await expect(reportRows).toHaveCount(1);
+    await expect(reportRows).toContainText(materials[0].name);
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "Exportar Excel", exact: true }).click();
+    const book = new ExcelJS.Workbook();
+    await book.xlsx.load(await readFile((await (await download).path())!) as any);
+    expect(book.getWorksheet("Materiales")!.rowCount).toBe(2);
+    expect(book.getWorksheet("Materiales")!.getRow(2).getCell(1).value).toBe(materials[0].code);
+    expect(book.getWorksheet("Criterios")!.getRow(1).getCell(2).value).toBe(work.id);
+  }
+});
+
+for (const [path, resource, label] of [
+  ['/clientes', 'clients', 'Buscar'],
+  ['/obras', 'works', 'Buscar'],
+  ['/materiales', 'materials', 'Buscar materiales'],
+  ['/proveedores', 'suppliers', 'Buscar proveedores'],
+  ['/apu', 'apu-items', 'Buscar actividad por ítem, descripción o código'],
+]) {
+  test(`elegir por código y seleccionar conserva la fila tras actualizar el texto: ${resource}`, async ({ page }) => {
+    const entity = (await api.list('/' + resource)).data[0];
+    await login(page, 'GERENCIA');
+    await page.goto(path);
+    const search = page.getByLabel(label, { exact: true });
+    await search.fill(entity.code);
+    await page.getByRole('option').filter({ hasText: entity.code }).first().click();
+    await expect(search).toHaveAttribute('data-selected-id', entity.id);
+    await expect(page.locator('.selection-bar')).toContainText('1 resultados');
+    const row = page.locator('.t:visible').getByRole('checkbox', { name: /^Seleccionar fila/ }).first();
+    await row.check();
+    await expect(page.locator('.selection-bar')).toContainText('1 seleccionados');
+    await page.waitForLoadState('networkidle');
+    await expect(row).toBeChecked();
+    await expect(page.getByText(/La selección se limpió porque cambiaron/)).toHaveCount(0);
+  });
+}

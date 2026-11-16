@@ -9,7 +9,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { Combobox, normalizeSearch } from "../components/Combobox";
-import { Modal } from "../components/ui";
+import { Modal, TextField, SelectField, TextArea } from "../components/ui";
 vi.stubGlobal("React", React);
 beforeAll(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -127,5 +127,27 @@ describe("shared combobox", () => {
   });
   it("shares accent, case and whitespace normalization", () => {
     expect(normalizeSearch("  ÁRBOL   Ñandú ")).toBe("arbol nandu");
+  });
+});
+
+
+describe("descripción accesible de campos compartidos", () => {
+  it("vincula ayuda/error al texto, selector nativo y área de texto sin perder descripciones propias", () => {
+    const { rerender } = render(<>
+      <span id="context">Contexto propio</span>
+      <TextField label="Nombre" hint="Ingresá el nombre" aria-describedby="context" />
+      <SelectField label="Estado" options={[{ value: "yes", label: "Activo" }]} error="Elegí un estado" />
+      <TextArea label="Notas" error="Revisá las notas" />
+    </>);
+    function description(label: string) {
+      const field = screen.getByLabelText(label);
+      return (field.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean).map(id => document.getElementById(id)?.textContent).join(" ");
+    }
+    expect(description("Nombre")).toBe("Contexto propio Ingresá el nombre");
+    expect(description("Estado")).toBe("Elegí un estado");
+    expect(description("Notas")).toBe("Revisá las notas");
+    rerender(<TextField label="Nombre" hint="Ayuda previa" error="Completá este campo" />);
+    expect(description("Nombre")).toBe("Completá este campo");
+    expect(screen.getByLabelText("Nombre").getAttribute("aria-invalid")).toBe("true");
   });
 });

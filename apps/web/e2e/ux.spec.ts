@@ -61,7 +61,12 @@ test('si el servidor rechaza el alta no hay aviso de éxito y el error queda jun
   const dlg = page.getByRole('dialog');
   await dlg.getByLabel('Nombre', { exact: true }).fill('Unidad rechazada');
   await dlg.getByRole('button', { name: 'Guardar' }).click();
-  await expect(dlg.getByText('Completá este campo')).toBeVisible();
+  const error = dlg.getByText('Completá este campo', { exact: true });
+  await expect(error).toBeVisible();
+  const name = dlg.getByLabel('Nombre', { exact: true });
+  await expect(name).toHaveValue('Unidad rechazada');
+  await expect(name).toHaveAttribute('aria-invalid', 'true');
+  await expect(name).toHaveAttribute('aria-describedby', await error.getAttribute('id') ?? 'missing-field-error');
   await expect(dlg).toBeVisible();
   await expect(page.locator('.toast')).toHaveCount(0);
 });

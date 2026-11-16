@@ -102,3 +102,54 @@ test('la exportación Excel usa nombre traducido y fecha sin hora, aun con Conte
   ]);
   expect(download.suggestedFilename()).toMatch(/^proveedores-\d{4}-\d{2}-\d{2}\.xlsx$/);
 });
+
+for (const width of [360, 390, 1280]) {
+  test(`formularios representativos: completar, validar y cancelar (${width}px)`, async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width, height: 800 }, hasTouch: true, isMobile: width < 820 });
+    try {
+      const page = await context.newPage();
+      await login(page, 'GERENCIA');
+      for (const form of [
+        { path: '/clientes', action: 'Nuevo cliente', field: 'Nombre o razón social' },
+        { path: '/obras', action: 'Nueva obra', field: 'Nombre' },
+        { path: '/materiales', action: 'Nuevo material', field: 'Nombre' },
+        { path: '/proveedores', action: 'Nuevo proveedor', field: 'Nombre / razón social' },
+      ]) {
+        await page.goto(form.path);
+        await page.getByRole('button', { name: form.action, exact: true }).tap();
+        const dialog = page.getByRole('dialog');
+        await expect(dialog).toBeVisible();
+        const box = (await dialog.boundingBox())!;
+        expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(4);
+        const field = dialog.getByLabel(form.field, { exact: true });
+        await field.fill('Misión 02 sin guardar');
+        await expect(field).toHaveValue('Misión 02 sin guardar');
+        if (form.path === '/proveedores') {
+          await dialog.getByLabel('Email', { exact: true }).fill('correo inválido');
+          await dialog.getByRole('button', { name: 'Guardar', exact: true }).tap();
+          await expect(dialog.getByText('Email inválido', { exact: true })).toBeVisible();
+          await expect(field).toHaveValue('Misión 02 sin guardar');
+          await expect(page.locator('.toast.success')).toHaveCount(0);
+        }
+        await dialog.getByRole('button', { name: 'Cancelar', exact: true }).tap();
+        await expect(dialog).toHaveCount(0);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      }
+      for (const form of [
+        { path: '/apu/nuevo', field: 'Nombre del ítem', save: 'Crear actividad' },
+        { path: '/computos/nuevo', field: 'Nombre', save: 'Crear cómputo' },
+      ]) {
+        await page.goto(form.path);
+        await page.getByLabel(form.field, { exact: true }).fill('Misión 02 sin guardar');
+        await page.getByRole('button', { name: form.save, exact: true }).tap();
+        await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible();
+        await expect(page.getByLabel(form.field, { exact: true })).toHaveValue('Misión 02 sin guardar');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+        await page.getByRole('button', { name: 'Cancelar', exact: true }).tap();
+        await expect(page).not.toHaveURL(new RegExp(form.path + '$'));
+      }
+    } finally {
+      await context.close();
+    }
+  });
+}

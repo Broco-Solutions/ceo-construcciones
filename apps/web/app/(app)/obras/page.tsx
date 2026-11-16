@@ -43,7 +43,7 @@ export default function ObrasPage() {
     '/works',
     {
       status: status || undefined,
-      q: search || undefined,
+      q: entityId ? undefined : search || undefined,
       id: entityId || undefined,
       clientId: clientId || undefined,
     },
@@ -93,7 +93,7 @@ export default function ObrasPage() {
         ) : list.loading && !list.data ? (
           <Loading />
         ) : (
-          <DataTable collection={{resource:"works",filters:{status:status||undefined,q:search||undefined,id:entityId||undefined,clientId:clientId||undefined},total:list.pagination?.total,reload:list.reload}}
+          <DataTable collection={{resource:"works",filters:{status:status||undefined,q: entityId ? undefined : search || undefined,id:entityId||undefined,clientId:clientId||undefined},total:list.pagination?.total,reload:list.reload}}
             rows={rows}
             rowKey={(w) => w.id}
             onRowClick={(w) => router.push(`/obras/${w.id}`)}
