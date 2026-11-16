@@ -4,12 +4,13 @@ Sistema de obras, presupuestos, compras e inventario. Monorepo pnpm/TypeScript c
 
 - **Aplicación:** https://ceo-construcciones.brocosolutions.com
 - **Estado, candidato y checks:** [ESTADO-PROYECTO](docs/ESTADO-PROYECTO.md).
-- **Único plan activo:** [UX/UI transversal](CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md); [matriz y evidencias](docs/UX-TRANSVERSAL-ETAPA-1.md).
+- **Hoja de ruta activa:** [Checklist maestro de V1 y cierre de Etapa 1](docs/CHECKLIST-V1-ETAPA-1.md) (79 objetivos: 47 para V1, 32 para E1). Actualizar el avance validado en cada PR; ver [AGENTS](AGENTS.md).
 - **Alcance:** [PRD](docs/PRD-ETAPA-1.md), [decisiones](docs/DECISIONES-CIERRE.md), [requisitos/trazabilidad](docs/REQUISITOS-ETAPA-1-CIERRE.md) y [aceptación](docs/ACEPTACION-CIERRE-ETAPA-1.md). Contrato/Anexo I prevalecen; pendientes conservados.
 - **Operación:** [demo online y accesos privados](docs/DEMO-ONLINE.md), [pruebas manuales/local](docs/PRUEBAS-MANUALES-ETAPA-1.md), [backend](docs/OPERACION-BACKEND.md) y [compatibilidad/release](docs/RELEASE-CIERRE-ETAPA-1.md).
 - **Contratos:** [API y comandos](apps/api/README.md), [OpenAPI](docs/api/openapi.json), [integración web](docs/INTEGRACION-CLAUDE-CODE.md), [modelo](docs/MODELO-DATOS.md).
 - **Datos CEO:** [resultados de carga](docs/CARGA-INICIAL-RESULTADOS.md), [aceptación de costos](docs/ESTADO-CARGA-INICIAL-Y-COSTOS.md) y [conciliación DG](docs/DG-1153-RECONCILIACION.md). Las 76 composiciones parciales no se completan por suposición.
 - **Trabajo de agentes:** [AGENTS](AGENTS.md) e [instrucciones de continuidad](docs/INSTRUCCIONES-PROYECTO-CHATGPT.md).
+- **Histórico UX completado:** [plan UX/UI transversal](CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md) y [evidencia UX](docs/UX-TRANSVERSAL-ETAPA-1.md); son antecedentes, no la prioridad vigente.
 
 ## Trabajo y comprobaciones locales
 

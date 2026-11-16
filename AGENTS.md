@@ -10,7 +10,7 @@ Leé primero README.md, docs/PRD-ETAPA-1.md y docs/ESTADO-PROYECTO.md. El **PRD 
 - Las migraciones Prisma deben ser versionadas y revisadas; antes de migraciones destructivas o cambios en producción, backup y autorización explícita.
 
 ## Responsabilidades y fuentes vigentes
-- Único plan activo: `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md`. Actualizar ese archivo, sin generar copias por fase. Matriz y evidencias del incremento: `docs/UX-TRANSVERSAL-ETAPA-1.md`.
+- **Hoja de ruta activa para entregar V1 y cerrar Etapa 1:** `docs/CHECKLIST-V1-ETAPA-1.md` (79 objetivos: 47 V1 y 32 E1). Leerla antes de cada tarea; priorizar V1, verificar antes de programar y no iniciar funcionalidades no requeridas. No crear planes/checklists paralelos. `CEO_PLAN_UX_UI_TRANSVERSAL_CODEX.md` y `docs/UX-TRANSVERSAL-ETAPA-1.md` conservan el registro histórico del incremento UX ya integrado, no son un nuevo encargo.
 - Codex trabaja full stack en `apps/api`, `apps/web`, Prisma, contratos, pruebas y documentación; no hay exclusividad de frontend asignada a otro agente.
 - Requisitos base en `docs/PRD-ETAPA-1.md`, decisiones detalladas en `docs/DECISIONES-CIERRE.md`, aceptación/matriz en `docs/ACEPTACION-CIERRE-ETAPA-1.md` y `docs/REQUISITOS-ETAPA-1-CIERRE.md`. Los registros de cierres anteriores son evidencia histórica, no misiones para reiniciar.
 - La habilitación online del 05/11/2026 y sus destinos/autorizaciones están en `docs/DEMO-ONLINE.md`. La misión UX autoriza publicación del código y smoke pequeño con registros nuevos DEMO UX; no autoriza modificar usuarios, credenciales, cargas CEO, operaciones ajenas o infraestructura. Cualquier ampliación productiva exige autorización y recuperación verificable.
@@ -35,3 +35,4 @@ Leé primero README.md, docs/PRD-ETAPA-1.md y docs/ESTADO-PROYECTO.md. El **PRD 
 - Consultar las dos carpetas globales de Drive y fuentes principales incluidas en docs/INSTRUCCIONES-PROYECTO-CHATGPT.md para aclarar requisitos; verificar actualización cuando corresponda.
 - Mantener docs/ESTADO-PROYECTO.md actualizado después de cada hito, con PR, pruebas y estado real de deployment.
 - La misión de cierre fue autorizada por el usuario. Mantener `docs/ESTADO-CIERRE-ETAPA-1.md` y la matriz de trazabilidad al avanzar; no declarar una función terminada si sólo existe UI o fixture.
+- **Seguimiento obligatorio por tarea/PR:** identificar el ID concreto (ej. `3.10`) en `docs/CHECKLIST-V1-ETAPA-1.md`, verificar comportamiento y evidencia; actualizar únicamente los puntos trabajados con estado, responsable, fecha y prueba/PR. Marcar `[x]` solo cuando esté validado para su hito; si hay fallas, dejar `[ ]` y registrar bloqueo/ajuste. Documentar los hitos técnicos en `docs/ESTADO-PROYECTO.md`. No afirmar que CI verde equivale a aceptación del cliente.
