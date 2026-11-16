@@ -1,5 +1,19 @@
 # Estado del proyecto — CEO Construcciones
 
+## Misión 01 — accesos, perfiles y navegación: validación parcial (16/11/2026)
+
+Base `origin/main` consultada y actualizada en `38e9412aa1eb55f1eb6c0b107d1e88d2d1344464`, checklist presente y árbol limpio; rama independiente `codex/cierre-v1-accesos-navegacion`. Alcance exclusivo 1.1–1.3: implementación y pruebas indicadas inspeccionadas; sin defecto de aplicación reproducido ni cambios de código. Los tres objetivos conservan casillas abiertas con evidencia y bloqueo en el [checklist maestro](CHECKLIST-V1-ETAPA-1.md).
+
+Verificaciones de esta misión (Node 24.13.0, pnpm 10.18.3):
+
+- `pnpm install --frozen-lockfile`, `pnpm --dir apps/api db:generate`, typecheck y build de API/web: aprobados. Generar el cliente Prisma no aplicó migraciones.
+- `pnpm --dir apps/web test`: **60/60**, 14 archivos; incluye login UI 3, permisos 3 y proxy 3 (cookies separadas, Retry-After, error de conexión controlado).
+- `pnpm --dir apps/api test`, sin flags de integración/runtime ni conexión a BD: **65 aprobadas y 150 omitidas**, 17 archivos aprobados / 29 omitidos. Incluye seguridad 5, protección login 4 y origen/cookie de `access-contract` 1; sus otros 4 casos, `closure-access` 5 y `login-protection.integration` 8 quedaron omitidos. No se atribuye validación real de sesiones a estas unitarias.
+- `bash CEO_Verificar_Local.sh api`, `web` y `e2e`: **salida 1 antes de ejecutar comprobaciones**, por falta de `~/.local/state/ceo-construcciones-codex/local.env`. `docker info` confirma integración WSL no disponible. Tipos, unitarias y builds anteriores se ejecutaron con los comandos pnpm existentes; no sustituyen PostgreSQL/API reales ni Playwright. No se creó infraestructura alternativa, base, usuario ni configuración para sortear la guarda.
+- Lectura pública exclusivamente mediante GET: `/login` **200** y `/api/v1/auth/me` anónimo **401 UNAUTHENTICATED**, certificado TLS válido. Sin login/logout automatizado ni escritura online.
+
+Pendiente dentro de 1.1–1.3: habilitar el entorno local existente según la guía y ejecutar integración/runtime y E2E con cinco usuarios sintéticos, verificando además nombre/perfil, logout por rol, expiración/invalidez, navegación completa, activo y menú móvil. La revisión estática de rutas/filtros y los tests parciales no cierran esos comportamientos. PR documental de esta rama hacia main para revisión Broco Solutions; sin merge ni despliegue solicitado y sin cambios Railway/Vercel. Esta misión no acredita aceptación CEO ni avanza a 1.4.
+
 **04/11/2026 · Login visual renovado:** panel de marca y tarjeta de escritorio, franja móvil con formulario completo en 360×740, mostrar/ocultar y aviso accesible de Bloq Mayús; TextField.suffix retrocompatible. Autenticación y selectores preservados. Web 52/typecheck/build y revisión de 12 capturas nuevas más 6 anteriores; E2E 73/73 aprobado; integración/checks/SHA se registran en el PR de `codex/login-restyling`. [Comparación visual](../apps/web/docs/evidencia/login/README.md). Sin cambios en API, datos o infraestructura.
 
 **04/11/2026 · Vinculación material BASE verificada:** hallazgo PR14 reproducido sobre carga real y base manual (146/0 vínculos). Complemento con 67 composiciones verificadas, 3 directos legítimos y 76 limitaciones específicas; prueba real de precio→actividad→presupuesto y R1/PDF inmutable aprobada. API 187+3 runtime, web 49 y E2E 72 aprobados; complemento manual aplicado y reejecutado sin conflictos, smoke visual y compatibilidad aprobados. Integración/checks/SHA en [PR15](https://github.com/Broco-Solutions/ceo-construcciones/pull/15) y [matriz vigente](ESTADO-CARGA-INICIAL-Y-COSTOS.md). Sin cambios productivos ni infraestructura.
