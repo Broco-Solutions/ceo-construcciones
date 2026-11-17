@@ -299,6 +299,20 @@ export async function handlerCommercial(
               const old = snapshot as unknown as ReturnType<
                 typeof calculateCommercial
               >;
+              // V1 snapshots stored catalog codes as labels. Resolve readable
+              // labels only for this new draft; keep the source snapshot intact.
+              const units = await tx.unit.findMany({
+                where: {
+                  id: { in: [...new Set(old.lines.flatMap((l) => [
+                    l.unitId, ...l.materials.map((m) => m.unitId),
+                  ]))] },
+                },
+                select: { id: true, code: true, name: true, symbol: true },
+              });
+              const unitLabels = new Map(units.map((u) => [
+                u.id,
+                u.symbol?.trim() || (/^UNI-\d+$/.test(u.code) ? u.name : u.code),
+              ]));
               content = {
                 ...emptyContent(),
                 currency: source.currency,
@@ -311,7 +325,7 @@ export async function handlerCommercial(
                   categoryId: l.categoryId,
                   category: l.category,
                   unitId: l.unitId,
-                  unit: l.unit,
+                  unit: unitLabels.get(l.unitId) ?? l.unit,
                   quantity: l.quantity,
                   laborUnitCost: l.laborUnitCost,
                   directUnitCost: l.directUnitCost ?? "0",
@@ -320,7 +334,7 @@ export async function handlerCommercial(
                     materialId: m.materialId,
                     name: m.name,
                     unitId: m.unitId,
-                    unit: m.unit,
+                    unit: unitLabels.get(m.unitId) ?? m.unit,
                     coefficient: m.coefficient,
                     unitPrice: m.unitPrice,
                     sourcePriceId: m.sourcePriceId,

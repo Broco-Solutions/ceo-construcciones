@@ -67,12 +67,13 @@ export default function ObrasPage() {
         <FilterToolbar primary={<EntitySearch inputId="q-obra" resource="works" text={q} id={entityId} placeholder="Nombre o código" query={{clientId:clientId||undefined,status:status||undefined}} onChange={(q,id)=>{setQ(q);setEntityId(id);}}/>} activeCount={Number(!!clientId)+Number(!!status)} onClear={()=>{setClientId('');setStatus('');setEntityId('');}}>
           {can('readClients') && clients.rows.length > 0 && (
             <SelectField
-              entity="clients" label="Cliente"
+              searchable label="Cliente"
               value={clientId}
               placeholder="Todos"
               options={clients.rows.map((c) => ({
                 value: c.id,
                 label: c.name,
+                description: c.active ? undefined : 'Inactivo · vínculo histórico',
               }))}
               onChange={(e) => {setClientId(e.target.value);setEntityId('');}}
             />

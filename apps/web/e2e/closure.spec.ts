@@ -15,6 +15,34 @@ import {
 import type { Schemas } from '../lib/api';
 
 const EVID = 'docs/evidencia/cierre';
+test('M07: filtro de obras admite cliente inactivo y conserva sus obras', async ({ page }) => {
+  const suffix = SUFFIX(), api = await apiAs('GERENCIA');
+  try {
+    const client = await api.send<Schemas['Client']>('POST', '/clients', {
+      code: `M07-CLI-${suffix}`, name: `Cliente histórico M07 ${suffix}`,
+    });
+    const works: Schemas['Work'][] = [];
+    for (const letter of ['A', 'B']) works.push(await api.send<Schemas['Work']>('POST', '/works', {
+      code: `M07-OBR-${letter}-${suffix}`, name: `Obra histórica ${letter} M07 ${suffix}`, clientId: client.id,
+    }));
+    await api.send('PATCH', `/clients/${client.id}`, { active: false });
+    await login(page, 'GERENCIA');
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto('/obras');
+      if (width === 390) await page.getByRole('button', { name: 'Filtros', exact: true }).click();
+      await chooseOption(page.getByLabel('Cliente', { exact: true }), client.id);
+      await expect(page.getByLabel('Cliente', { exact: true })).toHaveAttribute('data-selected-id', client.id);
+      for (const work of works) await expect(page.locator('b:visible').filter({ hasText: work.name })).toBeVisible();
+      const result = await api.list<Schemas['WorkList']>(`/works?clientId=${client.id}`);
+      expect(new Set(result.data.map(w => w.id))).toEqual(new Set(works.map(w => w.id)));
+      expect(result.total).toBe(2);
+    }
+  } finally {
+    await api.dispose();
+  }
+});
+
 test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidades, R1/PDF y R2 reales', async ({
   page,
 }) => {

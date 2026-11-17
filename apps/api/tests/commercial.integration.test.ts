@@ -384,6 +384,10 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
       }),
       draft = await data(`budget-editor/${copied.id}`);
     expect(draft.draft.content.lines[0].directUnitCost).toBe("100");
+    expect(draft.draft.content.lines[0].unit).toBe("m²");
+    expect((await data(`budget-versions/${version.id}`)).snapshot).toEqual(
+      version.snapshot,
+    );
     expect(
       (
         await call(`budget-editor/${budget.id}`, "PUT", {
