@@ -341,6 +341,8 @@ test('(f) Compras crea y emite la OC y descarga el PDF', async ({ page }) => {
   const path = await dl.path();
   const fs = await import('node:fs');
   expect(fs.readFileSync(path).subarray(0, 4).toString()).toBe('%PDF');
+  if (process.env.CEO_PDF_EVIDENCE_DIR)
+    await dl.saveAs(`${process.env.CEO_PDF_EVIDENCE_DIR}/OC-E2E-emitida.pdf`);
   await snap(page, '07-oc-emitida');
 });
 

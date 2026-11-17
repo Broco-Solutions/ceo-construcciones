@@ -170,11 +170,19 @@ export async function documentV2({
     y -= gap;
   }
   function section(title: string) {
-    space(47);
+    const lines = wrap(title, width - 18, 10, bold),
+      extraHeight = (lines.length - 1) * 13;
+    space(47 + extraHeight);
     y -= 4;
-    page.drawRectangle({ x: left, y: y - 8, width, height: 25, color: PALE });
-    text(title, left + 9, y, 10, bold, BLUE);
-    y -= 28;
+    page.drawRectangle({
+      x: left,
+      y: y - 8 - extraHeight,
+      width,
+      height: 25 + extraHeight,
+      color: PALE,
+    });
+    lines.forEach((line, i) => text(line, left + 9, y - i * 13, 10, bold, BLUE));
+    y -= 28 + extraHeight;
   }
   type Column = { label: string; width: number; right?: boolean };
   function table(columns: Column[], rows: string[][], group?: string) {
@@ -242,8 +250,8 @@ export async function documentV2({
         }
       }
       page.drawLine({
-        start: { x: left, y: y + 4 },
-        end: { x: right, y: y + 4 },
+        start: { x: left, y: y + 10 },
+        end: { x: right, y: y + 10 },
         thickness: 0.3,
         color: LINE,
       });

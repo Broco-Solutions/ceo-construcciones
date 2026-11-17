@@ -1,3 +1,6 @@
+import { PDFDocument, PDFRawStream, decodePDFRawStream } from "pdf-lib";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import {
   calculateCommercial,
   type EditorContent,
@@ -49,4 +52,38 @@ export function pdfFixture(count = 1) {
       issuedAt: "2026-10-01T12:00:00.000Z",
     },
   };
+}
+
+export async function pdfText(bytes: Uint8Array) {
+  const doc = await PDFDocument.load(bytes);
+  return doc.context
+    .enumerateIndirectObjects()
+    .flatMap(([, object]) => {
+      if (
+        !(object instanceof PDFRawStream) ||
+        object.dict.toString().includes("/Subtype /Image")
+      )
+        return [];
+      try {
+        return [
+          ...Buffer.from(decodePDFRawStream(object).decode())
+            .toString("latin1")
+            .matchAll(/<([A-Fa-f\d]+)>\s*Tj/g),
+        ].map((m) => Buffer.from(m[1], "hex").toString("latin1"));
+      } catch {
+        return [];
+      }
+    })
+    .join("\n");
+}
+export async function pdfEvidence(name: string, bytes: Uint8Array) {
+  if (process.env.CEO_PDF_EVIDENCE_DIR) {
+    await mkdir(process.env.CEO_PDF_EVIDENCE_DIR, {
+      recursive: true,
+      mode: 0o700,
+    });
+    await writeFile(join(process.env.CEO_PDF_EVIDENCE_DIR, name), bytes, {
+      mode: 0o600,
+    });
+  }
 }

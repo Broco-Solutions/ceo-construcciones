@@ -3,6 +3,7 @@ import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import { db } from "../src/core/db";
 import { hashPassword, sessionHash } from "../src/core/auth";
 import { dispatch } from "../src/router";
+import { pdfText, pdfEvidence } from "./helpers/pdf-fixture";
 
 const tag = randomUUID();
 const origin = process.env.APP_ORIGIN ?? "http://localhost:3001";
@@ -370,6 +371,196 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
       ).data;
       expect(legacy.totalAmount).toBeNull();
       expect(legacy.amountWarning).toBe("ROUNDING_POLICY_REQUIRED");
+      expect(
+        await db.auditLog.count({
+          where: { entityId: historical.id, action: "PDF_PRESENTATION" },
+        }),
+      ).toBe(0);
+      const legacyResponse = await call(`purchase-orders/${historical.id}/pdf`);
+      expect(legacyResponse.status).toBe(200);
+      const legacyBytes = new Uint8Array(await legacyResponse.arrayBuffer());
+      const legacyText = await pdfText(legacyBytes);
+      expect(legacyText).toContain(
+        "Total sin calcular: validar politica de redondeo",
+      );
+      expect(legacyText).not.toContain("Suma exacta de importes registrados");
+      await pdfEvidence("OC-historica-sin-politica.pdf", legacyBytes);
+    });
+    it("PDF OC V2 congela presentación, publica sólo notas autorizadas y descargar no escribe", async () => {
+      const unit = await db.unit.create({
+        data: {
+          code: `pdf-unit-${tag}`,
+          name: "Unidad sintética PDF",
+          symbol: "kg",
+        },
+      });
+      const vendor = await db.supplier.create({
+        data: {
+          code: `pdf-supplier-${tag}`,
+          name: "Proveedor sintético áéíóú ñ de materiales y terminaciones",
+          taxId: `30-${String(parseInt(tag.slice(0, 8), 16) % 100000000).padStart(8, "0")}-0`,
+          address: "Dirección sintética 123, Córdoba",
+        },
+      });
+      const mats = await Promise.all(
+        [0, 1].map((i) =>
+          db.material.create({
+            data: {
+              code: `PDF-${i}-${tag}`,
+              name: `Material ${i} sintético con ñ, m² y m³`,
+              unitId: unit.id,
+            },
+          }),
+        ),
+      );
+      const presentation = await db.presentation.create({
+        data: {
+          materialId: mats[0].id,
+          supplierId: vendor.id,
+          name: "Bolsa sintética de 3 kg",
+          baseQuantity: "3",
+        },
+      });
+      const yard = await db.location.create({
+        data: {
+          code: `pdf-yard-${tag}`,
+          name: "Patio sintético",
+          kind: "YARD",
+        },
+      });
+      const lines = [
+        {
+          materialId: mats[0].id,
+          presentationId: presentation.id,
+          quantity: "1",
+          unitPrice: "1",
+          baseQuantity: "3",
+        },
+        {
+          materialId: mats[1].id,
+          quantity: "1",
+          unitPrice: "0.335",
+          baseQuantity: "1",
+        },
+      ];
+      const create = async (general: boolean) =>
+        (
+          await success(
+            await call(
+              "purchase-orders",
+              "POST",
+              {
+                supplierId: vendor.id,
+                destinationId: general ? yard.id : location,
+                ...(general ? {} : { workId: work }),
+                currency: "ARS",
+                taxBasis: "EXCLUDED",
+                notes: general
+                  ? "Entrega pública coordinada en patio"
+                  : "PRIVADO-OC-7391",
+                notesPublic: general,
+                lines,
+              },
+              admin,
+              randomUUID(),
+            ),
+          )
+        ).data;
+      const download = async (id: string) => {
+        const response = await call(`purchase-orders/${id}/pdf`);
+        expect(response.status).toBe(200);
+        return Buffer.from(await response.arrayBuffer());
+      };
+      const order = await create(false),
+        general = await create(true);
+      for (const o of [order, general])
+        await success(
+          await call(`purchase-orders/${o.id}/status`, "POST", {
+            status: "ISSUED",
+          }),
+        );
+      await db.purchaseOrder.update({
+        where: { id: order.id },
+        data: {
+          invoiceNumber: "PRIVADO-FACTURA-7391",
+          invoiceLoadedAt: new Date(),
+          invoiceLoadedById: users[0],
+        },
+      });
+      const before = await db.purchaseOrder.findUniqueOrThrow({
+        where: { id: order.id },
+        include: { lines: true },
+      });
+      const movements = await db.stockMovement.count(),
+        auditCount = await db.auditLog.count();
+      const first = await download(order.id),
+        publicGeneral = await download(general.id);
+      const text = await pdfText(first),
+        generalText = await pdfText(publicGeneral);
+      for (const expected of [
+        vendor.name,
+        vendor.taxId!,
+        vendor.address!,
+        "Ubicación obra",
+        "Obra compras",
+        "Bolsa sintética de 3 kg",
+        "0,33",
+        "0,34",
+        "ARS 0,67",
+        "IVA no incluido",
+      ])
+        expect(text).toContain(expected);
+      for (const m of mats) {
+        expect(text.replace(/\s/g, "")).toContain(m.name.replace(/\s/g, ""));
+        expect(text.replace(/\s/g, "")).toContain(m.code);
+      }
+      expect(text).toContain("1,00 / 3 kg");
+      expect(text).toContain("0,335 / 1 kg");
+      expect(text + first.toString("latin1")).not.toMatch(
+        /PRIVADO-OC-7391|PRIVADO-FACTURA-7391|invoiceNumber|notesPublic/,
+      );
+      expect(generalText).toContain("Compra general · sin obra");
+      expect(generalText).toContain("Patio sintético");
+      expect(generalText).toContain("Entrega pública coordinada en patio");
+      expect(await download(order.id)).toEqual(first);
+      expect(
+        await db.purchaseOrder.findUniqueOrThrow({
+          where: { id: order.id },
+          include: { lines: true },
+        }),
+      ).toEqual(before);
+      expect(await db.stockMovement.count()).toBe(movements);
+      expect(await db.auditLog.count()).toBe(auditCount);
+      await db.supplier.update({
+        where: { id: vendor.id },
+        data: {
+          name: "Proveedor cambiado",
+          address: "Domicilio cambiado",
+          taxId: vendor.taxId!.replace(/^30/, "31"),
+        },
+      });
+      await db.material.update({
+        where: { id: mats[0].id },
+        data: { name: "Material cambiado" },
+      });
+      await db.presentation.update({
+        where: { id: presentation.id },
+        data: { name: "Presentación cambiada" },
+      });
+      expect(await download(order.id)).toEqual(first);
+      expect(await download(general.id)).toEqual(publicGeneral);
+      await success(
+        await call(`purchase-orders/${order.id}/status`, "POST", {
+          status: "CANCELLED",
+        }),
+      );
+      const cancelled = await download(order.id);
+      expect((await pdfText(cancelled)).replace("CANCELADA", "EMITIDA")).toBe(
+        text,
+      );
+      await pdfEvidence("OC-V2-simple-obra.pdf", first);
+      await pdfEvidence("OC-V2-general-patio.pdf", publicGeneral);
+      await pdfEvidence("OC-V2-simple-cancelada.pdf", cancelled);
     });
     it("vincula recepciones en historia de OC e identifica actores sin emails", async () => {
       const receipt = (

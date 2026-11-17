@@ -1,6 +1,7 @@
 import { beforeAll, afterAll, describe, it, expect } from "vitest";
 import { randomUUID } from "node:crypto";
 import { PDFDocument } from "pdf-lib";
+import { pdfText, pdfEvidence } from "./helpers/pdf-fixture";
 import { db } from "../src/core/db";
 import { sessionHash } from "../src/core/auth";
 import { dispatch } from "../src/router";
@@ -171,9 +172,11 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
       content,
     );
     expect(preview.status).toBe(200);
+    const previewBytes = new Uint8Array(await preview.arrayBuffer());
     expect(
-      (await PDFDocument.load(await preview.arrayBuffer())).getPageCount(),
+      (await PDFDocument.load(previewBytes)).getPageCount(),
     ).toBeGreaterThan(0);
+    await pdfEvidence("comercial-preview.pdf", previewBytes);
     expect(await db.budgetVersion.count({ where: { budgetId } })).toBe(0);
     const key = randomUUID(),
       [a, b] = await Promise.all([
@@ -187,6 +190,19 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
       await (await call(`budget-issues/${a.id}/pdf`)).arrayBuffer(),
     );
     expect(first.includes(Buffer.from("900000"))).toBe(false);
+    await pdfEvidence("comercial-R1.pdf", first);
+    const publicText = await pdfText(first);
+    const normalized = (text: string) =>
+      text
+        .replace(/Vista previa|R1|Página \d+ de \d+/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    expect(normalized(await pdfText(previewBytes))).toBe(
+      normalized(publicText),
+    );
+    expect(publicText).not.toMatch(
+      /900[.,]?000|100[.,]?000|laborUnitCost|directUnitCost|markup/,
+    );
     expect(
       (await data(`budget-editor/${budgetId}/issue`, "POST", { revision: 6 }))
         .id,
@@ -200,7 +216,18 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
         await (await call(`budget-issues/${a.id}/pdf`)).arrayBuffer(),
       ),
     ).toEqual(first);
-    content = { ...content, markup: "20" };
+    await db.work.update({
+      where: { id: workId },
+      data: {
+        name: "Obra maestra modificada",
+        address: "Dirección modificada",
+      },
+    });
+    content = {
+      ...content,
+      markup: "20",
+      conditions: "Condición nueva sólo en R2",
+    };
     const draft = await data(`budget-editor/${budgetId}`, "PUT", {
       revision: 6,
       content,
@@ -210,6 +237,13 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
     });
     expect(next.id).not.toBe(a.id);
     expect(next.number).toBe(2);
+    const second = new Uint8Array(
+      await (await call(`budget-issues/${next.id}/pdf`)).arrayBuffer(),
+    );
+    await pdfEvidence("comercial-R2.pdf", second);
+    expect(await pdfText(second)).toContain("Condición nueva sólo en R2");
+    expect(publicText).toContain("Validez comercial: 30 días");
+    expect(publicText).toContain("Obra comercial");
     expect(next.snapshot.commercialTotal).toBe("3600000.00");
     expect(
       Buffer.from(
@@ -326,6 +360,9 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
         computationId: computation.id,
       });
     expect(version.snapshot.totalCost).toBe("360.00");
+    const legacyPdf = await call(`budget-issues/${version.id}/pdf`);
+    expect(legacyPdf.status).toBe(422);
+    expect((await legacyPdf.json()).error.code).toBe("LEGACY_COST_VERSION");
     expect(version.snapshot.directCost).toBe("300.00");
     await data(`apu-items/${item.id}`, "PATCH", {
       name: item.name,
