@@ -139,6 +139,52 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
       });
     });
     afterAll(() => db.$disconnect());
+    it("M05: consulta por perfil no habilita escritura ni administración general", async () => {
+      for (const role of ["GERENCIA", "COMPUTO", "COMPRAS"] as const) {
+        for (const path of ["works", "clients", "materials", "suppliers", "prices", "apu-items", "budgets", "requests", "purchase-orders", "stock"])
+          await data(role, path);
+      }
+      await data("GERENCIA", "users");
+      for (const role of ["COMPUTO", "COMPRAS"] as const) {
+        expect((await call(role, "users", "POST", {})).status).toBe(403);
+        expect((await call(role, `works/${work}`, "PATCH", { name: "Cambio no autorizado" })).status).toBe(403);
+      }
+      expect((await call("COMPUTO", "purchase-orders", "POST", {})).status).toBe(403);
+      expect((await call("COMPRAS", "budget-editor", "POST", {})).status).toBe(403);
+      expect((await call("COMPRAS", "apu-items", "POST", {})).status).toBe(403);
+      for (const path of ["clients?q=sintético", "reports/clients", "selections/options?resource=works", `purchase-orders/${order}/history`, `purchase-orders/${order}/pdf`]) {
+        const response = await call("ADMINISTRACION", path);
+        expect(response.status, path).toBe(403);
+        expect(await response.json()).not.toHaveProperty("data");
+      }
+    });
+    it("M05: Jefe rechaza IDs ajenos y conserva consultas sin economía", async () => {
+      await db.workAssignment.create({ data: { userId: ids.get("JEFE_OBRA")!, workId: work } });
+      await data("JEFE_OBRA", `works/${work}`);
+      const other = await db.work.findFirstOrThrow({ where: { clientId: client, id: { not: work } } });
+      const request = await db.materialRequest.create({ data: { workId: other.id, requestedById: ids.get("GERENCIA")!, requiredAt: new Date() } });
+      for (const path of [`works/${other.id}`, `requests/${request.id}`, `requests/${request.id}/history`, `purchase-orders/${order}`, `purchase-orders/${order}/history`, `purchase-orders/${order}/pdf`]) {
+        const response = await call("JEFE_OBRA", path);
+        expect(response.status, path).toBe(403);
+        expect(await response.json()).not.toHaveProperty("data");
+      }
+      for (const path of ["stock", "works", "materials", "requests", "purchase-orders", "receipt-desk"]) {
+        const visible = await data("JEFE_OBRA", path);
+        expect(JSON.stringify(visible)).not.toMatch(/unitPrice|passwordHash|totalAmount|invoiceInfo/);
+      }
+      expect((await call("JEFE_OBRA", `works/${work}`, "PATCH", { name: "Cambio prohibido" })).status).toBe(403);
+    });
+    it("M05: Compras transfiere stock, Jefe consume en su obra y Cómputo no mueve stock", async () => {
+      const unit = await db.unit.create({ data: { code: `move-unit-${tag}`, name: "Unidad sintética" } });
+      const material = (await db.material.create({ data: { code: `move-${tag}`, name: "Material movimientos M05", unitId: unit.id } })).id;
+      const destination = await db.location.findFirstOrThrow({ where: { workId: work } });
+      await data("GERENCIA", "movements", "POST", { type: "INITIAL", materialId: material, destinationId: location, quantity: "5", reason: "Apertura sintética M05" });
+      const transfer = { type: "TRANSFER", materialId: material, sourceId: location, destinationId: destination.id, quantity: "2" };
+      expect((await call("COMPUTO", "movements", "POST", transfer)).status).toBe(403);
+      await data("COMPRAS", "movements", "POST", transfer);
+      await data("JEFE_OBRA", "movements", "POST", { type: "CONSUMPTION", materialId: material, sourceId: destination.id, quantity: "1" });
+      expect((await call("COMPRAS", "movements", "POST", { type: "ADJUSTMENT", materialId: material, destinationId: location, quantity: "1", direction: "IN", reason: "No autorizado" })).status).toBe(403);
+    });
     it("T02: CUIT con separadores y sin separadores identifica el mismo cliente", async () => {
       const digits =
         "99" +
@@ -282,7 +328,10 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         "PUT",
         { locationIds: [location] },
       );
+      const unauthorized = await db.location.create({ data: { code: `undelegated-${tag}`, name: "Destino no delegado", kind: "WAREHOUSE" } });
+      expect((await call("ADMINISTRACION", `purchase-orders/${order}/receipts`, "POST", { ...body, locationId: unauthorized.id })).status).toBe(403);
       const desk = await data("ADMINISTRACION", "receipt-desk");
+      expect(JSON.stringify(desk)).not.toMatch(/unitPrice|totalAmount|invoiceInfo|passwordHash/);
       expect(desk.some((o: { id: string }) => o.id === order)).toBe(true);
       const first = await data(
           "ADMINISTRACION",
@@ -328,6 +377,7 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
           )
         ).status,
       ).toBe(403);
+      expect((await data("ADMINISTRACION", "receipt-desk")).some((o: { id: string }) => o.id === order)).toBe(false);
     });
   },
 );

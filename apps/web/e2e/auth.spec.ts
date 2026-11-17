@@ -101,7 +101,7 @@ test('429: se respeta Retry-After y se bloquea el botón', async ({ page }) => {
   for (let i = 0; i < 12 && last !== 429; i++) {
     const r = await page.request.post('/api/v1/auth/login', {
       data: { email: 'rate@demo.local', password: 'x'.repeat(12) },
-      headers: { Origin: 'http://localhost:3000' },
+      headers: { Origin: process.env.E2E_BASE_URL ?? 'http://localhost:3000' },
     });
     last = r.status();
     if (last === 429)
