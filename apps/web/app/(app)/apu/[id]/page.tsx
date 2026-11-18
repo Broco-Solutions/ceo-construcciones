@@ -216,9 +216,8 @@ function CalculatePanel({ apu }: { apu: Schemas['ApuDetail'] }) {
   return (
     <Card title="Consultar costo calculado">
       <p className="small muted">
-        Elegí la moneda, los impuestos, el redondeo y un precio por material
-        para estimar el costo por unidad de 1 {unitSymbol(apu.unit)}. Es una
-        simulación: el resultado no se guarda.
+        Esta simulación estima cuánto cuesta realizar una unidad de trabajo
+        (1 {unitSymbol(apu.unit)}) sin modificar los presupuestos.
       </p>
       <ValuationFields value={val} onChange={setVal} errors={errs} />
       {prices.loading ? (

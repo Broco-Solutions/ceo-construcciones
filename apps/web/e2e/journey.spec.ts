@@ -109,7 +109,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
       .first()
       .fill('2');
     await p.getByLabel('Importe de mano de obra').fill('150');
-    await p.getByLabel('Moneda').fill('ARS');
+    await p.getByLabel('Moneda').selectOption('ARS');
     await chooseOption(p.getByLabel('Base impositiva'), { index: 1 });
     await p.getByRole('button', { name: 'Crear actividad' }).click();
     await toast(p, 'Actividad creada correctamente');
@@ -143,7 +143,7 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.waitForURL(/\/presupuestos\/(?!nuevo)[^/?]+\?/);
     const dlg = p.getByRole('dialog');
     await pick(dlg.getByLabel('Cómputo de origen'), COMP);
-    await dlg.getByLabel('Moneda').fill('ARS');
+    await dlg.getByLabel('Moneda').selectOption('ARS');
     await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
     await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
     await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });

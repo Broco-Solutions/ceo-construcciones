@@ -31,9 +31,13 @@ export function LaborReferences() {
   const { can } = useSession(),
     toast = useToast();
   const [search, setSearch] = useState(''),
+    [creating, setCreating] = useState(false),
     [selected, setSelected] = useState<Resource | null>(null),
     [history, setHistory] = useState<Resource | null>(null);
   const list = usePaged<Resource>('/labor-resources', { q: search });
+  const create = useMutation((_key: string, body: Schemas['LaborResourceInput']) =>
+    api.post<{ data: Schemas['LaborResource'] }>('/labor-resources', body),
+  );
   const reference = (r: Resource) =>
     new Set(
       r.rates.map((p) => JSON.stringify([p.series, p.currency, p.taxBasis])),
@@ -51,7 +55,15 @@ export function LaborReferences() {
         vinculadas recalculan su costo; los presupuestos existentes requieren
         revisar y aceptar diferencias.
       </p>
-      <Card title="Mano de obra" bodyClass="">
+      <Card
+        title="Mano de obra"
+        bodyClass=""
+        actions={can('editBudget') && (
+          <Button onClick={() => { create.reset(); setCreating(true); }}>
+            Nuevo concepto de mano de obra
+          </Button>
+        )}
+      >
         <div className="bd">
           <TextField
             label="Buscar concepto"
@@ -154,6 +166,57 @@ export function LaborReferences() {
           setPage={list.setPage}
         />
       </Card>
+      {can('editBudget') && creating && (
+        <Modal
+          open
+          title="Nuevo concepto de mano de obra"
+          onClose={() => { if (!create.pending) setCreating(false); }}
+        >
+          <form
+            className="stack"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const fields = new FormData(e.currentTarget);
+              const result = await create.run({
+                code: String(fields.get('code')).trim(),
+                name: String(fields.get('name')).trim(),
+                unit: String(fields.get('unit')).trim(),
+                kind: fields.get('kind') === 'SERVICE' ? 'SERVICE' : 'CATEGORY',
+              });
+              if (!result) return;
+              setCreating(false);
+              setSearch(result.data.code);
+              list.reload();
+              toast.success('Concepto creado. Ya podés registrar una tarifa.');
+            }}
+          >
+            <fieldset className="stack form-fields" disabled={create.pending}>
+              <TextField label="Código" name="code" required maxLength={500} />
+              <TextField label="Nombre" name="name" required maxLength={500} />
+              <TextField label="Unidad" name="unit" required maxLength={500} />
+              <SelectField
+                label="Tipo"
+                name="kind"
+                placeholder="Elegir…"
+                options={[
+                  { value: 'CATEGORY', label: 'Categoría' },
+                  { value: 'SERVICE', label: 'Servicio' },
+                ]}
+                required
+              />
+              <ErrorBox error={create.error} />
+              <div className="row">
+                <Button type="submit" loading={create.pending}>
+                  Guardar concepto
+                </Button>
+                <Button variant="sec" onClick={() => setCreating(false)}>
+                  Cancelar
+                </Button>
+              </div>
+            </fieldset>
+          </form>
+        </Modal>
+      )}
       {selected && (
         <RateForm
           resource={selected}

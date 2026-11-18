@@ -9,7 +9,7 @@ import {
   formatMoney,
   formatQty,
 } from '@/lib/format';
-import { DecimalField, SelectField, TextField } from '@/components/ui';
+import { DecimalField, SelectField } from '@/components/ui';
 
 export type TaxBasis = Schemas['TaxBasis'];
 export const TAX_LABEL: Record<TaxBasis, string> = {
@@ -31,7 +31,11 @@ export const ROUNDING_OPTIONS = Object.entries(ROUNDING_LABEL).map(
 );
 export const BOUNDARY = 'EXTENDED_LINE_COMPONENTS' as const;
 export const BOUNDARY_LABEL =
-  'Por componente extendido de cada línea (EXTENDED_LINE_COMPONENTS)';
+  'Para cada partida, se redondean por separado el total de materiales, el de mano de obra y el de otros costos directos.';
+export const CURRENCY_OPTIONS = [
+  { value: 'ARS', label: 'ARS — Pesos argentinos' },
+  { value: 'USD', label: 'USD — Dólares estadounidenses' },
+];
 
 export const STATUS_LABEL: Record<Schemas['BudgetStatus'], string> = {
   DRAFT: 'Borrador',
@@ -97,18 +101,24 @@ export function BudgetFlow({ step }: { step: 0 | 1 | 2 | 3 }) {
     ['Materiales', 'Necesarios consolidados'],
   ];
   return (
-    <div className="flow" aria-label="Flujo de presupuesto">
-      {steps.map(([t, s], i) => (
-        <div
-          key={t}
-          className={`fs${i < step ? ' done' : i === step ? ' now' : ''}`}
-          aria-current={i === step ? 'step' : undefined}
-        >
-          <i>{i + 1}</i>
-          <span>{t}</span>
-          <small>{s}</small>
-        </div>
-      ))}
+    <div className="stack">
+      <p className="small muted">
+        Estos cuatro pasos muestran el progreso del presupuesto. Usá las
+        acciones de cada pantalla para avanzar.
+      </p>
+      <div className="flow" aria-label="Progreso del presupuesto">
+        {steps.map(([t, s], i) => (
+          <div
+            key={t}
+            className={`fs${i < step ? ' done' : i === step ? ' now' : ''}`}
+            aria-current={i === step ? 'step' : undefined}
+          >
+            <i>{i + 1}</i>
+            <span>{t}</span>
+            <small>{s}</small>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -130,7 +140,7 @@ export const emptyValuation: ValuationState = {
 export function validateValuation(v: ValuationState): Record<string, string> {
   const e: Record<string, string> = {};
   if (!/^[A-Z]{3}$/.test(v.currency))
-    e.currency = 'Código de 3 letras en mayúsculas (p. ej. ARS).';
+    e.currency = 'Elegí la moneda.';
   if (!v.taxBasis) e.taxBasis = 'Elegí la base impositiva.';
   if (!/^[0-6]$/.test(v.precision)) e.precision = 'Entero entre 0 y 6.';
   if (!v.roundingMode) e.roundingMode = 'Elegí el modo de redondeo.';
@@ -149,15 +159,16 @@ export function ValuationFields({
   return (
     <>
       <div className="formgrid">
-        <TextField
+        <SelectField
           label="Moneda"
           value={value.currency}
-          maxLength={3}
-          placeholder="ARS"
+          placeholder="Elegir…"
+          options={CURRENCY_OPTIONS}
           onChange={(e) =>
-            onChange({ ...value, currency: e.target.value.toUpperCase() })
+            onChange({ ...value, currency: e.target.value })
           }
-          error={errors.currency}
+          error={value.currency ? undefined : errors.currency}
+          hint="Usá la misma moneda que los precios de referencia."
         />
         <SelectField
           label="Base impositiva"
@@ -166,7 +177,7 @@ export function ValuationFields({
           options={TAX_OPTIONS}
           onChange={(e) => onChange({ ...value, taxBasis: e.target.value })}
           error={errors.taxBasis}
-          hint="Debe coincidir con la de los precios elegidos."
+          hint="Indicá si los precios usados incluyen IVA."
         />
         <SelectField
           label="Decimales (precisión)"
@@ -178,6 +189,7 @@ export function ValuationFields({
           }))}
           onChange={(e) => onChange({ ...value, precision: e.target.value })}
           error={errors.precision}
+          hint="Cuántos decimales se conservan en los importes."
         />
         <SelectField
           label="Modo de redondeo"
@@ -186,11 +198,11 @@ export function ValuationFields({
           options={ROUNDING_OPTIONS}
           onChange={(e) => onChange({ ...value, roundingMode: e.target.value })}
           error={errors.roundingMode}
+          hint="Cómo se ajustan los importes a los decimales elegidos."
         />
       </div>
       <p className="small muted">
-        Frontera de redondeo: {BOUNDARY_LABEL}. Es la única admitida por el
-        sistema.
+        {BOUNDARY_LABEL}
       </p>
     </>
   );
@@ -367,7 +379,8 @@ export function CalcSummary({ calc }: { calc: Calc }) {
         <small>Criterio</small>
         <b style={{ fontSize: 14 }}>{TAX_LABEL[calc.taxBasis]}</b>
         <span className="small muted">
-          {calc.precision} decimales · {calc.roundingMode}
+          {calc.precision} {calc.precision === 1 ? 'decimal' : 'decimales'} ·{' '}
+          {ROUNDING_LABEL[calc.roundingMode]}
         </span>
       </div>
     </div>

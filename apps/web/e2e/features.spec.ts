@@ -94,7 +94,7 @@ async function fillVersion(page: Page, prices: [string, string]) {
   const dlg = page.getByRole('dialog');
   await expect(dlg).toBeVisible();
   await pick(dlg.getByLabel('Cómputo de origen'), `Cómputo casos ${SUF}`);
-  await dlg.getByLabel('Moneda').fill('ARS');
+  await dlg.getByLabel('Moneda').selectOption('ARS');
   await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
   await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
   await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });

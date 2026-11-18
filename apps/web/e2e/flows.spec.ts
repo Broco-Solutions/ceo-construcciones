@@ -126,7 +126,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
     .nth(1)
     .fill('0,07');
   await page.getByLabel('Importe de mano de obra').fill('1200,50');
-  await page.getByLabel('Moneda').fill('ARS');
+  await page.getByLabel('Moneda').selectOption('ARS');
   await chooseOption(page.getByLabel('Base impositiva'), { index: 1 });
   await snap(page, '02-apu-con-materiales');
   await page.getByRole('button', { name: 'Crear actividad' }).click();
@@ -141,7 +141,7 @@ test('(b) Cómputo crea un APU con materiales y otro sólo de mano de obra', asy
   await page.getByLabel('Nombre del ítem').fill(`Mano de obra E2E ${SUF}`);
   await pick(page.getByLabel('Unidad de trabajo'), 'Metro cuadrado (m²)');
   await expect(page.getByText('sólo de mano de obra')).toBeVisible();
-  await page.getByLabel('Moneda').fill('ARS');
+  await page.getByLabel('Moneda').selectOption('ARS');
   await chooseOption(page.getByLabel('Base impositiva'), { index: 1 });
   // Mano de obra explícita: vacío bloquea (no se envía nada), 0 se acepta.
   let posted = 0;
@@ -197,7 +197,7 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
   await expect(dlg).toBeVisible();
   await expect(dlg.getByLabel('Cómputo de origen')).toBeVisible();
   await pick(dlg.getByLabel('Cómputo de origen'), `Cómputo E2E ${SUF}`);
-  await dlg.getByLabel('Moneda').fill('ARS');
+  await dlg.getByLabel('Moneda').selectOption('ARS');
   await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
   await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
   await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });

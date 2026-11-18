@@ -216,10 +216,14 @@ export function VersionForm({
                 />
               )}
             </Card>
-            <Card title="Sobrescrituras puntuales (opcional)">
+            <details className="card" style={{ padding: '16px 18px' }}>
+              <summary style={{ cursor: 'pointer' }}>
+                <b>Ajustes particulares de esta versión (opcional)</b>
+              </summary>
               <p className="small muted">
-                Sólo para esta versión. Dejá vacío para usar lo del cómputo y de
-                la actividad.
+                Usá esta sección solo si querés cambiar una cantidad, consumo o
+                costo para esta versión sin modificar el cómputo ni la actividad
+                original.
               </p>
               {lines.map((l) => {
                 const o = ovs[l.id];
@@ -303,7 +307,7 @@ export function VersionForm({
                   </details>
                 );
               })}
-            </Card>
+            </details>
           </>
         ))}
       <ErrorBox error={create.error} />

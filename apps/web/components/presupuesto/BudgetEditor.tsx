@@ -513,6 +513,23 @@ export function BudgetEditor({ id }: { id: string }) {
     editable = can('editBudget'),
     latest = budget.versions.find((v) => v.issue),
     selected = content?.lines.find((l) => l.key === context);
+
+  async function removeLine(line: Line) {
+    if (
+      !editable || !contentRef.current || save.pending || issue.pending ||
+      valuation?.reviewing
+    ) return;
+    if (!window.confirm(`¿Quitar «${line.name}» del presupuesto?`)) return;
+    const next = {
+      ...contentRef.current,
+      lines: contentRef.current.lines.filter((l) => l.key !== line.key),
+    };
+    contentRef.current = next;
+    setContent(next);
+    setContext(null);
+    await persist();
+  }
+
   const grouped = new Map<string, Line[]>();
   for (const l of content?.lines ?? [])
     grouped.set(l.categoryId, [...(grouped.get(l.categoryId) ?? []), l]);
@@ -718,6 +735,10 @@ export function BudgetEditor({ id }: { id: string }) {
                         const unitCost = calculation?.unitCosts?.find(
                           (c) => c.lineKey === l.key,
                         );
+                        const missingCosts = unitCost?.missingCosts ?? [];
+                        const hasIssue = calculation?.issues.some(
+                          (i) => i.lineKey === l.key,
+                        );
                         return (
                           <div key={l.key} className="budget-line">
                             <div>
@@ -753,32 +774,45 @@ export function BudgetEditor({ id }: { id: string }) {
                                 Costo por unidad
                               </span>
                               <b>
-                                {formatMoney(
-                                  unitCost?.totalUnitCost ??
-                                    result?.totalUnitCost,
-                                  content.currency,
-                                )}
+                                {missingCosts.length > 0
+                                  ? 'Costo pendiente'
+                                  : formatMoney(
+                                      unitCost?.totalUnitCost ??
+                                        result?.totalUnitCost,
+                                      content.currency,
+                                    )}
                               </b>
                             </div>
                             <div>
-                              {unitCost?.missingCosts.map((m) => (
-                                <span className="small err" key={m}>
-                                  {m} pendiente
-                                </span>
-                              ))}
                               <span className="small muted">Subtotal</span>
                               <b>
-                                {formatMoney(
-                                  unitCost?.zeroQuantity
-                                    ? '0'
-                                    : result?.totalCost,
-                                  content.currency,
-                                )}
+                                {hasIssue
+                                  ? 'Costo pendiente'
+                                  : formatMoney(
+                                      unitCost?.zeroQuantity
+                                        ? '0'
+                                        : result?.totalCost,
+                                      content.currency,
+                                    )}
                               </b>
-                              {l.quantity === null && (
+                              {unitCost?.quantityPending && l.status === 'ACTIVE' && (
                                 <span className="small muted">
                                   Cantidad pendiente
                                 </span>
+                              )}
+                              {missingCosts.length > 0 && (
+                                <div className="small err">
+                                  Falta informar {missingCosts.join(' · ')}.
+                                </div>
+                              )}
+                              {editable && (hasIssue || missingCosts.length > 0) && (
+                                <Button
+                                  variant="sec"
+                                  size="sm"
+                                  onClick={() => setContext(l.key)}
+                                >
+                                  Completar costos
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -823,7 +857,7 @@ export function BudgetEditor({ id }: { id: string }) {
             <Card title="Precio de venta">
               <TextField
                 label="Rentabilidad (%)"
-                hint="Recargo sobre el costo. Por ejemplo: 50 agrega el 50% al costo."
+                hint="La rentabilidad es un recargo sobre el costo. Por ejemplo, con un costo de $100.000 y un recargo del 50 %, el precio de venta es $150.000."
                 inputMode="decimal"
                 value={content.markup}
                 onChange={(e) =>
@@ -839,6 +873,11 @@ export function BudgetEditor({ id }: { id: string }) {
           )}
           {step === 2 && (
             <Card title="Presentación y PDF">
+              <p className="small muted">
+                Podés previsualizar el PDF, emitir la primera revisión (R1) y
+                descargarla. Si editás el borrador y volvés a emitir, se genera
+                R2 y queda disponible la R1.
+              </p>
               <TextField
                 label="Plazo"
                 value={content.deadline}
@@ -883,6 +922,13 @@ export function BudgetEditor({ id }: { id: string }) {
                   </>
                 )}
               </div>
+              {editable && calculation?.complete === false && (
+                <p className="small err">
+                  {calculation.issues.length
+                    ? 'Completá los costos o cantidades pendientes en Cómputo y costos antes de emitir.'
+                    : 'Agregá al menos una partida con costo y cantidad mayor a cero antes de emitir.'}
+                </p>
+              )}
             </Card>
           )}
           {step === 3 && (
@@ -1112,6 +1158,15 @@ export function BudgetEditor({ id }: { id: string }) {
               />
               <div className="formgrid">
                 <TextField
+                  label="Cantidad"
+                  inputMode="decimal"
+                  value={selected.quantity ?? ''}
+                  onChange={(e) =>
+                    setLine(selected.key, { quantity: input(e.target.value) })
+                  }
+                  disabled={!editable || selected.status !== 'ACTIVE'}
+                />
+                <TextField
                   label="Mano de obra por unidad"
                   value={selected.laborUnitCost ?? ''}
                   inputMode="decimal"
@@ -1135,6 +1190,9 @@ export function BudgetEditor({ id }: { id: string }) {
                   disabled={!editable}
                 />
               </div>
+              <p className="small muted">
+                Si un costo es cero, ingresá 0. Un campo vacío indica un costo pendiente.
+              </p>
               {editable && (
                 <details>
                   <summary>Ayuda para calcular cantidad</summary>
@@ -1447,7 +1505,18 @@ export function BudgetEditor({ id }: { id: string }) {
                 Ajuste para este presupuesto. El catálogo y las revisiones
                 emitidas se conservan.
               </p>
-              <Button onClick={() => setContext(null)}>Listo</Button>
+              <div className="row">
+                <Button onClick={() => setContext(null)}>Listo</Button>
+                {editable && (
+                  <Button
+                    variant="danger"
+                    disabled={save.pending || issue.pending || valuation?.reviewing}
+                    onClick={() => removeLine(selected)}
+                  >
+                    Quitar del presupuesto
+                  </Button>
+                )}
+              </div>
             </div>
           )
         )}

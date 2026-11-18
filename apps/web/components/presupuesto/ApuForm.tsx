@@ -15,7 +15,7 @@ import {
   TextField,
   useToast,
 } from '@/components/ui';
-import { TAX_OPTIONS, useCatalogs } from './common';
+import { CURRENCY_OPTIONS, TAX_OPTIONS, useCatalogs } from './common';
 import { parseLaborCost } from './validation';
 import { AutoCodeField, AUTO_CODE } from '@/components/AutoCodeField';
 
@@ -92,7 +92,7 @@ export function ApuForm({
     if (directCost.trim() && (direct === null || direct?.startsWith('-')))
       er.directCost = 'Ingresá un costo directo mayor o igual a cero.';
     if (!/^[A-Z]{3}$/.test(laborCurrency))
-      er.laborCurrency = 'Código de 3 letras (p. ej. ARS).';
+      er.laborCurrency = 'Elegí la moneda.';
     if (!laborTaxBasis)
       er.laborTaxBasis = 'Elegí la base impositiva de la mano de obra.';
     const components: Schemas['ApuInput']['components'] = [];
@@ -291,13 +291,21 @@ export function ApuForm({
             error={fe.directCost}
             hint="Opcional. Usa la moneda y el IVA de la actividad; no genera materiales ni se registra como salario."
           />
-          <TextField
+          <SelectField
             label="Moneda"
             value={laborCurrency}
-            maxLength={3}
-            placeholder="ARS"
-            onChange={(e) => setLaborCurrency(e.target.value.toUpperCase())}
-            error={fe.laborCurrency}
+            placeholder="Elegir…"
+            options={
+              initial?.laborCurrency &&
+              !CURRENCY_OPTIONS.some((o) => o.value === initial.laborCurrency)
+                ? [...CURRENCY_OPTIONS, {
+                    value: initial.laborCurrency,
+                    label: `${initial.laborCurrency} — Moneda registrada`,
+                  }]
+                : CURRENCY_OPTIONS
+            }
+            onChange={(e) => setLaborCurrency(e.target.value)}
+            error={laborCurrency ? undefined : fe.laborCurrency}
           />
           <SelectField
             label="Base impositiva"
