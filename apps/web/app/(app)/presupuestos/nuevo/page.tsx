@@ -15,9 +15,11 @@ import {
   useToast,
 } from '@/components/ui';
 import { useSession } from '@/lib/session';
-import { useMutation, useApi } from '@/lib/hooks';
-import { api, ApiError, type Schemas } from '@/lib/api';
-import { BudgetFlow, useWorks } from '@/components/presupuesto/common';
+import { useAll, useMutation, useApi } from '@/lib/hooks';
+import { api, type Schemas } from '@/lib/api';
+import { useWorks } from '@/components/presupuesto/common';
+
+type Origin = 'blank' | 'computation' | 'template' | 'revision';
 
 export default function NewBudgetPage() {
   const { can } = useSession();
@@ -40,17 +42,34 @@ function Form() {
   const router = useAppRouter();
   const toast = useToast();
   const works = useWorks();
-  const computationId = sp.get('computationId');
   const sourceVersionId = sp.get('sourceVersionId');
   const [workId, setWorkId] = useState(sp.get('workId') ?? '');
   const [name, setName] = useState('');
+  const [computationId, setComputationId] = useState(sp.get('computationId') ?? '');
+  const [origin, setOrigin] = useState<Origin>(
+    sp.get('computationId') ? 'computation' : sourceVersionId ? 'revision' : 'blank',
+  );
+  const computations = useAll<Schemas['Computation']>(
+    origin === 'computation' && workId ? '/computations' : null,
+    { workId },
+  );
+  const computation = useApi<{ data: Schemas['ComputationDetail'] }>(
+    origin === 'computation' && workId && computationId
+      ? `/computations/${computationId}`
+      : null,
+  );
+  const detail = computation.data?.data;
+  const selectedComputation = detail?.id === computationId && detail.workId === workId
+    ? detail
+    : undefined;
+  const computationOptions = computations.rows
+    .filter((c) => c.workId === workId)
+    .map((c) => ({ value: c.id, label: c.name }));
+  if (selectedComputation && !computationOptions.some((c) => c.value === computationId))
+    computationOptions.push({ value: selectedComputation.id, label: selectedComputation.name });
   const templates = useApi<{ data: Schemas['BudgetTemplate'][] }>(
     '/budget-templates',
   );
-  const legacy =
-    templates.error instanceof ApiError &&
-    (templates.error.code === 'FEATURE_NOT_ENABLED' ||
-      templates.error.status === 404);
   const base = useApi<{ data: Schemas['BaseTemplateInfo'] }>(
     '/budget-templates/base',
   );
@@ -64,18 +83,11 @@ function Form() {
   const [templateId, setTemplateId] = useState('');
   const [useReferenceCosts,setUseReferenceCosts]=useState(!sourceVersionId);
   const [errs, setErrs] = useState<Record<string, string>>({});
-  const save = useMutation((key: string, body: Schemas['BudgetInput']) =>
+  const [created, setCreated] = useState(false);
+  const save = useMutation((key: string, body: Schemas['EditorCreateInput']) =>
     api.post<{ data: Schemas['Budget'] }>(
-      computationId || legacy ? '/budgets' : '/budget-editor',
-      {
-        ...body,
-        ...(!computationId && !legacy ? {useReferenceCosts}:{}),
-        ...(!computationId && !legacy && sourceVersionId
-          ? { sourceVersionId }
-          : !computationId && !legacy && templateId
-            ? { templateId }
-            : {}),
-      },
+      '/budget-editor',
+      body,
       { idempotencyKey: key },
     ),
   );
@@ -84,25 +96,32 @@ function Form() {
     return <ErrorBox error={works.error} onRetry={works.reload} />;
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (created) return;
     const er: Record<string, string> = {};
     if (!workId) er.workId = 'Elegí la obra.';
     if (!name.trim()) er.name = 'Ingresá un nombre.';
+    if (origin === 'computation' && !selectedComputation)
+      er.computationId = 'Elegí un cómputo de esta obra.';
+    if (origin === 'template' && !templateId) er.templateId = 'Elegí una plantilla.';
     setErrs(er);
     if (Object.keys(er).length) return;
-    const r = await save.run({ workId, name: name.trim() });
+    const r = await save.run({
+      workId,
+      name: name.trim(),
+      ...(origin === 'computation' ? { computationId } : { useReferenceCosts }),
+      ...(origin === 'template' ? { templateId } : {}),
+      ...(origin === 'revision' && sourceVersionId ? { sourceVersionId } : {}),
+    });
     if (r) {
+      setCreated(true);
       toast.success('Presupuesto creado correctamente');
-      router.push(
-        computationId || legacy
-          ? `/presupuestos/${r.data.id}?nuevaVersion=1${computationId ? '&computationId=' + computationId : ''}`
-          : `/presupuestos/editor/${r.data.id}`,
-      );
+      router.push(`/presupuestos/editor/${r.data.id}`);
     }
   }
   const fe = { ...fieldErrors(save.error), ...errs };
   return (
     <form className="stack" onSubmit={submit} noValidate>
-      <Card title="Presupuesto">
+      <Card title="Presupuesto" bodyClass="bd stack">
         <div className="formgrid">
           <SelectField
             entity="works" label="Obra"
@@ -112,7 +131,10 @@ function Form() {
               value: w.id,
               label: `${w.code} · ${w.name}`,
             }))}
-            onChange={(e) => setWorkId(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value !== workId) setComputationId('');
+              setWorkId(e.target.value);
+            }}
             error={fe.workId}
           />
           <TextField
@@ -124,21 +146,77 @@ function Form() {
             error={fe.name}
           />
         </div>
-        {!computationId && !legacy && (
+        <SelectField
+          label="Empezar desde"
+          value={origin}
+          onChange={(e) => {
+            setOrigin(e.target.value as Origin);
+            setErrs({});
+          }}
+          options={[
+            { value: 'blank', label: 'Empezar en blanco' },
+            { value: 'computation', label: 'Usar cómputo existente' },
+            { value: 'template', label: 'Usar plantilla' },
+            ...(sourceVersionId ? [{ value: 'revision', label: 'Copiar revisión anterior' }] : []),
+          ]}
+        />
+        {origin === 'computation' && (
+          <>
+            <SelectField
+              label="Cómputo de origen"
+              value={computationId}
+              placeholder="Elegir cómputo…"
+              disabled={!workId || computations.loading}
+              options={computationOptions}
+              onChange={(e) => {
+                setComputationId(e.target.value);
+                setErrs({});
+              }}
+              error={fe.computationId}
+              hint={!workId ? 'Elegí la obra para ver sus cómputos.' : undefined}
+            />
+            {workId && !computations.loading && !computations.error && !computationOptions.length &&
+              <p className="small muted">La obra todavía no tiene cómputos.</p>}
+            {workId && <ErrorBox error={computations.error} onRetry={computations.reload} />}
+            {computationId && (
+              <>
+                {computation.loading && <Loading label="Cargando actividades…" />}
+                <ErrorBox error={computation.error} onRetry={computation.reload} />
+                {detail?.id === computationId && detail.workId !== workId &&
+                  <p className="note">El cómputo pertenece a otra obra.</p>}
+                {selectedComputation && (
+                  <p className="small muted">
+                    {selectedComputation.name} · {selectedComputation.lines.length} {selectedComputation.lines.length === 1 ? 'actividad' : 'actividades'}
+                  </p>
+                )}
+                <div>
+                  <Button variant="sec" size="sm" onClick={() => {
+                    setComputationId('');
+                    setErrs({});
+                  }}>
+                    Quitar selección
+                  </Button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+        {origin === 'template' && (
           <SelectField
-            label="Empezar desde"
+            label="Plantilla"
             value={templateId}
             onChange={(e) => setTemplateId(e.target.value)}
-            placeholder="En blanco"
+            placeholder="Elegir plantilla…"
             options={(templates.data?.data ?? []).map((t) => ({
               value: t.id,
               label: t.name,
             }))}
             hint="La plantilla copia rubros y composiciones. Los cambios quedan sólo en este presupuesto."
+            error={fe.templateId}
           />
         )}
-        {!computationId && !legacy && <label className="row"><input type="checkbox" checked={useReferenceCosts} onChange={e=>setUseReferenceCosts(e.target.checked)}/>Usar costos de referencia disponibles, conservando ajustes manuales</label>}
-        {!computationId && base.data && (
+        {origin !== 'computation' && <label className="row"><input type="checkbox" checked={useReferenceCosts} onChange={e=>setUseReferenceCosts(e.target.checked)}/>Usar costos de referencia disponibles, conservando ajustes manuales</label>}
+        {(origin === 'blank' || origin === 'template') && base.data && (
           <details>
             <summary>
               Plantilla BASE de CEO · {base.data.data.activities} actividades
@@ -168,6 +246,7 @@ function Form() {
                 if (r) {
                   templates.reload();
                   setTemplateId(r.data.id);
+                  setOrigin('template');
                   toast.success('BASE incorporada y seleccionada');
                 }
               }}
@@ -181,13 +260,7 @@ function Form() {
           Cargá las cantidades, revisá el costo y definí la rentabilidad al
           final. Guardar un borrador no emite una revisión.
         </p>
-        {legacy ? (
-          <p className="note">
-            El presupuesto comercial todavía no está habilitado en este entorno.
-            Podés conservar el circuito V1 de versiones de costos desde un
-            cómputo.
-          </p>
-        ) : (
+        {origin === 'template' && (
           <ErrorBox error={templates.error} onRetry={templates.reload} />
         )}
       </Card>
@@ -201,7 +274,12 @@ function Form() {
         >
           Cancelar
         </Button>
-        <Button type="submit" size="lg" loading={save.pending}>
+        <Button
+          type="submit"
+          size="lg"
+          loading={save.pending}
+          disabled={created || (origin === 'computation' && !!computationId && computation.loading)}
+        >
           Crear presupuesto
         </Button>
       </div>

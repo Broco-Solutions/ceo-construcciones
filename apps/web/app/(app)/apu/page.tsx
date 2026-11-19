@@ -24,7 +24,6 @@ import { usePaged } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatMoney } from '@/lib/format';
 import {
-  BudgetFlow,
   TAX_LABEL,
   useCatalogs,
 } from '@/components/presupuesto/common';
@@ -63,9 +62,6 @@ function ApuList() {
         )
       }
     >
-      <Card>
-        <BudgetFlow step={0} />
-      </Card>
       <Card
         title="Actividades de obra"
         actions={

@@ -19,7 +19,6 @@ import type { Schemas } from '@/lib/api';
 import { formatDateTime, formatQty } from '@/lib/format';
 import {
   BOUNDARY_LABEL,
-  BudgetFlow,
   CalcLines,
   CalcSummary,
   ROUNDING_LABEL,
@@ -82,9 +81,6 @@ function VersionDetail() {
         />
       }
     >
-      <Card>
-        <BudgetFlow step={tab === 'materiales' ? 3 : 2} />
-      </Card>
       <Card>
         <div
           className="row"

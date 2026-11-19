@@ -4400,6 +4400,7 @@ export interface components {
             name: string;
             templateId?: string;
             sourceVersionId?: string;
+            computationId?: string;
             useReferenceCosts?: boolean;
         };
         IssueInput: {

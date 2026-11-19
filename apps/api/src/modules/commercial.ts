@@ -21,6 +21,7 @@ import {
   costReview,
   applyReviewedCosts,
 } from "./budget-cost-updates";
+import { itemInclude } from "./budgets";
 
 export const draftSaveSchema = z
   .object({ revision: z.number().int().min(0), content: editorContentSchema })
@@ -31,12 +32,13 @@ export const editorCreateSchema = z
     name: text,
     templateId: id.optional(),
     sourceVersionId: id.optional(),
+    computationId: id.optional(),
     useReferenceCosts: z.boolean().optional(),
   })
   .strict()
   .refine(
-    (v) => !(v.templateId && v.sourceVersionId),
-    "Elegí plantilla o revisión, no ambas.",
+    (v) => [v.templateId, v.sourceVersionId, v.computationId].filter(Boolean).length <= 1,
+    "Elegí un solo origen: cómputo, plantilla o revisión.",
   );
 export const issueSchema = z
   .object({ revision: z.number().int().min(1) })
@@ -54,6 +56,61 @@ export const emptyContent = (): EditorContent => ({
   deadline: "",
   lines: [],
 });
+const unitLabel = (u: { symbol: string | null; code: string; name: string }) =>
+  u.symbol?.trim() || (/^UNI-\d+$/.test(u.code) ? u.name : u.code);
+
+async function copyComputation(tx: Tx, computationId: string, workId: string) {
+  const computation = await tx.computation.findUnique({
+    where: { id: computationId },
+    include: {
+      lines: {
+        orderBy: { id: "asc" },
+        include: { item: { include: itemInclude } },
+      },
+    },
+  });
+  if (!computation)
+    throw new ApiError(404, "NOT_FOUND", "Cómputo inexistente.");
+  if (computation.workId !== workId)
+    throw new ApiError(422, "INVALID_COMPUTATION", "El cómputo pertenece a otra obra.");
+
+  const content = emptyContent();
+  content.lines = computation.lines.map(({ item, quantity }) => {
+    const compatible = item.laborCurrency === content.currency &&
+      item.laborTaxBasis === content.taxBasis;
+    return {
+      key: randomUUID(),
+      itemId: item.id,
+      code: item.code,
+      name: item.name,
+      categoryId: item.categoryId,
+      category: item.category.name,
+      unitId: item.unitId,
+      unit: unitLabel(item.unit),
+      quantity: quantity.toFixed(),
+      laborUnitCost: compatible ? item.laborCost?.toFixed() ?? null : null,
+      directUnitCost: item.directCost === null ? "0" : compatible ? item.directCost.toFixed() : null,
+      status: "ACTIVE",
+      materials: item.components.map(({ material, coefficient }) => ({
+        materialId: material.id,
+        name: material.name,
+        unitId: material.unitId,
+        unit: unitLabel(material.unit),
+        coefficient: coefficient.toFixed(),
+        unitPrice: null,
+        sourcePriceId: null,
+      })),
+    };
+  });
+
+  // Initialize from selected activity references. For remaining materials,
+  // the review policy proposes a price only when there is one compatible series.
+  const initialized = await initialReferenceContent(tx, content);
+  const review = await costReview(tx, 1, initialized);
+  const fallback = review.changes.filter((c) => c.kind === "MATERIAL" && c.previous === null);
+  return applyReviewedCosts(initialized, fallback, fallback.map((c) => c.key));
+}
+
 const json = (v: unknown) =>
   JSON.parse(JSON.stringify(v)) as Prisma.InputJsonValue;
 const hash = (v: unknown) =>
@@ -262,6 +319,8 @@ export async function handlerCommercial(
             );
           let content = emptyContent();
           let pristineCatalogTemplate = false;
+          if (b.computationId)
+            content = await copyComputation(tx, b.computationId, work.id);
           if (b.templateId)
             content = editorContentSchema.parse(
               found(
@@ -311,7 +370,7 @@ export async function handlerCommercial(
               });
               const unitLabels = new Map(units.map((u) => [
                 u.id,
-                u.symbol?.trim() || (/^UNI-\d+$/.test(u.code) ? u.name : u.code),
+                unitLabel(u),
               ]));
               content = {
                 ...emptyContent(),
@@ -344,6 +403,7 @@ export async function handlerCommercial(
             }
           }
           if (
+            !b.computationId &&
             (await schemaCapabilities()).referenceCosts &&
             (b.useReferenceCosts ?? pristineCatalogTemplate)
           ) {
@@ -371,6 +431,7 @@ export async function handlerCommercial(
             },
           });
           await audit(tx, actor, "CREATE", "Budget", budget.id, {
+            ...(b.computationId ? { computationId: b.computationId } : {}),
             sourceVersionId: b.sourceVersionId ?? null,
             templateId: b.templateId ?? null,
           });

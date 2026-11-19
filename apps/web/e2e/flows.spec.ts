@@ -9,7 +9,7 @@ import {
   type Locator,
   type Page,
 } from '@playwright/test';
-import { login, ORIGIN, pickMaterial, uid, type RoleKey } from './helpers';
+import { apiAs, login, ORIGIN, pickMaterial, uid, type RoleKey } from './helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -187,11 +187,17 @@ test('(c) Gerencia: cómputo, presupuesto con versión, referencia y materiales 
   await toast(page, 'Cómputo creado correctamente');
   await page.waitForURL(/\/computos\/(?!nuevo)[^/]+$/);
 
-  await page.getByRole('link', { name: 'Presupuestar' }).click();
-  await page.waitForURL(/\/presupuestos\/nuevo/);
-  await page.getByLabel('Nombre').fill(`Presupuesto E2E ${SUF}`);
-  await page.getByRole('button', { name: 'Crear presupuesto' }).click();
-  await page.waitForURL(/\/presupuestos\/(?!nuevo)[^/?]+\?/);
+  // PREPARACIÓN: un presupuesto histórico conserva el formulario de versiones.
+  const api = await apiAs('GERENCIA');
+  try {
+    const legacy = await api.send<{ id: string }>('POST', '/budgets', {
+      workId: st.work!.id,
+      name: `Presupuesto histórico E2E ${SUF}`,
+    });
+    await page.goto(`/presupuestos/${legacy.id}?nuevaVersion=1`);
+  } finally {
+    await api.dispose();
+  }
   const dlg = page.getByRole('dialog');
   // ?nuevaVersion=1 abre el modal automáticamente.
   await expect(dlg).toBeVisible();

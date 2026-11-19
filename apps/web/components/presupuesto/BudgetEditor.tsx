@@ -2,7 +2,7 @@
 import { ActivityMultiPicker } from './ActivityMultiPicker';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Plus, Save, Download, Eye } from 'lucide-react';
+import { ChevronRight, Plus, Save, Download, Eye } from 'lucide-react';
 import { Page } from '@/components/shell';
 import {
   Button,
@@ -712,7 +712,7 @@ export function BudgetEditor({ id }: { id: string }) {
                 {[...grouped].map(([cid, lines]) => (
                   <details key={cid} open className="budget-category">
                     <summary>
-                      <b>{lines[0].category}</b>
+                      <b><ChevronRight size={18} aria-hidden="true" />{lines[0].category}</b>
                       <span>
                         {formatMoney(
                           calculation?.categories.find(

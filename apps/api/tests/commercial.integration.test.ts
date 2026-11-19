@@ -129,6 +129,109 @@ describe.skipIf(!enabled)("presupuesto comercial real en PostgreSQL", () => {
     };
   });
   afterAll(() => db.$disconnect());
+  it("crea un borrador comercial desde un cómputo con cantidades exactas e idempotencia", async () => {
+    const material = await db.material.create({
+      data: { code: `computation-${tag}`, name: "Malla sintética", unitId },
+    });
+    const price = await data("prices", "POST", {
+      materialId: material.id,
+      price: "10",
+      baseQuantity: "1",
+      currency: "ARS",
+      taxBasis: "EXCLUDED",
+      effectiveAt: "2020-01-01T00:00:00Z",
+    });
+    const cerco = await data("apu-items", "POST", {
+      name: "Cerco de obra",
+      categoryId,
+      unitId,
+      laborCost: "20",
+      laborCurrency: "ARS",
+      laborTaxBasis: "EXCLUDED",
+      components: [{ materialId: material.id, coefficient: "1.25" }],
+    });
+    await data(`activity-costing/${cerco.id}`, "PUT", {
+      revision: 0,
+      content: {
+        currency: "ARS",
+        taxBasis: "EXCLUDED",
+        laborMode: "DIRECT",
+        labor: [],
+        materials: [{ materialId: material.id, priceId: price.id }],
+      },
+    });
+    const plaster = await db.material.create({
+      data: { code: `plaster-${tag}`, name: "Mezcla sintética", unitId },
+    });
+    await data("prices", "POST", {
+      materialId: plaster.id,
+      price: "12",
+      baseQuantity: "1",
+      currency: "USD",
+      taxBasis: "EXCLUDED",
+      effectiveAt: "2020-01-01T00:00:00Z",
+    });
+    const revoque = await data("apu-items", "POST", {
+      name: "Revoque",
+      categoryId,
+      unitId,
+      laborCost: "30",
+      directCost: "5",
+      laborCurrency: "USD",
+      laborTaxBasis: "EXCLUDED",
+      components: [{ materialId: plaster.id, coefficient: "2" }],
+    });
+    const computation = await data("computations", "POST", {
+      workId,
+      name: "Medición sintética",
+      lines: [
+        { itemId: cerco.id, quantity: "30" },
+        { itemId: revoque.id, quantity: "120" },
+        { itemId: cerco.id, quantity: "0.12345678" },
+      ],
+    });
+    const before = await data(`computations/${computation.id}`);
+    const other = await db.work.create({
+      data: { code: `other-${tag}`, name: "Otra obra", clientId },
+    });
+    const input = { workId, name: `Presupuesto desde cómputo ${tag}`, computationId: computation.id };
+    for (const [body, status] of [
+      [{ ...input, workId: other.id }, 422],
+      [{ ...input, computationId: randomUUID() }, 404],
+      [{ ...input, templateId: randomUUID() }, 422],
+      [{ ...input, sourceVersionId: randomUUID() }, 422],
+    ] as const) {
+      expect((await call("budget-editor", "POST", body)).status).toBe(status);
+    }
+    expect(await db.budget.count({ where: { name: input.name } })).toBe(0);
+
+    const key = randomUUID();
+    const [created, replay] = await Promise.all([
+      data("budget-editor", "POST", input, key),
+      data("budget-editor", "POST", input, key),
+    ]);
+    expect(created.id).toBe(replay.id);
+    expect(await db.budget.count({ where: { name: input.name } })).toBe(1);
+    const { draft } = await data(`budget-editor/${created.id}`);
+    const editor: EditorContent = draft.content;
+    expect(editor.lines).toHaveLength(3);
+    expect(new Set(editor.lines.map((line) => line.key)).size).toBe(3);
+    const fenceLines = editor.lines.filter((line) => line.itemId === cerco.id);
+    expect(fenceLines.map((line) => line.quantity).sort()).toEqual(["0.12345678", "30"]);
+    for (const line of fenceLines) {
+      expect(line).toMatchObject({ name: cerco.name, categoryId, unit: "m²", laborUnitCost: "20" });
+      expect(line.materials).toMatchObject([
+        { materialId: material.id, coefficient: "1.25", unitPrice: "10", sourcePriceId: price.id },
+      ]);
+    }
+    expect(editor.lines.find((line) => line.itemId === revoque.id)).toMatchObject({
+      quantity: "120", laborUnitCost: null, directUnitCost: null,
+      materials: [{ materialId: plaster.id, coefficient: "2", unitPrice: null, sourcePriceId: null }],
+    });
+    fenceLines.find((line) => line.quantity === "30")!.quantity = "35";
+    await data(`budget-editor/${created.id}`, "PUT", { revision: draft.revision, content: editor });
+    expect(await data(`computations/${computation.id}`)).toEqual(before);
+  });
   it("T08/T15: copia plantilla, cinco guardados no crean revisiones; conflicto no pisa", async () => {
     const template = await data("budget-templates", "POST", {
       name: `BASE sintética ${tag}`,

@@ -13,7 +13,7 @@ La implementación funcional F1–F7 está verificada. El estado de candidato/CI
 | R05 | Proveedores e historia conservados | catalog.ts; procurement.ts; proveedores/ | integration; procurement; journey.spec | T06/T35 |
 | R06 | Materiales, unidades y rubros conservados | catalog.ts; base-template.ts | catalog-integration-gaps; automatic-codes; journey.spec | T06/T23 |
 | R07 | Actividades, costo por unidad y composición | ApuForm.tsx; BudgetEditor.tsx; budgets.ts | commercial.integration; closure.spec; visual.spec | T07/T09–12 |
-| R08 | Plantillas, BASE y copia independiente | base-template.ts; commercial.ts; data/base-template.json | commercial.integration; zz-base.spec; historical-db-fixture | T08/T10 |
+| R08 | Plantillas, BASE, copia desde revisión y reutilización independiente de un cómputo de la obra | base-template.ts; commercial.ts; presupuestos/nuevo; data/base-template.json | commercial.integration; closure.spec; zz-base.spec; historical-db-fixture | T08/T10 y checklist 3.6 |
 | R09 | Grilla, cálculo inmediato, ayuda aritmética y conflicto | commercial-domain.ts; BudgetEditor.tsx | commercial.test; commercial.integration; closure.spec | T09/T13/T14 |
 | R10 | Directos y VARIOS sin porcentaje impuesto | commercial-domain.ts; budgets.ts; ApuItem.directCost | commercial.test; commercial.integration; DG real | T11 |
 | R11 | Recargo general y excepciones que reemplazan | commercial-domain.ts; BudgetEditor.tsx | commercial.test; closure.spec; DG real | T12 |

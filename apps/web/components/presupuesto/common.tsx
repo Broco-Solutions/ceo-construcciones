@@ -92,37 +92,6 @@ export function useWorks(enabled = true) {
   return { ...works, workById };
 }
 
-/** Flujo Cómputo → Presupuesto → Materiales necesarios. */
-export function BudgetFlow({ step }: { step: 0 | 1 | 2 | 3 }) {
-  const steps = [
-    ['Actividad', 'Composición del costo por unidad'],
-    ['Cómputo', 'Cantidades por obra'],
-    ['Presupuesto', 'Versiones guardadas'],
-    ['Materiales', 'Necesarios consolidados'],
-  ];
-  return (
-    <div className="stack">
-      <p className="small muted">
-        Estos cuatro pasos muestran el progreso del presupuesto. Usá las
-        acciones de cada pantalla para avanzar.
-      </p>
-      <div className="flow" aria-label="Progreso del presupuesto">
-        {steps.map(([t, s], i) => (
-          <div
-            key={t}
-            className={`fs${i < step ? ' done' : i === step ? ' now' : ''}`}
-            aria-current={i === step ? 'step' : undefined}
-          >
-            <i>{i + 1}</i>
-            <span>{t}</span>
-            <small>{s}</small>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 /* ---------- configuración de valuación (moneda, base, redondeo) ---------- */
 export type ValuationState = {
   currency: string;

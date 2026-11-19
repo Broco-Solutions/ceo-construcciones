@@ -11,7 +11,7 @@ import { useApi } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDateTime, formatQty } from '@/lib/format';
 import { ComputationForm } from '@/components/presupuesto/ComputationForm';
-import { BudgetFlow, useWorks } from '@/components/presupuesto/common';
+import { useWorks } from '@/components/presupuesto/common';
 
 export default function ComputationDetailPage() {
   const { can } = useSession();
@@ -62,25 +62,6 @@ function Detail() {
         )
       }
     >
-      <Card>
-        <BudgetFlow step={1} />
-      </Card>
-      <Card>
-        <div className="stack">
-          <p>El cómputo reúne las cantidades de actividades de una obra.</p>
-          <p>
-            <b>Presupuestar</b> inicia una versión de costos basada en este cómputo.
-            En un presupuesto comercial se define la rentabilidad y se emite el PDF.
-          </p>
-          {can('editBudget') && (
-            <div>
-              <Link className="btn sec" href={`/presupuestos/nuevo?workId=${c.workId}`}>
-                Nuevo presupuesto comercial
-              </Link>
-            </div>
-          )}
-        </div>
-      </Card>
       <Card title="Datos">
         <DefList
           items={[

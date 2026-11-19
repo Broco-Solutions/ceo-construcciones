@@ -18,7 +18,7 @@ import { useSession } from '@/lib/session';
 import { usePaged } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
-import { BudgetFlow, useWorks } from '@/components/presupuesto/common';
+import { useWorks } from '@/components/presupuesto/common';
 
 export default function ComputosPage() {
   const { can } = useSession();
@@ -59,9 +59,6 @@ function ComputosList() {
         )
       }
     >
-      <Card>
-        <BudgetFlow step={1} />
-      </Card>
       <Card
         title="Cómputos por obra"
         bodyClass=""

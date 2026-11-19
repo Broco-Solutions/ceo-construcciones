@@ -40,8 +40,8 @@ export async function initialReferenceContent(tx: Tx, content: EditorContent) {
     tx,
     content.lines.flatMap((l) => (l.itemId ? [l.itemId] : [])),
   );
-  // Called only for the origin-verified operational BASE. Particular templates
-  // and copies use costReview, which never replaces physical composition.
+  // Initialize from the activity master. Use costReview for particular
+  // templates and copies that already have their own physical composition.
   const items = await tx.apuItem.findMany({ where: { id: { in: [...costs.keys()] } }, include: { components: { include: { material: { include: { unit: true } } } } } });
   return editorContentSchema.parse({
     ...content,

@@ -10,7 +10,7 @@ import { useSession } from '@/lib/session';
 import { usePaged } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
-import { BudgetFlow, useWorks } from '@/components/presupuesto/common';
+import { useWorks } from '@/components/presupuesto/common';
 
 export default function BudgetsPage() {
   const { can } = useSession();
@@ -45,9 +45,6 @@ function BudgetList() {
         )
       }
     >
-      <Card>
-        <BudgetFlow step={2} />
-      </Card>
       <Card
         title="Presupuestos por obra"
         bodyClass=""

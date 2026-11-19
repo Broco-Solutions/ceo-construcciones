@@ -1,5 +1,7 @@
 # Estado del cierre de Etapa 1
 
+**19/11/2026 · Recorrido de cómputo a presupuesto.** Validación técnica local del punto 3.6 en API/PostgreSQL y Chromium. El editor comercial permite reutilizar actividades y cantidades de la obra, y conserva la consulta de históricos. Se comprobó el recorrido hasta R1/PDF y materiales previstos. El [estado del proyecto](ESTADO-PROYECTO.md) registra la evidencia de esta entrega local.
+
 ## Pasada de cierre técnico para pruebas manuales — validación local aprobada
 
 Base remota verificada de nuevo: `121264563b73f141e118a2a9f8093c727cc907b8`. Rama nueva `codex/cierre-tecnico-manual-20261103`; árbol inicial limpio. No se reiniciaron las fases del plan. No apareció el adjunto de revisión PR8; se usaron los hallazgos completos aportados por el usuario.

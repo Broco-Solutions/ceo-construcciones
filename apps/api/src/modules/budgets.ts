@@ -349,7 +349,7 @@ export const versionSchema = valuationSchema.extend({
 });
 type Valuation = z.infer<typeof valuationSchema>;
 type Override = z.infer<typeof lineOverride>;
-const itemInclude = {
+export const itemInclude = {
   unit: true,
   category: true,
   components: { include: { material: { include: { unit: true } } } },

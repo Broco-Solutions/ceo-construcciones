@@ -15,6 +15,154 @@ import {
 import type { Schemas } from '../lib/api';
 
 const EVID = 'docs/evidencia/cierre';
+
+for (const width of [1280, 390]) {
+  test(`cómputo al editor comercial · ${width}px`, async ({ page }) => {
+    const suffix = SUFFIX();
+    const api = await apiAs('GERENCIA');
+    try {
+      const [category, meter, squareMeter, kilogram] = await Promise.all([
+        byCode<Schemas['Category']>(api, '/categories', 'REV'),
+        unitBySymbol<Schemas['Unit']>(api, 'm'),
+        unitBySymbol<Schemas['Unit']>(api, 'm²'),
+        unitBySymbol<Schemas['Unit']>(api, 'kg'),
+      ]);
+      const client = await api.send<Schemas['Client']>('POST', '/clients', {
+        code: `COMP-CLI-${suffix}`, name: `Cliente de cómputo ${suffix}`,
+      });
+      const [work, otherWork] = await Promise.all(['Principal', 'Alternativa'].map((name) =>
+        api.send<Schemas['Work']>('POST', '/works', {
+          code: `COMP-${name}-${suffix}`, name: `${name} ${suffix}`, clientId: client.id,
+        }),
+      ));
+      const material = await api.send<Schemas['Material']>('POST', '/materials', {
+        code: `COMP-MAT-${suffix}`, name: `Malla sintética ${suffix}`, unitId: kilogram.id,
+      });
+      await api.send('POST', '/prices', {
+        materialId: material.id, price: '10', baseQuantity: '1', currency: 'ARS',
+        taxBasis: 'EXCLUDED', effectiveAt: '2020-01-01T00:00:00Z',
+      });
+      const cerco = await api.send<Schemas['ApuDetail']>('POST', '/apu-items', {
+        name: 'Cerco de obra', categoryId: category.id, unitId: meter.id,
+        laborCost: '20', laborCurrency: 'ARS', laborTaxBasis: 'EXCLUDED',
+        components: [{ materialId: material.id, coefficient: '2' }],
+      });
+      const revoque = await api.send<Schemas['ApuDetail']>('POST', '/apu-items', {
+        name: 'Revoque', categoryId: category.id, unitId: squareMeter.id,
+        laborCost: '30', laborCurrency: 'ARS', laborTaxBasis: 'EXCLUDED', components: [],
+      });
+      const [computation, otherComputation] = await Promise.all([work, otherWork].map((w) =>
+        api.send<Schemas['ComputationWriteResult']>('POST', '/computations', {
+          workId: w.id, name: `Medición ${w.name}`,
+          lines: [{ itemId: cerco.id, quantity: '30' }, { itemId: revoque.id, quantity: '120' }],
+        }),
+      ));
+      const original = await api.get<Schemas['ComputationDetail']>(`/computations/${computation.id}`);
+      await page.setViewportSize({ width, height: 900 });
+      await login(page, 'GERENCIA');
+      await page.goto(`/computos/${computation.id}`);
+      await expect(page.getByRole('link', { name: 'Nuevo presupuesto comercial' })).toHaveCount(0);
+      await page.getByRole('link', { name: 'Presupuestar', exact: true }).click();
+      await expect(page).toHaveURL(/\/presupuestos\/nuevo\?/);
+      const workField = page.getByLabel('Obra', { exact: true });
+      const origin = page.getByLabel('Empezar desde');
+      const source = page.getByLabel('Cómputo de origen');
+      await expect(workField).toHaveAttribute('data-selected-id', work.id);
+      await expect(origin).toHaveValue('computation');
+      await expect(source).toHaveValue(computation.id);
+      await expect(page.getByText(`${computation.name} · 2 actividades`, { exact: true })).toBeVisible();
+      await expect(source.locator(`option[value="${otherComputation.id}"]`)).toHaveCount(0);
+      await page.screenshot({ path: test.info().outputPath('origen.png') });
+      await page.getByLabel('Nombre', { exact: true }).fill(`Presupuesto desde cómputo ${suffix}`);
+      let posts = 0;
+      page.on('request', (request) => {
+        if (request.method() === 'POST' && request.url().endsWith('/budget-editor')) posts++;
+      });
+      await page.getByRole('button', { name: 'Crear presupuesto', exact: true }).evaluate((button: HTMLButtonElement) => {
+        button.form!.requestSubmit();
+        button.form!.requestSubmit();
+      });
+      await page.waitForURL(/\/presupuestos\/editor\//);
+      expect(posts).toBe(1);
+      const budgetId = page.url().split('/').pop()!;
+      const fenceQty = page.getByLabel('Cantidad · Cerco de obra');
+      await expect(fenceQty).toHaveValue('30');
+      await expect(page.getByLabel('Cantidad · Revoque', { exact: true })).toHaveValue('120');
+      const group = page.locator('details.budget-category');
+      const summary = group.locator('summary');
+      await expect(summary.locator('svg')).toBeVisible();
+      await summary.focus();
+      await page.keyboard.press('Enter');
+      await expect(group).not.toHaveAttribute('open', '');
+      await expect(fenceQty).toBeHidden();
+      await summary.click();
+      await fenceQty.fill('35');
+      await expect(page.locator('.budget-summary')).toContainText('5.000,00');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+      await page.screenshot({ path: test.info().outputPath('editor.png') });
+      await page.getByRole('tab', { name: 'Precio de venta', exact: true }).click();
+      await page.getByLabel('Rentabilidad (%)', { exact: true }).fill('50');
+      await expect(page.locator('.budget-summary')).toContainText('7.500,00');
+      await page.getByRole('tab', { name: 'Presentación y PDF' }).click();
+      await page.getByRole('button', { name: 'Previsualizar', exact: true }).click();
+      await expect(page.getByRole('dialog').getByTitle('PDF comercial del presupuesto')).toBeVisible();
+      await page.getByRole('dialog').getByRole('button', { name: 'Cerrar', exact: true }).click();
+      const download = page.waitForEvent('download');
+      await page.getByRole('button', { name: 'Emitir y descargar', exact: true }).click();
+      await (await download).saveAs(test.info().outputPath('computo-R1.pdf'));
+      await toast(page, 'Revisión R1 emitida');
+      await page.getByRole('tab', { name: 'Materiales previstos' }).click();
+      await expect(page.locator('.row').filter({ has: page.getByText(material.name, { exact: true }) }))
+        .toContainText('70 kg');
+      await page.getByRole('tab', { name: 'Historial' }).click();
+      await expect(page.getByText('Revisión R1', { exact: true })).toBeVisible();
+      expect(await api.get<Schemas['ComputationDetail']>(`/computations/${computation.id}`)).toEqual(original);
+      const issued = await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budgetId}`);
+      expect(issued.versions[0].issue?.commercialTotal).toBe('7500');
+
+      if (width === 1280) {
+        await page.getByRole('link', { name: 'Copiar a nuevo presupuesto' }).click();
+        await expect(origin).toHaveValue('revision');
+        await chooseOption(workField, work.id);
+        await page.getByLabel('Nombre', { exact: true }).fill(`Desde R1 ${suffix}`);
+        await page.getByRole('button', { name: 'Crear presupuesto', exact: true }).click();
+        await page.waitForURL(/\/presupuestos\/editor\//);
+        await expect(fenceQty).toHaveValue('35');
+        expect((await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budgetId}`)).versions).toEqual(issued.versions);
+
+        await page.goto('/presupuestos');
+        await page.getByRole('link', { name: 'Nuevo presupuesto', exact: true }).click();
+        await expect(origin).toHaveValue('blank');
+        await chooseOption(workField, work.id);
+        await page.getByLabel('Nombre', { exact: true }).fill(`En blanco ${suffix}`);
+        await page.getByRole('button', { name: 'Crear presupuesto', exact: true }).click();
+        await page.waitForURL(/\/presupuestos\/editor\//);
+        const blank = await api.get<Schemas['BudgetEditor']>(`/budget-editor/${page.url().split('/').pop()}`);
+        expect(blank.draft?.content.lines).toEqual([]);
+
+        await page.goto('/presupuestos');
+        await page.getByRole('link', { name: 'Nuevo presupuesto', exact: true }).click();
+        await origin.selectOption('computation');
+        await chooseOption(workField, work.id);
+        await source.selectOption(computation.id);
+        await page.getByRole('button', { name: 'Quitar selección' }).click();
+        await expect(source).toHaveValue('');
+        await source.selectOption(computation.id);
+        await chooseOption(workField, otherWork.id);
+        await expect(source).toHaveValue('');
+        await expect(source.locator(`option[value="${computation.id}"]`)).toHaveCount(0);
+        await source.selectOption(otherComputation.id);
+        await expect(page.getByText(`${otherComputation.name} · 2 actividades`, { exact: true })).toBeVisible();
+        await page.getByLabel('Nombre', { exact: true }).fill(`Desde Presupuestos ${suffix}`);
+        await page.getByRole('button', { name: 'Crear presupuesto', exact: true }).click();
+        await page.waitForURL(/\/presupuestos\/editor\//);
+        await expect(fenceQty).toHaveValue('30');
+      }
+    } finally {
+      await api.dispose();
+    }
+  });
+}
 test('M07: filtro de obras admite cliente inactivo y conserva sus obras', async ({ page }) => {
   const suffix = SUFFIX(), api = await apiAs('GERENCIA');
   try {
@@ -137,7 +285,8 @@ test('T01/T09/T13/T15–21/T48–50: cliente con dos obras, plantilla, cantidade
   await page
     .getByLabel('Nombre', { exact: true })
     .fill(`Presupuesto comercial ${suffix}`);
-  await chooseOption(page.getByLabel('Empezar desde'), template.id);
+  await page.getByLabel('Empezar desde').selectOption('template');
+  await chooseOption(page.getByLabel('Plantilla', { exact: true }), template.id);
   await page
     .getByRole('button', { name: 'Crear presupuesto', exact: true })
     .click();

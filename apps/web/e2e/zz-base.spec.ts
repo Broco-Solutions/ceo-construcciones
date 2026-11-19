@@ -23,7 +23,8 @@ test('T08/T48: BASE real con 146 actividades, emisión y demanda orientativa vis
     .getByRole('button', { name: 'Incorporar y usar BASE', exact: true })
     .click();
   await toast(page, 'BASE incorporada y seleccionada');
-  await expect(page.getByLabel('Empezar desde')).not.toHaveValue('');
+  await expect(page.getByLabel('Empezar desde')).toHaveValue('template');
+  await expect(page.getByLabel('Plantilla', { exact: true })).not.toHaveValue('');
   await page
     .getByRole('button', { name: 'Crear presupuesto', exact: true })
     .click();

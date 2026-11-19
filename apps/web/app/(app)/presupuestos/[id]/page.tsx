@@ -22,7 +22,6 @@ import { useApi } from '@/lib/hooks';
 import type { Schemas } from '@/lib/api';
 import { formatDateTime, formatMoney } from '@/lib/format';
 import {
-  BudgetFlow,
   STATUS_LABEL,
   STATUS_TONE,
   TAX_LABEL,
@@ -98,9 +97,6 @@ function Detail() {
         )
       }
     >
-      <Card>
-        <BudgetFlow step={versions.length ? 3 : 2} />
-      </Card>
       <Card title="Datos">
         <DefList
           items={[
