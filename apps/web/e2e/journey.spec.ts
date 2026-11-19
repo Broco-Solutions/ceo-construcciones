@@ -138,28 +138,37 @@ test('recorrido completo de una obra', async ({ browser }) => {
     await p.goto(
       `/presupuestos/nuevo?workId=${st.workId}&computationId=${computation.id}`,
     );
+    await expect(p.getByLabel('Obra', { exact: true })).toHaveAttribute(
+      'data-selected-id',
+      st.workId!,
+    );
+    await expect(p.getByLabel('Cómputo de origen')).toHaveValue(computation.id);
+    await expect(p.getByText(`${COMP} · 1 actividad`, { exact: true })).toBeVisible();
     await p.getByLabel('Nombre').fill(`Presupuesto recorrido ${SUF}`);
     await p.getByRole('button', { name: 'Crear presupuesto' }).click();
-    await p.waitForURL(/\/presupuestos\/(?!nuevo)[^/?]+\?/);
-    const dlg = p.getByRole('dialog');
-    await pick(dlg.getByLabel('Cómputo de origen'), COMP);
-    await dlg.getByLabel('Moneda').selectOption('ARS');
-    await chooseOption(dlg.getByLabel('Base impositiva'), { index: 1 });
-    await chooseOption(dlg.getByLabel('Decimales (precisión)'), { index: 1 });
-    await chooseOption(dlg.getByLabel('Modo de redondeo'), { index: 1 });
-    await chooseOption(dlg
-      .locator('select:has(option[value="manual"])')
-      .first(), 'manual');
-    await dlg
-      .getByLabel(/^Precio por/)
-      .first()
-      .fill('1000');
-    await dlg.getByTestId('crear-version').click();
-    await toast(p, 'Versión 1 creada correctamente');
-    await p.waitForURL(/\/presupuestos\/versiones\//);
-    await p.getByRole('button', { name: 'Marcar como referencia' }).click();
-    await confirmModal(p, 'Marcar como referencia');
-    await toast(p, 'Versión 1 marcada como referencia');
+    await p.waitForURL(/\/presupuestos\/editor\/[^/?]+$/);
+    await expect(p.getByText(`${W.name} · Sin emitir`, { exact: true })).toBeVisible();
+    await expect(p.getByLabel(`Cantidad · ${APU}`, { exact: true })).toHaveValue('10');
+    await p.getByRole('button', { name: APU, exact: true }).click();
+    const composition = p.getByRole('dialog', { name: 'Composición del costo' });
+    await expect(composition.getByLabel('Cemento portland · consumo por unidad (kg)')).toHaveValue('2');
+    // El borrador nace sin IVA y la mano de obra del APU se cargó con IVA.
+    await composition.getByLabel('Mano de obra por unidad').fill('150');
+    await composition.getByLabel('Cemento portland · precio por kg').fill('1000');
+    await composition.getByRole('button', { name: 'Listo', exact: true }).click();
+
+    await p.getByRole('tab', { name: 'Precio de venta', exact: true }).click();
+    await expect(p.locator('.budget-summary')).toContainText('21.500,00');
+    await p.getByRole('tab', { name: 'Presentación y PDF', exact: true }).click();
+    const download = p.waitForEvent('download');
+    await p.getByRole('button', { name: 'Emitir y descargar', exact: true }).click();
+    expect(await (await download).failure()).toBeNull();
+    await toast(p, 'Revisión R1 emitida');
+    await p.getByRole('tab', { name: 'Historial', exact: true }).click();
+    const revision = p.locator('.row').filter({
+      has: p.getByText('Revisión R1', { exact: true }),
+    });
+    await expect(revision.getByText('Referencia para materiales', { exact: true })).toBeVisible();
   });
 
   // 5. Pedido (Jefe): 20 kg de cemento, con lo previsto de la referencia a la vista.
