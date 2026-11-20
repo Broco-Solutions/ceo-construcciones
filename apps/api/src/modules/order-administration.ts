@@ -27,6 +27,15 @@ export const delegationSchema = z
 const safeInclude = {
   supplier: { select: { id: true, name: true } },
   work: { select: { id: true, name: true, code: true } },
+  lines: {
+    orderBy: { id: "asc" },
+    select: {
+      quantity: true,
+      material: {
+        select: { name: true, unit: { select: { code: true, symbol: true } } },
+      },
+    },
+  },
   invoiceInfo: {
     select: {
       orderId: true,
@@ -51,6 +60,11 @@ function dto(o: Awaited<ReturnType<typeof rows>>[number]) {
     createdAt: o.createdAt,
     supplier: o.supplier,
     work: o.work,
+    items: o.lines.map(({ material, quantity }) => ({
+      description: material.name,
+      unit: material.unit.symbol || material.unit.code,
+      quantity: quantity.toFixed(),
+    })),
     invoiceNumber: o.invoiceNumber,
     invoiceLoadedAt: o.invoiceLoadedAt,
     invoiceLoadedByName: o.invoiceLoadedBy?.name ?? null,

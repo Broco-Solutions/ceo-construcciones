@@ -4774,6 +4774,12 @@ export interface components {
                 name: string;
                 code: string;
             } | null;
+            items: {
+                description: string;
+                unit: string;
+                /** @description Decimal serializado como texto, nunca float. */
+                quantity: string;
+            }[];
             invoiceNumber: string | null;
             invoiceLoadedAt: string | null;
             invoiceLoadedByName: string | null;
@@ -5076,6 +5082,8 @@ export interface components {
             baseQuantity: string;
             /** @description Decimal serializado como texto, nunca float. */
             baseUnitPrice: string;
+            /** @description Cantidad × precio ÷ cantidad base. Nulo si no es exacto a 8 decimales. Conserva moneda y base impositiva de la oferta. */
+            lineAmount: string | null;
         };
         ComparedQuotation: {
             id: string;
@@ -21470,6 +21478,7 @@ export interface operations {
                 pageSize?: number;
                 materialId?: string;
                 locationId?: string;
+                situation?: "AVAILABLE" | "RESERVED" | "UNAVAILABLE";
                 ids?: string;
             };
             header?: never;

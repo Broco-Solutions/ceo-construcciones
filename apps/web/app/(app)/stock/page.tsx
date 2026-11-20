@@ -11,11 +11,18 @@ import { usePaged } from '@/lib/hooks';
 import { formatDateTime, formatQty } from '@/lib/format';
 import { useSession } from '@/lib/session';
 import { Page } from '@/components/shell';
-import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill, useToast } from '@/components/ui';
+import { Button, Card, DataTable, Empty, ErrorBox, Loading, PagerBar, Pill, SelectField, useToast } from '@/components/ui';
 import { InvNav, KIND_LABEL, LocationSelect, MaterialSelect, MinimumValue, locLabel, useInvLookups } from '@/components/inventario/common';
 import { MinimumModal } from '@/components/inventario/MinimumModal';
 
-type Stock = Schemas['Stock'];
+type Stock = Schemas['Stock'] | Schemas['StockAlert'];
+const STOCK_SITUATIONS = [
+  { value: '', label: 'Todos' },
+  { value: 'AVAILABLE', label: 'Con disponibilidad' },
+  { value: 'RESERVED', label: 'Con cantidades reservadas' },
+  { value: 'UNAVAILABLE', label: 'Sin disponibilidad' },
+  { value: 'BELOW_MINIMUM', label: 'Bajo mínimo' },
+];
 
 function StockInner() {
   const sp = useSearchParams();
@@ -23,8 +30,12 @@ function StockInner() {
   const { can } = useSession();
   const locationId = sp.get('locationId') ?? '';
   const materialId = sp.get('materialId') ?? '';
+  const situation = sp.get('situation') ?? '';
+  const belowMinimum = situation === 'BELOW_MINIMUM';
+  const resource = belowMinimum ? 'stock/alerts' : 'stock';
+  const filters = { locationId, materialId, situation: belowMinimum ? undefined : situation || undefined };
   const lk = useInvLookups();
-  const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Stock>('/stock', { locationId, materialId });
+  const { rows, pagination, page, setPage, loading, error, reload } = usePaged<Stock>(`/${resource}`, filters);
   const [minFor, setMinFor] = useState<{ locationId: string; materialId: string } | null>(null);
 
   const setParam = (k: string, v: string) => {
@@ -83,6 +94,7 @@ function StockInner() {
           <div style={{ minWidth: 260 }}>
             <MaterialSelect value={materialId} onChange={(v) => setParam('materialId', v)} materials={lk.materials} placeholder="Todos" />
           </div>
+          <SelectField label="Situación del stock" value={situation} onChange={(e) => setParam('situation', e.target.value)} options={STOCK_SITUATIONS} />
         </div>
         <div className="bd">
           {current && (
@@ -98,13 +110,13 @@ function StockInner() {
             <Loading />
           ) : (
             <>
-              <DataTable collection={{resource:"stock",filters:{locationId,materialId},total:pagination?.total,reload}}
+              <DataTable collection={{resource,filters,total:pagination?.total,reload}}
                 selectionActions={({rows,clear})=><BatchActions selected={rows} locationId={locationId} onSaved={()=>{clear();reload();}}/>}
               rows={rows}
-                rowKey={(r) => r.id}
+                rowKey={(r) => 'id' in r ? r.id : `${r.materialId}:${r.locationId}`}
                 empty={
                   <Empty title="Sin saldos registrados">
-                    {locationId || materialId ? 'No hay saldos para el filtro elegido.' : 'Todavía no se registraron movimientos de stock.'}
+                    {locationId || materialId || situation ? 'No hay resultados para el filtro elegido.' : 'Todavía no se registraron movimientos de stock.'}
                   </Empty>
                 }
                 columns={[
@@ -120,13 +132,13 @@ function StockInner() {
                     render: (r) =>
                       r.belowMinimum ? (
                         <Pill tone="bad">
-                          <AlertTriangle size={12} /> Bajo mínimo
+                          <AlertTriangle size={12} /> {'balanceId' in r && !r.balanceId ? 'Sin stock registrado' : 'Bajo mínimo'}
                         </Pill>
                       ) : (
                         <Pill tone="ok">OK</Pill>
                       ),
                   },
-                  { key: 'u', header: 'Actualizado', hideMobile: true, render: (r) => <span className="small muted">{formatDateTime(r.updatedAt)}</span> },
+                  ...(!belowMinimum ? [{ key: 'u', header: 'Actualizado', hideMobile: true, render: (r: Stock) => <span className="small muted">{formatDateTime('updatedAt' in r ? r.updatedAt : null)}</span> }] : []),
                   ...(can('manageStock')
                     ? [
                         {
@@ -145,7 +157,7 @@ function StockInner() {
                   <div className="stack" style={{ gap: 6 }}>
                     <div className="row">
                       <b style={{ flex: 1 }}>{r.material.name}</b>
-                      {r.belowMinimum ? <Pill tone="bad">Bajo mínimo</Pill> : <Pill tone="ok">OK</Pill>}
+                      {r.belowMinimum ? <Pill tone="bad">{'balanceId' in r && !r.balanceId ? 'Sin stock registrado' : 'Bajo mínimo'}</Pill> : <Pill tone="ok">OK</Pill>}
                     </div>
                     <span className="small muted">{locLabel(r.location)}</span>
                     <div className="dl">

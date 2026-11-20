@@ -203,6 +203,8 @@ export const moveSchema = z
     direction: z.enum(["IN", "OUT"]).optional(),
   })
   .strict();
+export const stockSituation = z.enum(["AVAILABLE", "RESERVED", "UNAVAILABLE"]).optional();
+
 export async function handlerInventory(
   request: Request,
   actor: Actor,
@@ -297,11 +299,17 @@ export async function handlerInventory(
     });
   }
   if (resource === "stock" && s.length === 1 && method === "GET") {
+    const situation = stockSituation.parse(q.get("situation") ?? undefined);
     const where: Prisma.StockBalanceWhereInput = {
       ...listSelection(q),
       materialId: q.get("materialId") || undefined,
       locationId: q.get("locationId") || undefined,
     };
+    if (situation === "AVAILABLE")
+      where.physical = { gt: db.stockBalance.fields.reserved };
+    if (situation === "RESERVED") where.reserved = { gt: 0 };
+    if (situation === "UNAVAILABLE")
+      where.physical = { equals: db.stockBalance.fields.reserved };
     if (actor.role === "JEFE_OBRA")
       where.location = {
         work: { assignments: { some: { userId: actor.id } } },

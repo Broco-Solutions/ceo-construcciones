@@ -512,6 +512,7 @@ export function BudgetEditor({ id }: { id: string }) {
   const budget = query.data.data,
     editable = can('editBudget'),
     latest = budget.versions.find((v) => v.issue),
+    reference = budget.versions.find((v) => v.status === 'REFERENCE'),
     selected = content?.lines.find((l) => l.key === context);
 
   async function removeLine(line: Line) {
@@ -703,6 +704,9 @@ export function BudgetEditor({ id }: { id: string }) {
                   )
                 }
               >
+                <p className="small muted">
+                  Este presupuesto tiene sus propias cantidades. Si se creó desde un cómputo, los cambios posteriores en cualquiera de los dos quedan en su documento.
+                </p>
                 <TextField
                   label="Buscar partida"
                   type="search"
@@ -933,6 +937,15 @@ export function BudgetEditor({ id }: { id: string }) {
           )}
           {step === 3 && (
             <Card title="Materiales previstos">
+              <p className="small muted">
+                {budget.draft
+                  ? 'Estas cantidades se calculan a partir del borrador que estás consultando.'
+                  : 'Estas cantidades se calculan a partir del contenido que estás consultando.'}
+                {reference && ` Para abastecimiento, la referencia de este presupuesto es ${reference.issue ? `R${reference.number}` : `V${reference.number}`}.`}
+              </p>
+              <Button variant="sec" size="sm" onClick={() => setStep(4)}>
+                Ver historial de revisiones
+              </Button>
               {(calculation?.materialDemandIncomplete ??
                 content.materialDemandIncomplete) && (
                 <p className="alert warn">

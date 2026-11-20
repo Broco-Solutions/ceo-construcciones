@@ -194,6 +194,44 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         }),
       ).toBe(1);
     });
+    it("filtra la situación del stock antes de paginar y conserva el alcance por obra", async () => {
+      const materialId = await material();
+      await db.stockBalance.createMany({
+        data: [
+          { materialId, locationId: warehouseId, physical: "100", reserved: "30" },
+          { materialId, locationId: workLocationId, physical: "30", reserved: "30" },
+          { materialId, locationId: foreignLocationId, physical: "20", reserved: "0" },
+        ],
+      });
+      const list = async (situation: string, page = 1, actor = admin) => {
+        const response = await handlerInventory(
+          new Request(`http://localhost/api/v1/stock?materialId=${materialId}&situation=${situation}&pageSize=1&page=${page}`),
+          actor,
+          ["stock"],
+        );
+        expect(response?.status).toBe(200);
+        return response!.json();
+      };
+      for (const [situation, expected] of [
+        ["AVAILABLE", [warehouseId, foreignLocationId]],
+        ["RESERVED", [warehouseId, workLocationId]],
+        ["UNAVAILABLE", [workLocationId]],
+      ] as const) {
+        const first = await list(situation);
+        expect(first.pagination.total).toBe(expected.length);
+        const ids = first.data.map((row: { locationId: string }) => row.locationId);
+        if (expected.length > 1) {
+          const second = await list(situation, 2);
+          expect(second.pagination.total).toBe(expected.length);
+          ids.push(second.data[0].locationId);
+        }
+        expect(ids.sort()).toEqual([...expected].sort());
+      }
+      expect((await list("AVAILABLE", 1, chief)).pagination.total).toBe(0);
+      const own = await list("RESERVED", 1, chief);
+      expect(own.pagination.total).toBe(1);
+      expect(own.data[0]).toMatchObject({ locationId: workLocationId, available: "0" });
+    });
     it("reservas simultáneas no sobrepasan disponibilidad y cancelación libera solo pendiente", async () => {
       const materialId = await material();
       await initial(materialId, "100");

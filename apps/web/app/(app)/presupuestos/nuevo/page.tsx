@@ -162,6 +162,9 @@ function Form() {
         />
         {origin === 'computation' && (
           <>
+            <p className="small muted">
+              Se copiarán las actividades y cantidades del cómputo seleccionado. Los cambios posteriores del cómputo no actualizarán automáticamente este presupuesto.
+            </p>
             <SelectField
               label="Cómputo de origen"
               value={computationId}

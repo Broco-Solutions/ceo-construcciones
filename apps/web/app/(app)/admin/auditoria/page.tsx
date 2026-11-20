@@ -11,6 +11,97 @@ type Log = Schemas['AuditEntry'];
 
 type Filters = { entity: string; entityId: string; actorId: string; action: string; from: string; to: string };
 const EMPTY: Filters = { entity: '', entityId: '', actorId: '', action: '', from: '', to: '' };
+const ENTITIES: Record<string, string> = {
+  ApuItem: 'Actividad de obra',
+  ActivityCosting: 'Composición del costo',
+  CatalogLoadRun: 'Carga de catálogo',
+  CatalogOrigin: 'Origen de catálogo',
+  categories: 'Rubro',
+  Client: 'Cliente',
+  Computation: 'Cómputo',
+  InventoryBatch: 'Lote de inventario',
+  LaborRate: 'Tarifa de mano de obra',
+  LaborResource: 'Recurso de mano de obra',
+  Location: 'Ubicación',
+  Material: 'Material',
+  MaterialPrice: 'Precio de material',
+  MaterialRequest: 'Pedido de materiales',
+  Presentation: 'Presentación de compra',
+  PurchaseOrder: 'Orden de compra',
+  BudgetTemplate: 'Plantilla de presupuesto',
+  Budget: 'Presupuesto',
+  BudgetDraft: 'Borrador de presupuesto',
+  Supplier: 'Proveedor',
+  Quotation: 'Cotización',
+  Receipt: 'Recepción',
+  Reservation: 'Reserva de stock',
+  BudgetVersion: 'Revisión de presupuesto',
+  StockBalance: 'Saldo de stock',
+  StockMovement: 'Movimiento de stock',
+  units: 'Unidad',
+  User: 'Usuario',
+  Work: 'Obra',
+  clients: 'Importación de clientes',
+  suppliers: 'Importación de proveedores',
+  works: 'Importación de obras',
+  materials: 'Importación de materiales',
+  prices: 'Importación de precios',
+  'purchase-orders': 'Importación de órdenes de compra',
+  'initial-stock': 'Importación de stock inicial',
+};
+const ACTIONS: Record<string, string> = {
+  CREATE: 'Creación',
+  UPDATE: 'Modificación',
+  ISSUE: 'Emisión',
+  RESERVE: 'Reserva',
+  PAYMENT_INFORMATION: 'Cambio de estado informativo de pago',
+  ADJUSTMENT: 'Ajuste de stock',
+  APPLY_REFERENCE_COSTS: 'Aplicación de costos de referencia',
+  ASSIGN_WORKS: 'Asignación de obras',
+  BOOTSTRAP_ADMIN: 'Alta inicial de Gerencia',
+  CANCEL: 'Cancelación',
+  CONNECT_VERIFIED_BASE_MATERIALS: 'Vinculación de materiales verificados',
+  CONSUMPTION: 'Consumo',
+  CORRECT_VERIFIED_SERVICE_LINK: 'Corrección de vínculo de servicio',
+  CREATE_DEMO_ACCOUNT: 'Creación de cuenta demo',
+  CREATE_VERSION: 'Creación de versión de costos',
+  DELEGATE_RECEPTION: 'Delegación de recepción',
+  IMPORT: 'Importación',
+  INITIAL: 'Stock inicial',
+  INSTALL_BASE: 'Incorporación de plantilla BASE',
+  INVOICE_INFO: 'Registro de datos de factura',
+  INVOICE_REFERENCE: 'Registro de referencia de factura',
+  LOAD_REFERENCE_CATALOG: 'Carga de catálogo de referencia',
+  LOGIN: 'Inicio de sesión',
+  LOGOUT: 'Cierre de sesión',
+  MINIMUM_BATCH: 'Configuración de mínimos por lote',
+  MOVEMENT_BATCH: 'Registro de movimientos por lote',
+  PDF_NOTES_VISIBILITY: 'Cambio de visibilidad de notas del PDF',
+  PDF_PRESENTATION: 'Registro de presentación del PDF',
+  PDF_VERSION: 'Registro de versión del PDF',
+  RECEIPT: 'Ingreso por recepción',
+  RECEIVE: 'Recepción registrada',
+  RECONCILE_SOURCE_CATEGORY: 'Conciliación de rubro de origen',
+  REPLACE_MATERIAL_AGGREGATE: 'Sustitución de costo agregado de materiales',
+  RESERVE_RECEIPT: 'Reserva desde recepción',
+  RETIRE_PROVISIONAL_PRICE_REFERENCE: 'Retiro de precio provisional',
+  RETIRE_UNUSED_IMPORTED_SERVICE: 'Retiro de servicio importado en desuso',
+  RETURN: 'Devolución',
+  REVIEW_PRICES: 'Revisión de precios',
+  SAVE_DRAFT: 'Guardado de borrador',
+  SELECT: 'Selección de cotización',
+  SELECT_REFERENCE: 'Selección de referencia de abastecimiento',
+  SET_MINIMUM: 'Configuración de mínimo',
+  STATUS: 'Cambio de estado',
+  TRANSFER: 'Transferencia',
+};
+const options = (labels: Record<string, string>) => Object.entries(labels)
+  .map(([value, label]) => ({ value, label }))
+  .sort((a, b) => a.label.localeCompare(b.label, 'es'));
+const entityOptions = options(ENTITIES);
+const actionOptions = options(ACTIONS);
+const auditLabel = (labels: Record<string, string>, code: string) =>
+  Object.hasOwn(labels, code) ? labels[code] : code;
 
 /** Día local (yyyy-mm-dd) a instante ISO; `to` incluye el día completo. */
 function dayToIso(day: string, end: boolean): string | undefined {
@@ -63,8 +154,6 @@ function Auditoria() {
             setApplied(f);
           }}
         >
-          <TextField id="f-audit-entity" label="Entidad" placeholder="p. ej. Work, Material, PurchaseOrder" value={f.entity} onChange={set('entity')} />
-          <TextField id="f-audit-entity-id" label="ID de entidad" value={f.entityId} onChange={set('entityId')} />
           <SelectField
             id="f-audit-actor"
             label="Usuario"
@@ -73,9 +162,14 @@ function Auditoria() {
             placeholder="Todos"
             options={users.rows.map((u) => ({ value: u.id, label: u.name }))}
           />
-          <TextField id="f-audit-action" label="Acción" placeholder="p. ej. CREATE, UPDATE" value={f.action} onChange={set('action')} />
           <TextField id="f-audit-from" label="Desde" type="date" value={f.from} onChange={set('from')} />
           <TextField id="f-audit-to" label="Hasta (inclusive)" type="date" value={f.to} onChange={set('to')} />
+          <SelectField label="Tipo de registro" value={f.entity} onChange={set('entity')} placeholder="Todos" options={entityOptions} />
+          <SelectField label="Operación" value={f.action} onChange={set('action')} placeholder="Todas" options={actionOptions} />
+          <details>
+            <summary>Filtro por identificador</summary>
+            <TextField label="ID de registro" value={f.entityId} onChange={set('entityId')} />
+          </details>
           <Button type="submit" variant="sec">Filtrar</Button>
           {anyApplied && (
             <Button variant="ghost" onClick={() => (setF(EMPTY), setApplied(EMPTY))}>Limpiar</Button>
@@ -93,14 +187,13 @@ function Auditoria() {
             columns={[
               { key: 'f', header: 'Fecha', render: (l) => formatDateTime(l.createdAt) },
               { key: 'u', header: 'Usuario', render: (l) => actor(l) },
-              { key: 'a', header: 'Acción', render: (l) => <Mono>{l.action}</Mono> },
-              { key: 'e', header: 'Entidad', render: (l) => l.entityType },
-              { key: 'i', header: 'ID', hideMobile: true, render: (l) => <Mono>{l.entityId}</Mono> },
+              { key: 'a', header: 'Operación', render: (l) => auditLabel(ACTIONS, l.action) },
+              { key: 'e', header: 'Tipo de registro', render: (l) => auditLabel(ENTITIES, l.entityType) },
             ]}
             mobile={(l) => (
               <div>
-                <div className="row"><Mono>{l.action}</Mono><span style={{ flex: 1 }} />{formatDateTime(l.createdAt)}</div>
-                <span className="small muted">{l.entityType} · {actor(l)}</span>
+                <div className="row"><b>{auditLabel(ACTIONS, l.action)}</b><span style={{ flex: 1 }} />{formatDateTime(l.createdAt)}</div>
+                <span className="small muted">{auditLabel(ENTITIES, l.entityType)} · {actor(l)}</span>
               </div>
             )}
             empty={<Empty title={anyApplied ? 'Sin registros con esos filtros' : 'Sin registros de auditoría'} />}
@@ -115,15 +208,22 @@ function Auditoria() {
               items={[
                 ['Fecha', formatDateTime(sel.createdAt)],
                 ['Usuario', actor(sel)],
-                ['Acción', <Mono key="a">{sel.action}</Mono>],
-                ['Entidad', sel.entityType],
-                ['ID', <Mono key="i">{sel.entityId}</Mono>],
+                ['Operación', auditLabel(ACTIONS, sel.action)],
+                ['Tipo de registro', auditLabel(ENTITIES, sel.entityType)],
               ]}
             />
-            <b>Antes</b>
-            {sel.before === null && sel.action !== 'CREATE' ? <p className="small muted">Sin estado previo registrado.</p> : <Json value={sel.before} />}
-            <b>Después</b>
-            <Json value={sel.after} />
+            <details>
+              <summary>Detalle técnico</summary>
+              <DefList items={[
+                ['Código de operación', <Mono key="a">{sel.action}</Mono>],
+                ['Código de tipo', <Mono key="e">{sel.entityType}</Mono>],
+                ['ID de registro', <Mono key="i">{sel.entityId}</Mono>],
+              ]} />
+              <b>Antes</b>
+              {sel.before === null && sel.action !== 'CREATE' ? <p className="small muted">Sin estado previo registrado.</p> : <Json value={sel.before} />}
+              <b>Después</b>
+              <Json value={sel.after} />
+            </details>
           </>
         )}
       </Modal>

@@ -666,12 +666,40 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
       expect(
         comparison.quotations.map((quote: { id: string }) => quote.id),
       ).toEqual([first.id, second.id].sort());
+      expect(comparison.quotations.find((quote: { id: string }) => quote.id === first.id).lines[0])
+        .toMatchObject({ quantity: "15", unitPrice: "120", baseQuantity: "10", baseUnitPrice: "12", lineAmount: "180" });
       const needs = (
         await success(
           await call(`requests/${requestId}/needs`, "GET", undefined, chief),
         )
       ).data;
       expect(needs.lines[0].alreadyRequested).toBe("15");
+    });
+
+    it("compara importes exactos por renglón sin mezclar monedas ni IVA", async () => {
+      for (const [currency, taxBasis, quantity, unitPrice, baseQuantity] of [
+        ["ARS", "EXCLUDED", "100", "10000", "50"],
+        ["ARS", "INCLUDED", "1", "1", "3"],
+        ["USD", "EXCLUDED", "100", "10", "50"],
+      ]) {
+        const presentation = await db.presentation.create({
+          data: { materialId: material, supplierId: supplier, name: `Bulto de ${baseQuantity}`, baseQuantity },
+        });
+        await success(await call("quotations", "POST", {
+          supplierId: supplier,
+          requestId,
+          currency,
+          taxBasis,
+          lines: [{ materialId: material, presentationId: presentation.id, quantity, unitPrice, baseQuantity }],
+        }));
+      }
+      const { data: comparison } = await success(await call(`quotations/${requestId}/comparison`));
+      expect(comparison.comparable).toBe(false);
+      expect(comparison.quotations).toEqual(expect.arrayContaining([
+        expect.objectContaining({ currency: "ARS", taxBasis: "EXCLUDED", lines: [expect.objectContaining({ baseUnitPrice: "200", lineAmount: "20000" })] }),
+        expect.objectContaining({ currency: "ARS", taxBasis: "INCLUDED", lines: [expect.objectContaining({ lineAmount: null })] }),
+        expect.objectContaining({ currency: "USD", taxBasis: "EXCLUDED", lines: [expect.objectContaining({ lineAmount: "20" })] }),
+      ]));
     });
   },
 );

@@ -104,7 +104,7 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         })
       ).id;
       const unit = await db.unit.create({
-        data: { code: `closure-${tag}`, name: "Unidad" },
+        data: { code: `closure-${tag}`, name: "Unidad", symbol: "kg" },
       });
       material = (
         await db.material.create({
@@ -263,8 +263,14 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         `order-administration/${order}`,
       );
       expect(visible.supplier.name).toBe("Proveedor sintético");
+      expect(visible).toMatchObject({ status: "ISSUED", work: null });
+      expect(visible.items).toEqual([
+        { description: "Material real del test", unit: "kg", quantity: "10" },
+      ]);
+      const listed = await data("ADMINISTRACION", "order-administration");
+      expect(listed.find((row: { id: string }) => row.id === order)).toEqual(visible);
       expect(JSON.stringify(visible)).not.toMatch(
-        /unitPrice|lines|taxBasis|stock|password|sensitive@test/,
+        /unitPrice|baseQuantity|lines|taxBasis|cost|stock|password|sensitive@test/,
       );
     });
     it("T39: carga factura, pago y reversión con auditoría, sin afectar stock", async () => {
@@ -272,6 +278,10 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         invoiceNumber: "F-sintética",
         amount: "1100.50",
         currency: "ARS",
+      });
+      expect(await data("ADMINISTRACION", `order-administration/${order}`)).toMatchObject({
+        invoiceNumber: "F-sintética",
+        invoiceInfo: { amount: "1100.5", currency: "ARS", paymentStatus: "PENDING" },
       });
       expect(
         (
@@ -295,11 +305,16 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
         "PUT",
         { paymentStatus: "PENDING" },
       );
-      expect(
-        await db.auditLog.count({
-          where: { entityId: order, action: "PAYMENT_INFORMATION" },
-        }),
-      ).toBe(2);
+      const events = await data("GERENCIA", `audit?entity=PurchaseOrder&entityId=${order}&action=PAYMENT_INFORMATION`);
+      expect(events).toHaveLength(2);
+      expect(events).toEqual(expect.arrayContaining(
+        ["PAID", "PENDING"].map((paymentStatus) => expect.objectContaining({
+          actorId: ids.get("ADMINISTRACION"),
+          action: "PAYMENT_INFORMATION",
+          createdAt: expect.any(String),
+          after: expect.objectContaining({ paymentStatus }),
+        })),
+      ));
       expect(
         await db.stockMovement.count({ where: { materialId: material } }),
       ).toBe(0);

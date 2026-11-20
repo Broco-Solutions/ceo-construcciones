@@ -33,7 +33,7 @@ import {
   presentationSchema,
   priceSchema,
 } from "../apps/api/src/modules/catalog";
-import { reserveSchema, moveSchema } from "../apps/api/src/modules/inventory";
+import { reserveSchema, moveSchema, stockSituation } from "../apps/api/src/modules/inventory";
 import {
   itemSchema,
   computationSchema,
@@ -721,6 +721,7 @@ add(
     createdAt: { type: "string", format: "date-time" },
     supplier: obj({ id, name: str }),
     work: nullable(obj({ id, name: str, code: str })),
+    items: arr(obj({ description: str, unit: str, quantity: dec })),
     invoiceNumber: nullable(str),
     invoiceLoadedAt: nullable({ type: "string", format: "date-time" }),
     invoiceLoadedByName: nullable(str),
@@ -929,7 +930,13 @@ add(
     ),
   }),
 );
-extend("ComparedQuotationLine", "QuotationLine", { baseUnitPrice: dec });
+extend("ComparedQuotationLine", "QuotationLine", {
+  baseUnitPrice: dec,
+  lineAmount: {
+    ...nullable(dec),
+    description: "Cantidad × precio ÷ cantidad base. Nulo si no es exacto a 8 decimales. Conserva moneda y base impositiva de la oferta.",
+  },
+});
 extend("ComparedQuotation", "Quotation", {
   supplier: obj({ id, name: str }),
   lines: arr(ref("ComparedQuotationLine")),
@@ -2039,7 +2046,14 @@ operation(
   "get",
   "Stock físico, reservado, disponible y mínimos",
   ref("Stock"),
-  { list: true, queries: [q("materialId"), q("locationId")] },
+  {
+    list: true,
+    queries: [
+      q("materialId"),
+      q("locationId"),
+      q("situation", { type: "string", enum: stockSituation.unwrap().options }),
+    ],
+  },
 );
 operation(
   "/stock/{locationId}/minimum",

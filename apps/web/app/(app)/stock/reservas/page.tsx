@@ -2,13 +2,13 @@
 import { unitSymbol } from '@/lib/units';
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { api, type Page as PageOf, type Schemas } from '@/lib/api';
-import { useApi, useMutation, usePaged } from '@/lib/hooks';
+import { api, type Schemas } from '@/lib/api';
+import { useAll, useMutation, usePaged } from '@/lib/hooks';
 import { formatDateTime, formatQty, parseDecimalInput, isPositiveDecimal } from '@/lib/format';
 import { useSession } from '@/lib/session';
 import { Page, RequirePerm } from '@/components/shell';
 import { Button, Card, Confirm, DataTable, DecimalField, Empty, ErrorBox, Loading, Modal, PagerBar, Pill, SelectField, fieldErrors, useToast } from '@/components/ui';
-import { InvNav, LocationSelect, MaterialSelect, RESERVATION_LABEL, locLabel, useInvLookups, type Loc, type Mat, type Work } from '@/components/inventario/common';
+import { InvNav, MaterialSelect, RESERVATION_LABEL, locLabel, useInvLookups, type Loc, type Mat, type Work } from '@/components/inventario/common';
 
 type Reservation = Schemas['Reservation'];
 
@@ -163,7 +163,10 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
   const [local, setLocal] = useState<Record<string, string>>({});
   const set = (k: keyof typeof f) => (v: string) => setF((s) => ({ ...s, [k]: v }));
   const mat = materials.find((m) => m.id === f.materialId);
-  const bal = useApi<PageOf<Schemas['Stock']>>(f.materialId && f.sourceId ? '/stock' : null, { materialId: f.materialId, locationId: f.sourceId });
+  const bal = useAll<Schemas['Stock']>(f.materialId ? '/stock' : null, { materialId: f.materialId });
+  const origins = locations.filter((l) => l.active && (l.kind === 'WAREHOUSE' || l.kind === 'YARD'));
+  const balances = new Map(bal.rows.filter((b) => b.materialId === f.materialId).map((b) => [b.locationId, b]));
+  const unit = unitSymbol(mat?.unit);
   const m = useMutation((key: string, body: Schemas['ReservationInput']) => api.post('/reservations', body, { idempotencyKey: key }));
   const fe = { ...fieldErrors(m.error), ...local };
 
@@ -171,7 +174,7 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
     const errs: Record<string, string> = {};
     const quantity = parseDecimalInput(f.quantity);
     if (!f.materialId) errs.materialId = 'Elegí un material.';
-    if (!f.sourceId) errs.sourceId = 'Elegí el origen.';
+    if (!origins.some((l) => l.id === f.sourceId)) errs.sourceId = 'Elegí el origen.';
     if (!f.workId) errs.workId = 'Elegí la obra.';
     if (!isPositiveDecimal(quantity)) errs.quantity = 'Ingresá una cantidad mayor a 0.';
     setLocal(errs);
@@ -183,7 +186,7 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
     } else bal.reload();
   };
 
-  const row = bal.data?.data[0];
+  const row = balances.get(f.sourceId);
   return (
     <Modal
       open
@@ -195,18 +198,38 @@ function ReservationModal({ locations, works, materials, onClose, onSaved }: { l
           <Button variant="sec" onClick={onClose} disabled={m.pending}>
             Cancelar
           </Button>
-          <Button onClick={submit} loading={m.pending}>
+          <Button onClick={submit} loading={m.pending} disabled={!!f.materialId && (bal.loading || !!bal.error)}>
             Reservar
           </Button>
         </>
       }
     >
       <div className="note">Reservar no modifica el stock físico, reduce el disponible del origen. El material llega a la obra cuando se registra la transferencia.</div>
-      <MaterialSelect value={f.materialId} onChange={set('materialId')} materials={materials} error={fe.materialId} />
-      <LocationSelect label="Origen (galpón o patio)" value={f.sourceId} onChange={set('sourceId')} locations={locations} kinds={['WAREHOUSE', 'YARD']} error={fe.sourceId} />
-      {f.materialId && f.sourceId && (
+      <MaterialSelect value={f.materialId} onChange={(materialId) => {
+        setF((current) => ({ ...current, materialId, sourceId: '' }));
+        setLocal({});
+        m.reset();
+      }} materials={materials} error={fe.materialId} />
+      <SelectField
+        label="Origen (galpón o patio)"
+        value={f.sourceId}
+        onChange={(e) => set('sourceId')(e.target.value)}
+        disabled={!f.materialId || bal.loading || !!bal.error}
+        placeholder="Seleccioná una ubicación"
+        error={fe.sourceId}
+        options={origins.map((location) => {
+          const stock = balances.get(location.id);
+          return {
+            value: location.id,
+            label: `${location.name} — ${stock ? `Disponible: ${formatQty(stock.available, unit)}` : 'Sin stock registrado'}`,
+          };
+        })}
+      />
+      {f.materialId && bal.loading && <p className="small muted">Consultando disponibilidad por ubicación…</p>}
+      {f.materialId && <ErrorBox error={bal.error} onRetry={bal.reload} />}
+      {f.sourceId && !bal.loading && !bal.error && (
         <div className="small">
-          {bal.loading ? 'Consultando saldo…' : row ? <>Disponible en origen: <b>{formatQty(row.available, unitSymbol(row.material.unit))}</b> (físico {formatQty(row.physical)}, reservado {formatQty(row.reserved)})</> : 'Sin saldo registrado en esta ubicación.'}
+          {row ? <>Disponible en origen: <b>{formatQty(row.available, unit)}</b> (físico {formatQty(row.physical, unit)}, reservado {formatQty(row.reserved, unit)})</> : 'Sin stock registrado en esta ubicación.'}
         </div>
       )}
       <SelectField label="Obra destino" value={f.workId} onChange={(e) => set('workId')(e.target.value)} placeholder="Seleccioná una obra" error={fe.workId} options={works.filter((w) => w.status === 'ACTIVE').map((w) => ({ value: w.id, label: `${w.code} · ${w.name}` }))} />

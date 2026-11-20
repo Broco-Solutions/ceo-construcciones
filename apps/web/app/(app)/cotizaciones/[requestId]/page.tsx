@@ -96,8 +96,8 @@ function Detalle() {
                   <div className="small">Compará con criterio propio: no se ordena ni se destaca ninguna oferta por precio.</div>
                 </div>
               )}
-              <div className="small muted">Las ofertas se muestran en el orden en que se cargaron (más antigua primero), sin ranking ni destacado automático. “Precio por unidad base” lo informa el sistema (precio ÷ cantidad base).</div>
-              <div className="grid2" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 14 }}>
+              <div className="small muted">Las ofertas se muestran en orden de carga. El importe total corresponde a la cantidad del renglón en la moneda y base impositiva de cada oferta.</div>
+              <div className="stack">
                 {quotes.map((q) => (
                   <div key={q.id} className="card" style={{ padding: 14 }}>
                     <div className="stack" style={{ gap: 8 }}>
@@ -111,32 +111,36 @@ function Detalle() {
                       </div>
                       {q.deliveryTerms && <div className="small">Entrega: {q.deliveryTerms}</div>}
                       {q.notes && <div className="small muted">{q.notes}</div>}
-                      <table className="t">
-                        <thead>
-                          <tr>
-                            <th scope="col">Material</th>
-                            <th scope="col" className="r">Cant.</th>
-                            <th scope="col" className="r">Precio</th>
-                            <th scope="col" className="r">Por unidad base</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {q.lines.map((l) => {
-                            const u = lk.unitOf(l.materialId);
-                            return (
-                              <tr key={l.id}>
-                                <td>{lk.material(l.materialId)?.name ?? 'Material'}</td>
-                                <td className="r">{formatQty(l.quantity, u)}</td>
-                                <td className="r">
-                                  {formatMoney(l.unitPrice, q.currency)}
-                                  <div className="small muted">por {formatQty(l.baseQuantity, u)}</div>
-                                </td>
-                                <td className="r">{formatMoney(l.baseUnitPrice, q.currency)}/{u}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table className="t">
+                          <thead>
+                            <tr>
+                              <th scope="col">Material</th>
+                              <th scope="col" className="r">Cant.</th>
+                              <th scope="col" className="r">Precio</th>
+                              <th scope="col" className="r">Precio por unidad base</th>
+                              <th scope="col" className="r">Importe total del renglón</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {q.lines.map((l) => {
+                              const u = lk.unitOf(l.materialId);
+                              return (
+                                <tr key={l.id}>
+                                  <td>{lk.material(l.materialId)?.name ?? 'Material'}</td>
+                                  <td className="r">{formatQty(l.quantity, u)}</td>
+                                  <td className="r">
+                                    {formatMoney(l.unitPrice, q.currency)}
+                                    <div className="small muted">por {formatQty(l.baseQuantity, u)}</div>
+                                  </td>
+                                  <td className="r">{formatMoney(l.baseUnitPrice, q.currency)}{u && `/${u}`}</td>
+                                  <td className="r">{l.lineAmount == null ? 'Importe no calculado' : formatMoney(l.lineAmount, q.currency)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                       {r.lines.some((rl) => !q.lines.some((l) => l.materialId === rl.materialId)) && <div className="small" style={{ color: 'var(--warn)' }}>No cotiza todos los materiales del pedido.</div>}
                       {q.status === 'SELECTED' ? (
                         <div className="small" style={{ color: 'var(--ok)' }}>
@@ -204,7 +208,7 @@ function QuotationForm({ request, lk, onClose, onSaved }: { request: RequestDeta
   const submit = async () => {
     const v = toCommercial(lines);
     setLineErr(v.errors);
-    if (!v.ok || !supplierId || !/^[A-Z]{3}$/.test(currency)) return;
+    if (!v.ok || !supplierId) return;
     const ok = await save.run({
       supplierId,
       requestId: request.id,
@@ -236,7 +240,10 @@ function QuotationForm({ request, lk, onClose, onSaved }: { request: RequestDeta
     >
       <SelectField entity="suppliers" label="Proveedor" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} placeholder="Elegí proveedor" options={lk.suppliers.rows.filter((s) => s.active).map((s) => ({ value: s.id, label: s.name }))} error={errs.supplierId} />
       <div className="formgrid">
-        <TextField label="Moneda (ISO)" value={currency} maxLength={3} onChange={(e) => setCurrency(e.target.value.toUpperCase())} error={errs.currency ?? (!/^[A-Z]{3}$/.test(currency) ? 'Código de 3 letras, p. ej. ARS o USD' : undefined)} />
+        <SelectField label="Moneda" value={currency} onChange={(e) => setCurrency(e.target.value)} error={errs.currency} options={[
+          { value: 'ARS', label: 'ARS — Pesos argentinos' },
+          { value: 'USD', label: 'USD — Dólares estadounidenses' },
+        ]} />
         <SelectField label="Base impositiva" value={taxBasis} onChange={(e) => setTaxBasis(e.target.value as TaxBasis)} options={Object.entries(TAX_BASIS).map(([k, l]) => ({ value: k, label: l }))} hint={taxBasis === 'UNSPECIFIED' ? 'Sin base declarada la comparación no es directa.' : undefined} />
         <TextField label="Válida hasta" type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} error={errs.validUntil} />
       </div>

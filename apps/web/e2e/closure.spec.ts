@@ -69,6 +69,7 @@ for (const width of [1280, 390]) {
       const source = page.getByLabel('Cómputo de origen');
       await expect(workField).toHaveAttribute('data-selected-id', work.id);
       await expect(origin).toHaveValue('computation');
+      await expect(page.getByText(/Se copiarán las actividades y cantidades del cómputo seleccionado/)).toBeVisible();
       await expect(source).toHaveValue(computation.id);
       await expect(page.getByText(`${computation.name} · 2 actividades`, { exact: true })).toBeVisible();
       await expect(source.locator(`option[value="${otherComputation.id}"]`)).toHaveCount(0);
@@ -86,6 +87,7 @@ for (const width of [1280, 390]) {
       expect(posts).toBe(1);
       const budgetId = page.url().split('/').pop()!;
       const fenceQty = page.getByLabel('Cantidad · Cerco de obra');
+      await expect(page.getByText(/Este presupuesto tiene sus propias cantidades/)).toBeVisible();
       await expect(fenceQty).toHaveValue('30');
       await expect(page.getByLabel('Cantidad · Revoque', { exact: true })).toHaveValue('120');
       const group = page.locator('details.budget-category');
@@ -114,7 +116,8 @@ for (const width of [1280, 390]) {
       await page.getByRole('tab', { name: 'Materiales previstos' }).click();
       await expect(page.locator('.row').filter({ has: page.getByText(material.name, { exact: true }) }))
         .toContainText('70 kg');
-      await page.getByRole('tab', { name: 'Historial' }).click();
+      await expect(page.getByText(/la referencia de este presupuesto es R1/)).toBeVisible();
+      await page.getByRole('button', { name: 'Ver historial de revisiones' }).click();
       await expect(page.getByText('Revisión R1', { exact: true })).toBeVisible();
       expect(await api.get<Schemas['ComputationDetail']>(`/computations/${computation.id}`)).toEqual(original);
       const issued = await api.get<Schemas['BudgetEditor']>(`/budget-editor/${budgetId}`);
@@ -508,11 +511,21 @@ test('T04/T05/T36/T39: Administración usa escritorio informativo sin permisos g
   await login(page, 'ADMINISTRACION');
   await page.goto('/administracion');
   await page.getByText(`F-${suffix}`, { exact: true }).click();
-  await expect(page.getByLabel('Número de factura')).toBeDisabled();
-  await expect(page.getByLabel('Importe de factura')).toBeDisabled();
+  await expect(page.getByRole('heading', { name: 'Datos de la compra' })).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Referencia de factura' })).toBeVisible();
+  await expect(page.getByText(`${material.name} · 3 kg`)).toBeVisible();
+  await expect(page.getByLabel('Importe de factura')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Guardar referencia' })).toHaveCount(0);
   await page
     .getByRole('button', { name: 'Marcar Pagado', exact: true })
     .click();
+  const confirm = page.getByRole('dialog');
+  for (const label of [`F-${suffix}`, `OC-${order.number}`, supplier.name, 'ARS 363,00', 'no realiza un pago real'])
+    await expect(confirm).toContainText(label);
+  await confirm.getByRole('button', { name: 'Cancelar' }).click();
+  expect((await api.get<Schemas['AdministrativeOrder']>(`/order-administration/${order.id}`)).invoiceInfo?.paymentStatus).toBe('PENDING');
+  await page.getByRole('button', { name: 'Marcar Pagado', exact: true }).click();
+  await confirm.getByRole('button', { name: 'Confirmar Pagado' }).click();
   await toast(page, 'Estado informativo actualizado');
   expect(
     (
@@ -521,6 +534,11 @@ test('T04/T05/T36/T39: Administración usa escritorio informativo sin permisos g
       )
     ).invoiceInfo!.paymentStatus,
   ).toBe('PAID');
+  await page.getByText(`F-${suffix}`, { exact: true }).click();
+  await page.getByRole('button', { name: 'Marcar Pendiente', exact: true }).click();
+  await confirm.getByRole('button', { name: 'Confirmar Pendiente' }).click();
+  await toast(page, 'Estado informativo actualizado');
+  expect((await api.get<Schemas['AdministrativeOrder']>(`/order-administration/${order.id}`)).invoiceInfo?.paymentStatus).toBe('PENDING');
   await page.goto('/clientes');
   await expect(
     page.getByText(/No tenés permiso|Acceso restringido|No autorizado/).first(),
@@ -551,5 +569,125 @@ test('T04/T05/T36/T39: Administración usa escritorio informativo sin permisos g
     path: `${EVID}/administracion-delegada-360.png`,
     fullPage: true,
   });
+  await api.dispose();
+});
+
+test('Capacitación: disponibilidad al reservar, filtro de stock y auditoría en español', async ({ page }) => {
+  const api = await apiAs('GERENCIA');
+  const suffix = SUFFIX();
+  const unit = await unitBySymbol<Schemas['Unit']>(api, 'kg');
+  const material = await api.send<Schemas['Material']>('POST', '/materials', {
+    code: `RES-${suffix}`, name: `Material reserva ${suffix}`, unitId: unit.id, minimum: '25',
+  });
+  const work = await api.send<Schemas['Work']>('POST', '/works', {
+    code: `RES-${suffix}`, name: `Obra reserva ${suffix}`, status: 'ACTIVE',
+  });
+  const warehouse = await api.send<Schemas['Location']>('POST', '/locations', {
+    code: `GAL-${suffix}`, name: `Galpón ${suffix}`, kind: 'WAREHOUSE',
+  });
+  const yard = await api.send<Schemas['Location']>('POST', '/locations', {
+    code: `PAT-${suffix}`, name: `Patio ${suffix}`, kind: 'YARD',
+  });
+  for (const [location, quantity] of [[warehouse, '100'], [yard, '20']] as const) {
+    await api.send('POST', '/movements', {
+      type: 'INITIAL', materialId: material.id, destinationId: location.id, quantity,
+    }, `initial-${location.id}`);
+  }
+  await login(page, 'COMPRAS');
+  await page.goto('/stock/reservas');
+  await page.getByRole('button', { name: 'Nueva reserva' }).click();
+  const dialog = page.getByRole('dialog');
+  const origin = dialog.getByLabel('Origen (galpón o patio)');
+  await expect(origin).toBeDisabled();
+  await pickMaterial(dialog, material.code);
+  await expect(origin.locator('option', { hasText: `${warehouse.name} — Disponible: 100 kg` })).toBeAttached();
+  await expect(origin.locator('option', { hasText: `${yard.name} — Disponible: 20 kg` })).toBeAttached();
+  await expect(origin.locator('option', { hasText: 'Sin stock registrado' }).first()).toBeAttached();
+  await expect(origin.locator('option', { hasText: work.name })).toHaveCount(0);
+  await origin.selectOption(warehouse.id);
+  await expect(dialog.getByText(/físico 100 kg, reservado 0 kg/)).toBeVisible();
+  await dialog.getByRole('button', { name: 'Limpiar campo' }).click();
+  await expect(origin).toHaveValue('');
+  await pickMaterial(dialog, material.code);
+  await origin.selectOption(warehouse.id);
+  await chooseOption(dialog.getByLabel('Obra destino'), work.id);
+  await dialog.getByLabel(/^Cantidad/).fill('101');
+  await dialog.getByRole('button', { name: 'Reservar', exact: true }).click();
+  await expect(dialog.getByText(/Stock disponible insuficiente/)).toBeVisible();
+  await dialog.getByLabel(/^Cantidad/).fill('30');
+  await dialog.getByRole('button', { name: 'Reservar', exact: true }).click();
+  await toast(page, 'Reserva creada correctamente');
+  const balance = (await api.list<Schemas['Stock']>(`/stock?materialId=${material.id}&locationId=${warehouse.id}`)).data[0];
+  expect(balance).toMatchObject({ physical: '100', reserved: '30', available: '70' });
+
+  await page.goto(`/stock?materialId=${material.id}&locationId=${warehouse.id}`);
+  const situation = page.getByLabel('Situación del stock');
+  const rows = page.locator('table tbody tr').locator('visible=true');
+  await situation.selectOption({ label: 'Con cantidades reservadas' });
+  await expect(rows.filter({ hasText: material.name })).toContainText('70 kg');
+  await expect(page).toHaveURL(new RegExp(`materialId=${material.id}.*locationId=${warehouse.id}.*situation=RESERVED`));
+  await situation.selectOption({ label: 'Sin disponibilidad' });
+  await expect(page.getByText('No hay resultados para el filtro elegido.')).toBeVisible();
+  await page.goto(`/stock?materialId=${material.id}&locationId=${yard.id}`);
+  await situation.selectOption({ label: 'Bajo mínimo' });
+  await expect(rows.filter({ hasText: material.name })).toContainText('Bajo mínimo');
+
+  await page.context().clearCookies();
+  await login(page, 'GERENCIA');
+  await page.goto('/admin/auditoria');
+  await page.getByLabel('Tipo de registro').selectOption({ label: 'Reserva de stock' });
+  await page.getByLabel('Operación').selectOption({ label: 'Reserva' });
+  const auditRequest = page.waitForRequest((req) => {
+    const url = new URL(req.url());
+    return url.pathname.endsWith('/audit') && url.searchParams.get('action') === 'RESERVE'
+      && url.searchParams.get('entity') === 'Reservation';
+  });
+  await page.getByRole('button', { name: 'Filtrar', exact: true }).click();
+  await auditRequest;
+  const auditRow = rows.filter({ hasText: 'Reserva de stock' }).first();
+  await expect(auditRow).toBeVisible();
+  await auditRow.click();
+  await dialog.getByText('Detalle técnico', { exact: true }).click();
+  await expect(dialog.getByText('RESERVE', { exact: true })).toBeVisible();
+  await api.dispose();
+});
+
+test('Capacitación: cotizaciones muestran precio base e importe en la moneda de cada oferta', async ({ page }) => {
+  const api = await apiAs('GERENCIA');
+  const suffix = SUFFIX();
+  const material = await byCode<Schemas['Material']>(api, '/materials', 'CEM-001');
+  const supplier = await byCode<Schemas['Supplier']>(api, '/suppliers', 'PROV-DEMO-1');
+  const work = await api.send<Schemas['Work']>('POST', '/works', {
+    code: `COT-${suffix}`, name: `Obra cotización ${suffix}`, status: 'ACTIVE',
+  });
+  const request = await api.send<Schemas['RequestDetail']>('POST', '/requests', {
+    workId: work.id, categoryId: material.categoryId, requiredAt: '2027-01-01T00:00:00.000Z',
+    lines: [{ materialId: material.id, quantity: '100' }],
+  }, `req-${suffix}`);
+  for (const [currency, taxBasis, unitPrice, baseQuantity] of [
+    ['ARS', 'EXCLUDED', '10000', '50'],
+    ['USD', 'INCLUDED', '1', '3'],
+  ]) {
+    const presentation = await api.send<Schemas['Presentation']>('POST', '/presentations', {
+      materialId: material.id, supplierId: supplier.id, name: `Presentación ${currency} ${suffix}`, baseQuantity,
+    });
+    await api.send('POST', '/quotations', {
+      requestId: request.id, supplierId: supplier.id, currency, taxBasis,
+      lines: [{ materialId: material.id, presentationId: presentation.id, quantity: '100', unitPrice, baseQuantity }],
+    });
+  }
+  await login(page, 'COMPRAS');
+  await page.setViewportSize({ width: 390, height: 800 });
+  await page.goto(`/cotizaciones/${request.id}`);
+  await expect(page.getByText('Ofertas no comparables directamente.')).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Precio por unidad base' }).first()).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Importe total del renglón' }).first()).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'ARS 200,00/kg', exact: true })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'ARS 20.000,00', exact: true })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Importe no calculado', exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+  await page.getByRole('button', { name: 'Cargar cotización' }).click();
+  const currency = page.getByRole('dialog').getByLabel('Moneda', { exact: true });
+  await expect(currency.locator('option')).toHaveText(['ARS — Pesos argentinos', 'USD — Dólares estadounidenses']);
   await api.dispose();
 });

@@ -565,6 +565,7 @@ export async function handlerProcurement(
           lines: x.lines.map((l) => ({
             ...l,
             baseUnitPrice: l.unitPrice.div(l.baseQuantity).toString(),
+            lineAmount: exactOrderAmount(l)?.toFixed() ?? null,
           })),
         })),
       });

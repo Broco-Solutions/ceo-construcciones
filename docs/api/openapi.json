@@ -22635,6 +22635,19 @@
             }
           },
           {
+            "name": "situation",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AVAILABLE",
+                "RESERVED",
+                "UNAVAILABLE"
+              ]
+            }
+          },
+          {
             "name": "ids",
             "in": "query",
             "required": false,
@@ -43016,6 +43029,31 @@
               }
             ]
           },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "string",
+                  "pattern": "^-?\\d+(\\.\\d+)?$",
+                  "description": "Decimal serializado como texto, nunca float."
+                }
+              },
+              "required": [
+                "description",
+                "unit",
+                "quantity"
+              ],
+              "additionalProperties": false
+            }
+          },
           "invoiceNumber": {
             "anyOf": [
               {
@@ -43075,6 +43113,7 @@
           "createdAt",
           "supplier",
           "work",
+          "items",
           "invoiceNumber",
           "invoiceLoadedAt",
           "invoiceLoadedByName",
@@ -44552,6 +44591,19 @@
             "type": "string",
             "pattern": "^-?\\d+(\\.\\d+)?$",
             "description": "Decimal serializado como texto, nunca float."
+          },
+          "lineAmount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^-?\\d+(\\.\\d+)?$",
+                "description": "Decimal serializado como texto, nunca float."
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cantidad × precio ÷ cantidad base. Nulo si no es exacto a 8 decimales. Conserva moneda y base impositiva de la oferta."
           }
         },
         "required": [
@@ -44562,7 +44614,8 @@
           "quantity",
           "unitPrice",
           "baseQuantity",
-          "baseUnitPrice"
+          "baseUnitPrice",
+          "lineAmount"
         ],
         "additionalProperties": false
       },
