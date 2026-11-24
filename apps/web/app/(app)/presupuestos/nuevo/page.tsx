@@ -19,7 +19,7 @@ import { useAll, useMutation, useApi } from '@/lib/hooks';
 import { api, type Schemas } from '@/lib/api';
 import { useWorks } from '@/components/presupuesto/common';
 
-type Origin = 'blank' | 'computation' | 'template' | 'revision';
+type Origin = 'blank' | 'computation' | 'revision';
 
 export default function NewBudgetPage() {
   const { can } = useSession();
@@ -67,20 +67,6 @@ function Form() {
     .map((c) => ({ value: c.id, label: c.name }));
   if (selectedComputation && !computationOptions.some((c) => c.value === computationId))
     computationOptions.push({ value: selectedComputation.id, label: selectedComputation.name });
-  const templates = useApi<{ data: Schemas['BudgetTemplate'][] }>(
-    '/budget-templates',
-  );
-  const base = useApi<{ data: Schemas['BaseTemplateInfo'] }>(
-    '/budget-templates/base',
-  );
-  const install = useMutation((key: string) =>
-    api.post<{ data: Schemas['BudgetTemplate'] }>(
-      '/budget-templates/base',
-      undefined,
-      { idempotencyKey: key },
-    ),
-  );
-  const [templateId, setTemplateId] = useState('');
   const [useReferenceCosts,setUseReferenceCosts]=useState(!sourceVersionId);
   const [errs, setErrs] = useState<Record<string, string>>({});
   const [created, setCreated] = useState(false);
@@ -102,14 +88,12 @@ function Form() {
     if (!name.trim()) er.name = 'Ingresá un nombre.';
     if (origin === 'computation' && !selectedComputation)
       er.computationId = 'Elegí un cómputo de esta obra.';
-    if (origin === 'template' && !templateId) er.templateId = 'Elegí una plantilla.';
     setErrs(er);
     if (Object.keys(er).length) return;
     const r = await save.run({
       workId,
       name: name.trim(),
       ...(origin === 'computation' ? { computationId } : { useReferenceCosts }),
-      ...(origin === 'template' ? { templateId } : {}),
       ...(origin === 'revision' && sourceVersionId ? { sourceVersionId } : {}),
     });
     if (r) {
@@ -156,7 +140,6 @@ function Form() {
           options={[
             { value: 'blank', label: 'Empezar en blanco' },
             { value: 'computation', label: 'Usar cómputo existente' },
-            { value: 'template', label: 'Usar plantilla' },
             ...(sourceVersionId ? [{ value: 'revision', label: 'Copiar revisión anterior' }] : []),
           ]}
         />
@@ -204,68 +187,11 @@ function Form() {
             )}
           </>
         )}
-        {origin === 'template' && (
-          <SelectField
-            label="Plantilla"
-            value={templateId}
-            onChange={(e) => setTemplateId(e.target.value)}
-            placeholder="Elegir plantilla…"
-            options={(templates.data?.data ?? []).map((t) => ({
-              value: t.id,
-              label: t.name,
-            }))}
-            hint="La plantilla copia rubros y composiciones. Los cambios quedan sólo en este presupuesto."
-            error={fe.templateId}
-          />
-        )}
         {origin !== 'computation' && <label className="row"><input type="checkbox" checked={useReferenceCosts} onChange={e=>setUseReferenceCosts(e.target.checked)}/>Usar costos de referencia disponibles, conservando ajustes manuales</label>}
-        {(origin === 'blank' || origin === 'template') && base.data && (
-          <details>
-            <summary>
-              Plantilla BASE de CEO · {base.data.data.activities} actividades
-            </summary>
-            <p className="note">
-              {base.data.data.notice} Incorporar la plantilla agrega sus
-              materiales de referencia con códigos BASE propios y sus
-              rubros/unidades; no reemplaza el catálogo existente.
-            </p>
-            <details>
-              <summary>
-                Observaciones de la fuente ({base.data.data.issues.length})
-              </summary>
-              <div style={{ maxHeight: 240, overflowY: 'auto' }}>
-                {base.data.data.issues.map((i, n) => (
-                  <p className="small" key={n}>
-                    Fila {i.row}: {i.message}
-                  </p>
-                ))}
-              </div>
-            </details>
-            <Button
-              variant="sec"
-              loading={install.pending}
-              onClick={async () => {
-                const r = await install.run();
-                if (r) {
-                  templates.reload();
-                  setTemplateId(r.data.id);
-                  setOrigin('template');
-                  toast.success('BASE incorporada y seleccionada');
-                }
-              }}
-            >
-              Incorporar y usar BASE
-            </Button>
-            <ErrorBox error={install.error} />
-          </details>
-        )}
         <p className="small muted">
           Cargá las cantidades, revisá el costo y definí la rentabilidad al
           final. Guardar un borrador no emite una revisión.
         </p>
-        {origin === 'template' && (
-          <ErrorBox error={templates.error} onRetry={templates.reload} />
-        )}
       </Card>
       <ErrorBox error={save.error} />
       <div className="row" style={{ justifyContent: 'flex-end', gap: 8 }}>

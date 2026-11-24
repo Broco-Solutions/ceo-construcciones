@@ -1,5 +1,9 @@
 # Estado del proyecto — CEO Construcciones
 
+**24/11/2026 · Presentaciones de compra y alta de presupuestos.** Ajuste local en `main` sobre `7f1571f` para los puntos 3.6, 3.7 y 3.9. La tabla de Costos de referencia muestra «Presentación» y conserva la equivalencia y el precio por unidad en escritorio y móvil. Presupuestos oculta temporalmente las acciones de plantilla y mantiene el alta en blanco, desde un cómputo y desde una revisión.
+
+**Verificación local.** Typecheck de Web, builds de Web y API, 63 casos Vitest y 5 casos Playwright aprobados. Chromium comprobó filtros, desplazamiento horizontal, los tres orígenes de alta, la revisión de costos y la apertura y emisión de un presupuesto con BASE preparado por API. PostgreSQL aislado con datos sintéticos y healthcheck de API conectado. Cambios locales sin commit, PR ni despliegue.
+
 **24/11/2026 · Usabilidad de costos de referencia y presupuestos.** Rama local `codex/usabilidad-costos-presupuestos` sobre `7a013564`, verificado contra `origin/main`. Costos de referencia muestra el importe por unidad base en escritorio y móvil. Cómputo y costos muestra acciones por partida y distingue coincidencias de nombre. La confirmación de baja usa el guardado del borrador y conserva la fila si falla. Presentación y PDF lista los pendientes del cálculo comercial y enlaza con el campo de cantidad o con la composición.
 
 **Evidencia local.** `editor-corrections.spec.ts` verifica a 1280 y 390 px la selección por clave, cancelación y guardado de la baja, totales recalculados, cómputo original intacto, corrección de faltantes y emisión R1/R2 con PDF anterior idéntico. En móvil también se verificó «Quitar ítem» en Cómputos. `reference-costs.spec.ts` comprueba los precios por kg y L con referencias históricas y `format.test.ts` verifica la precisión decimal. Ejecución con PostgreSQL local aislado y datos sintéticos. Sin PR ni despliegue. La validación con CEO de 7.7 sigue pendiente.

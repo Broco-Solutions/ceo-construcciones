@@ -200,13 +200,6 @@ export function BudgetEditor({ id }: { id: string }) {
       throw error;
     }
   });
-  const template = useMutation(async () => {
-    if (content)
-      return api.post('/budget-templates', {
-        name: query.data?.data.name ?? 'Plantilla',
-        content,
-      });
-  });
   const updatePrices = useMutation(async () => {
     if (content)
       return api.post<{ data: Schemas['ReferenceCostReview'] }>(
@@ -932,23 +925,11 @@ export function BudgetEditor({ id }: { id: string }) {
                 ))}
                 {!content.lines.length && (
                   <p className="note">
-                    Agregá actividades de obra o un concepto directo para
-                    empezar. También podés guardar esta estructura como
-                    plantilla.
+                    Agregá actividades de obra o un concepto directo para empezar.
                   </p>
                 )}
                 {editable && (
                   <div className="row">
-                    <Button
-                      variant="sec"
-                      onClick={async () => {
-                        if (await template.run())
-                          toast.success('Plantilla guardada');
-                      }}
-                      loading={template.pending}
-                    >
-                      Guardar como plantilla
-                    </Button>
                     <Button
                       variant="sec"
                       onClick={reviewPrices}
@@ -958,7 +939,6 @@ export function BudgetEditor({ id }: { id: string }) {
                     </Button>
                   </div>
                 )}
-                <ErrorBox error={template.error} />
                 <ErrorBox error={updatePrices.error} />
               </Card>
             </>

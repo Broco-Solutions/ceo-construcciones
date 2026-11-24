@@ -351,6 +351,10 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
   const api = await apiAs('GERENCIA');
   const suffix = SUFFIX();
   try {
+    const supplier = await api.send<Schemas['Supplier']>('POST', '/suppliers', {
+      code: `BASE-PROV-${suffix}`,
+      name: `Materiales del Centro ${suffix}`,
+    });
     const references = [
       { symbol: 'kg', presentation: 'Bolsa de 50 kg', quantity: '50', price: '15000', normalized: 'ARS 300,00/kg' },
       { symbol: 'L', presentation: 'Balde de 20 L', quantity: '20', price: '57800', normalized: 'ARS 2.890,00/L' },
@@ -364,29 +368,61 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
         materialId: material.id, name: presentation, baseQuantity: quantity,
       });
       await api.send('POST', '/prices', {
-        materialId: material.id, presentationId: pack.id, baseQuantity: quantity,
+        materialId: material.id, supplierId: supplier.id, presentationId: pack.id, baseQuantity: quantity,
         price, currency: 'ARS', taxBasis: 'EXCLUDED', source: 'Historial sintético de unidad base',
         effectiveAt: '2020-01-01T12:00:00Z',
       });
       return material;
     }));
     await login(page, 'GERENCIA');
+    const table = page.locator('.price-table');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/costos');
+    const headers = table.getByRole('columnheader');
+    await expect(headers).toHaveText([
+      '', '', 'Fecha de referencia', 'Material', 'Proveedor', 'Precio',
+      'Presentación', 'Precio por unidad base', 'Base impositiva', 'Fuente', 'Registrado',
+    ]);
+    const supplierFilter = page.getByLabel('Filtrar por proveedor');
+    await supplierFilter.selectOption(supplier.id);
+    await expect(headers.filter({ hasText: 'Proveedor' })).toHaveCount(0);
+    await expect(headers.filter({ hasText: 'Material' })).toBeVisible();
+    await expect(table.getByRole('cell', { name: '1 Bolsa de 50 kg (50 kg)', exact: true })).toBeVisible();
+    await expect(table.getByRole('cell', { name: 'ARS 300,00/kg', exact: true })).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath('proveedor-1440.png') });
+
+    await page.setViewportSize({ width: 900, height: 900 });
+    await supplierFilter.selectOption('');
+    await expect(headers.filter({ hasText: 'Proveedor' })).toBeVisible();
+    await expect.poll(() => table.locator('.tblwrap').evaluate(
+      (wrap) => wrap.scrollWidth > wrap.clientWidth && document.documentElement.scrollWidth <= innerWidth + 1,
+    )).toBe(true);
+
     for (const width of [1280, 390]) {
       await page.setViewportSize({ width, height: 900 });
       for (const [index, reference] of references.entries()) {
         await page.goto('/costos');
         await pickMaterial(page, materials[index].code, 'Filtrar por material');
+        const presentation = `1 ${reference.presentation} (${reference.quantity} ${reference.symbol})`;
         if (width === 1280) {
-          await expect(page.getByRole('columnheader', { name: 'Precio por unidad base' })).toBeVisible();
-          const columns = await page.getByRole('columnheader').allTextContents();
-          expect(columns[columns.indexOf('Por') + 1]).toBe('Precio por unidad base');
-          const row = page.getByRole('row').filter({ hasText: reference.presentation });
-          await expect(row.getByRole('cell', { name: reference.normalized, exact: true })).toBeVisible();
+          await expect(headers).toHaveText([
+            '', '', 'Fecha de referencia', 'Proveedor', 'Precio',
+            'Presentación', 'Precio por unidad base', 'Base impositiva', 'Fuente', 'Registrado',
+          ]);
+          const row = table.getByRole('row').filter({ hasText: reference.presentation });
+          const pack = row.getByRole('cell', { name: presentation, exact: true });
+          const price = row.getByRole('cell', { name: reference.normalized, exact: true });
+          await expect(pack).toBeVisible();
+          await expect(price).toBeVisible();
+          await expect(price).toHaveCSS('white-space', 'nowrap');
+          await expect(price).toHaveCSS('text-align', 'right');
           await expect(row.getByText('Historial sintético de unidad base')).toBeVisible();
         } else {
-          await expect(page.getByText(`Precio por unidad base · ${reference.normalized}`, { exact: true })).toBeVisible();
-          await expect(page.getByText(new RegExp(`^por 1 ${reference.presentation}`))).toBeVisible();
+          const card = table.locator('.pcard');
+          await expect(card.getByText(`Precio por unidad base · ${reference.normalized}`, { exact: true })).toBeVisible();
+          await expect(card.getByText(`Presentación · ${presentation}`, { exact: false })).toBeVisible();
         }
+        await page.screenshot({ path: test.info().outputPath(`material-${reference.symbol}-${width}.png`) });
       }
     }
   } finally {

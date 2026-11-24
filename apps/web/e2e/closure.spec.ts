@@ -136,10 +136,18 @@ for (const width of [1280, 390]) {
         await page.goto('/presupuestos');
         await page.getByRole('link', { name: 'Nuevo presupuesto', exact: true }).click();
         await expect(origin).toHaveValue('blank');
+        await expect(origin.locator('option')).toHaveText([
+          'Empezar en blanco',
+          'Usar cómputo existente',
+        ]);
+        await expect(page.getByText('Plantilla BASE de CEO', { exact: false })).toHaveCount(0);
         await chooseOption(workField, work.id);
         await page.getByLabel('Nombre', { exact: true }).fill(`En blanco ${suffix}`);
         await page.getByRole('button', { name: 'Crear presupuesto', exact: true }).click();
         await page.waitForURL(/\/presupuestos\/editor\//);
+        await expect(page.getByRole('button', { name: 'Revisar costos de referencia' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Guardar como plantilla' })).toHaveCount(0);
+        await expect(page.getByText(/guardar esta estructura como plantilla/)).toHaveCount(0);
         const blank = await api.get<Schemas['BudgetEditor']>(`/budget-editor/${page.url().split('/').pop()}`);
         expect(blank.draft?.content.lines).toEqual([]);
 

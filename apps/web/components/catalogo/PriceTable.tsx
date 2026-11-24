@@ -83,7 +83,7 @@ export function PriceTable({
     return value === null ? '—' : `${formatMoney(value, p.currency)}/${unit}`;
   };
   return (
-    <>
+    <div className="price-table">
       <DataTable collection={{resource:"prices",filters:{materialId,supplierId},total:list.pagination?.total,reload:list.reload}}
         rows={list.rows}
         rowKey={(p) => p.id}
@@ -98,6 +98,7 @@ export function PriceTable({
                     <Button
                       variant="sec"
                       size="sm"
+                      className="price-table-action"
                       onClick={() => onRegisterReference(p)}
                     >
                       Actualizar esta referencia
@@ -111,7 +112,7 @@ export function PriceTable({
             header: 'Fecha de referencia',
             render: (p) => (
               <>
-                {referenceDate(p)}
+                <span className="price-table-nowrap">{referenceDate(p)}</span>
                 {p.referenceState === 'HISTORICAL' && (
                   <div className="small muted">
                     Referencia histórica
@@ -130,7 +131,7 @@ export function PriceTable({
                   key: 'mat',
                   header: 'Material',
                   render: (p: MaterialPrice) => (
-                    <Link href={`/materiales/${p.materialId}`}>
+                    <Link className="price-table-material" href={`/materiales/${p.materialId}`}>
                       {p.material?.name ?? matMap.get(p.materialId)?.name ?? '…'}
                     </Link>
                   ),
@@ -142,14 +143,17 @@ export function PriceTable({
                 {
                   key: 'sup',
                   header: 'Proveedor',
-                  render: (p: MaterialPrice) =>
-                    p.supplierId ? (
-                      <Link href={`/proveedores/${p.supplierId}`}>
-                        {p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…'}
-                      </Link>
-                    ) : (
-                      <span className="muted">Sin proveedor</span>
-                    ),
+                  render: (p: MaterialPrice) => (
+                    <span className="price-table-supplier">
+                      {p.supplierId ? (
+                        <Link href={`/proveedores/${p.supplierId}`}>
+                          {p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…'}
+                        </Link>
+                      ) : (
+                        <span className="muted">Sin proveedor</span>
+                      )}
+                    </span>
+                  ),
                 },
               ]),
           {
@@ -158,7 +162,11 @@ export function PriceTable({
             align: 'r',
             render: (p) => <b>{formatMoney(p.price, p.currency)}</b>,
           },
-          { key: 'per', header: 'Por', render: (p) => per(p, unitOf(p)) },
+          {
+            key: 'per',
+            header: 'Presentación',
+            render: (p) => <span className="price-table-presentation">{per(p, unitOf(p))}</span>,
+          },
           { key: 'base-price', header: 'Precio por unidad base', align: 'r', render: basePrice },
           {
             key: 'tax',
@@ -172,14 +180,14 @@ export function PriceTable({
           {
             key: 'src',
             header: 'Fuente',
-            render: (p) => p.source ?? '—',
+            render: (p) => <span className="price-table-source">{p.source ?? '—'}</span>,
             hideMobile: true,
           },
           {
             key: 'cr',
             header: 'Registrado',
             render: (p) => (
-              <span className="small muted">{formatDateTime(p.createdAt)}</span>
+              <span className="small muted price-table-nowrap">{formatDateTime(p.createdAt)}</span>
             ),
             hideMobile: true,
           },
@@ -196,7 +204,7 @@ export function PriceTable({
               <span>{p.material?.name ?? matMap.get(p.materialId)?.name ?? '…'}</span>
             )}
             <span className="small muted">
-              por {per(p, unitOf(p))} · desde {referenceDate(p)}
+              Presentación · {per(p, unitOf(p))} · desde {referenceDate(p)}
               {!supplierId &&
                 ` · ${p.supplierId ? (p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…') : 'sin proveedor'}`}
             </span>
@@ -226,6 +234,6 @@ export function PriceTable({
         page={list.page}
         setPage={list.setPage}
       />
-    </>
+    </div>
   );
 }

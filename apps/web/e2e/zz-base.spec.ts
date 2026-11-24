@@ -12,23 +12,16 @@ test('T08/T48: BASE real con 146 actividades, emisión y demanda orientativa vis
       code: `BASE-${suffix}`,
       name: `Obra BASE real ${suffix}`,
     });
+  const template = await api.send<Schemas['BudgetTemplate']>(
+    'POST', '/budget-templates/base', undefined, `base-${suffix}`,
+  );
+  const budget = await api.send<Schemas['Budget']>(
+    'POST', '/budget-editor',
+    { workId: work.id, name: `BASE real ${suffix}`, templateId: template.id, useReferenceCosts: true },
+    `budget-${suffix}`,
+  );
   await login(page, 'GERENCIA');
-  await page.goto(`/presupuestos/nuevo?workId=${work.id}`);
-  await page.getByLabel('Nombre', { exact: true }).fill(`BASE real ${suffix}`);
-  await page
-    .locator('summary')
-    .filter({ hasText: 'Plantilla BASE de CEO' })
-    .click();
-  await page
-    .getByRole('button', { name: 'Incorporar y usar BASE', exact: true })
-    .click();
-  await toast(page, 'BASE incorporada y seleccionada');
-  await expect(page.getByLabel('Empezar desde')).toHaveValue('template');
-  await expect(page.getByLabel('Plantilla', { exact: true })).not.toHaveValue('');
-  await page
-    .getByRole('button', { name: 'Crear presupuesto', exact: true })
-    .click();
-  await page.waitForURL(/\/presupuestos\/editor\//);
+  await page.goto(`/presupuestos/editor/${budget.id}`);
   await expect(page.locator('.budget-line')).toHaveCount(146);
   await expect(page.locator('.budget-category')).toHaveCount(17);
   await expect(page.locator('.budget-line').first()).toContainText('16.288,');

@@ -134,6 +134,16 @@ table.t{width:100%;border-collapse:collapse;font-size:13px}
 .t td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:middle}
 .t tr:last-child td{border-bottom:0}
 .t td.r,.t th.r{text-align:right;font-variant-numeric:tabular-nums}
+.price-table{min-width:0}
+.price-table .t th{white-space:normal}
+.price-table .t :is(th,td){padding-inline:8px}
+.price-table .t td.r,.price-table-nowrap{white-space:nowrap}
+.price-table .price-table-action{width:7rem;padding-inline:6px;white-space:normal}
+.price-table-material,.price-table-supplier,.price-table-presentation,.price-table-source{display:block;overflow-wrap:anywhere}
+.price-table-material{min-width:10rem}
+.price-table-supplier,.price-table-presentation{min-width:9rem}
+.price-table-presentation{text-wrap:balance}
+.price-table-source{min-width:7rem}
 .t tr.click{cursor:pointer}
 .t tr.click:hover td{background:#f8faff}
 .t tr.hl td{background:#f2fbf6}
