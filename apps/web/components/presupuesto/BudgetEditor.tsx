@@ -2,11 +2,13 @@
 import { ActivityMultiPicker } from './ActivityMultiPicker';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { ChevronRight, Plus, Save, Download, Eye } from 'lucide-react';
+import { ChevronRight, Plus, Save, Download, Eye, Pencil, Trash2 } from 'lucide-react';
 import { Page } from '@/components/shell';
 import {
   Button,
   Card,
+  Confirm,
+  DefList,
   TextField,
   TextArea,
   SelectField,
@@ -16,7 +18,7 @@ import {
   Pill,
   useToast,
 } from '@/components/ui';
-import { api, type Schemas } from '@/lib/api';
+import { api, ApiError, type Schemas } from '@/lib/api';
 import { useAll, useApi, useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
 import { formatMoney, formatQty, formatReferenceDate } from '@/lib/format';
@@ -31,6 +33,18 @@ import { ReferenceButton } from './ReferenceButton';
 
 type Content = Schemas['EditorContent'];
 type Line = Content['lines'][number];
+type Calculation = Schemas['CommercialCalculation'];
+type CalculationIssue = Calculation['issues'][number];
+
+function incompleteIssues(error: unknown): CalculationIssue[] | undefined {
+  if (!(error instanceof ApiError) || error.code !== 'INCOMPLETE_BUDGET') return;
+  return Array.isArray(error.details)
+    ? error.details.filter(
+        (issue) => typeof issue?.lineKey === 'string' && typeof issue?.message === 'string',
+      )
+    : [];
+}
+
 export function BudgetEditor({ id }: { id: string }) {
   const query = useApi<{ data: Schemas['BudgetEditor'] }>(
       `/budget-editor/${id}`,
@@ -41,13 +55,19 @@ export function BudgetEditor({ id }: { id: string }) {
     [revision, setRevision] = useState(0),
     [saved, setSaved] = useState(''),
     [step, setStep] = useState(0),
-    [calculation, setCalculation] =
-      useState<Schemas['CommercialCalculation']>(),
+    [calculated, setCalculated] = useState<{ content: Content; result: Calculation }>(),
     [calcError, setCalcError] = useState<unknown>(),
     [context, setContext] = useState<string | null>(null),
     [pick, setPick] = useState(false),
     [search, setSearch] = useState(''),
     [preview, setPreview] = useState<string | null>(null);
+  const [removalKey, setRemovalKey] = useState<string | null>(null);
+  const [quantityTarget, setQuantityTarget] = useState<string | null>(null);
+  const [pdfRejection, setPdfRejection] = useState<{ content: Content; issues: CalculationIssue[] }>();
+  const pdfIssuesRef = useRef<HTMLDivElement>(null);
+  const calculation = calculated?.result;
+  const currentCalculation = calculated?.content === content ? calculation : undefined;
+  const rejectedIssues = pdfRejection?.content === content ? pdfRejection.issues : undefined;
   const contentRef = useRef(content),
     savedRef = useRef(saved),
     revisionRef = useRef(revision);
@@ -92,6 +112,16 @@ export function BudgetEditor({ id }: { id: string }) {
       ?.scrollIntoView?.({ inline: 'nearest', block: 'nearest' });
   }, [step]);
   useEffect(() => {
+    if (step !== 0 || !quantityTarget) return;
+    const quantity = document.querySelector<HTMLInputElement>(
+      `[data-budget-line="${CSS.escape(quantityTarget)}"] input`,
+    );
+    const category = quantity?.closest('details');
+    if (category) category.open = true;
+    quantity?.focus();
+    setQuantityTarget(null);
+  }, [step, quantityTarget]);
+  useEffect(() => {
     setMaterialPicker(null);
     setMaterialError('');
     setExpression('');
@@ -130,7 +160,7 @@ export function BudgetEditor({ id }: { id: string }) {
         )
         .then((r) => {
           if (current === sequence.current) {
-            setCalculation(r.data);
+            setCalculated({ content, result: r.data });
             setCalcError(null);
           }
         })
@@ -158,13 +188,18 @@ export function BudgetEditor({ id }: { id: string }) {
     );
     return { draft: r.data, body: JSON.stringify(body) };
   });
-  const issue = useMutation((key: string, rev: number) =>
-    api.post<{ data: Schemas['IssuedVersion'] }>(
-      `/budget-editor/${id}/issue`,
-      { revision: rev },
-      { idempotencyKey: key },
-    ),
-  );
+  const issue = useMutation(async (key: string, rev: number, submitted: Content) => {
+    try {
+      return await api.post<{ data: Schemas['IssuedVersion'] }>(
+        `/budget-editor/${id}/issue`,
+        { revision: rev },
+        { idempotencyKey: key },
+      );
+    } catch (error) {
+      showPdfRejection(error, submitted);
+      throw error;
+    }
+  });
   const template = useMutation(async () => {
     if (content)
       return api.post('/budget-templates', {
@@ -222,15 +257,15 @@ export function BudgetEditor({ id }: { id: string }) {
     toast.success('Costos de referencia aplicados al borrador. Las revisiones emitidas se conservan.');
   }
   const [previewBusy, setPreviewBusy] = useState(false);
-  async function persist() {
-    if (!contentRef.current) return;
+  async function persist(body = contentRef.current) {
+    if (!body) return;
     if (valuation?.reviewing) {
       toast.warning(
         'Confirmá la revisión de costos o restaurá el borrador previo antes de guardar.',
       );
       return;
     }
-    const r = await save.run(contentRef.current, revisionRef.current);
+    const r = await save.run(body, revisionRef.current);
     if (r) {
       revisionRef.current = r.draft.revision;
       savedRef.current = r.body;
@@ -249,6 +284,7 @@ export function BudgetEditor({ id }: { id: string }) {
     onPrompt: () => {
       costReviewSequence.current++;
       setContext(null);
+      setRemovalKey(null);
       setComparisonMaterial(null);
       setPick(false);
       setPriceChanges(undefined);
@@ -257,8 +293,9 @@ export function BudgetEditor({ id }: { id: string }) {
   });
   async function emit() {
     const rev = dirty ? await persist() : revision;
-    if (!rev || JSON.stringify(contentRef.current) !== savedRef.current) return;
-    const r = await issue.run(rev);
+    const submitted = contentRef.current;
+    if (!rev || !submitted || JSON.stringify(submitted) !== savedRef.current) return;
+    const r = await issue.run(rev, submitted);
     if (r) {
       toast.success(`Revisión R${r.data.number} emitida`, {
         description:
@@ -269,6 +306,15 @@ export function BudgetEditor({ id }: { id: string }) {
       query.reload();
       await download(r.data.id);
     }
+  }
+  function showPdfRejection(error: unknown, submitted: Content) {
+    const issues = incompleteIssues(error);
+    if (!issues) return false;
+    if (contentRef.current === submitted) {
+      setPdfRejection({ content: submitted, issues });
+      requestAnimationFrame(() => pdfIssuesRef.current?.focus());
+    }
+    return true;
   }
   async function download(versionId: string) {
     try {
@@ -283,6 +329,10 @@ export function BudgetEditor({ id }: { id: string }) {
   }
   async function seePreview() {
     if (!content) return;
+    if (currentCalculation?.complete === false || rejectedIssues) {
+      pdfIssuesRef.current?.focus();
+      return;
+    }
     setPreviewBusy(true);
     try {
       const url = await api.preview(`/budget-editor/${id}/preview`, content);
@@ -291,7 +341,9 @@ export function BudgetEditor({ id }: { id: string }) {
       previewRef.current = url;
       setPreview(url);
     } catch (e) {
-      toast.failure('No se pudo previsualizar', e);
+      if (!showPdfRejection(e, content)) {
+        toast.failure('No se pudo previsualizar', e);
+      }
     } finally {
       setPreviewBusy(false);
     }
@@ -515,25 +567,71 @@ export function BudgetEditor({ id }: { id: string }) {
     reference = budget.versions.find((v) => v.status === 'REFERENCE'),
     selected = content?.lines.find((l) => l.key === context);
 
-  async function removeLine(line: Line) {
-    if (
-      !editable || !contentRef.current || save.pending || issue.pending ||
-      valuation?.reviewing
-    ) return;
-    if (!window.confirm(`¿Quitar «${line.name}» del presupuesto?`)) return;
+  const removal = content?.lines.find((line) => line.key === removalKey);
+  const removalBlocked = save.pending || issue.pending || !!valuation?.reviewing;
+  const removalCost = currentCalculation?.unitCosts?.find((cost) => cost.lineKey === removalKey);
+  const removalSubtotal = currentCalculation?.lines.find((line) => line.sourceLineId === removalKey);
+  function requestRemoval(key: string) {
+    save.setError(null);
+    setContext(null);
+    setRemovalKey(key);
+  }
+
+  async function removeLine() {
+    if (!editable || !removal || !contentRef.current || removalBlocked) return;
     const next = {
       ...contentRef.current,
-      lines: contentRef.current.lines.filter((l) => l.key !== line.key),
+      lines: contentRef.current.lines.filter((line) => line.key !== removal.key),
     };
-    contentRef.current = next;
-    setContent(next);
-    setContext(null);
-    await persist();
+    if ((await persist(next)) === undefined) return;
+    setContent((latest) => latest && {
+      ...latest,
+      lines: latest.lines.filter((line) => line.key !== removal.key),
+    });
+    setRemovalKey(null);
   }
 
   const grouped = new Map<string, Line[]>();
-  for (const l of content?.lines ?? [])
+  const linesByName = new Map<string, Line[]>();
+  for (const l of content?.lines ?? []) {
     grouped.set(l.categoryId, [...(grouped.get(l.categoryId) ?? []), l]);
+    linesByName.set(l.name, [...(linesByName.get(l.name) ?? []), l]);
+  }
+  function lineIdentifier(line: Line) {
+    const matches = linesByName.get(line.name);
+    if (!matches || matches.length < 2) return '';
+    if (line.code && !matches.some((other) => other.key !== line.key && other.code === line.code))
+      return line.code;
+    const position = (grouped.get(line.categoryId) ?? []).indexOf(line) + 1;
+    return [line.code, `Partida ${position} del rubro ${line.category}`].filter(Boolean).join(' · ');
+  }
+
+  const pdfBlocked = currentCalculation?.complete === false || !!rejectedIssues;
+  const issuesByLine = new Map<string | null, string[]>();
+  for (const issue of rejectedIssues ?? currentCalculation?.issues ?? []) {
+    // El backend puede asociar el total comercial a la primera línea lista.
+    const key = issue.message === 'El total comercial excede la precisión admitida. Revisá las cantidades y los costos.'
+      ? null
+      : (content?.lines.some((line) => line.key === issue.lineKey) ? issue.lineKey : null);
+    const messages = issuesByLine.get(key) ?? [];
+    messages.push(issue.message);
+    issuesByLine.set(key, messages);
+  }
+
+  function goToCorrection(line?: Line) {
+    setStep(0);
+    if (!line) {
+      setSearch('');
+      return;
+    }
+    if (!line.name.toLocaleLowerCase().includes(search.toLocaleLowerCase())) setSearch('');
+    const unitCost = currentCalculation?.unitCosts?.find((cost) => cost.lineKey === line.key);
+    if (unitCost?.quantityPending ?? (line.quantity === null)) {
+      setQuantityTarget(line.key);
+    } else {
+      setContext(line.key);
+    }
+  }
   return (
     <Page
       title={budget.name}
@@ -541,7 +639,7 @@ export function BudgetEditor({ id }: { id: string }) {
       actions={
         <>
           {editable && (
-            <Button variant="sec" onClick={persist} loading={save.pending}>
+            <Button variant="sec" onClick={() => persist()} loading={save.pending}>
               <Save size={16} /> Guardar borrador
             </Button>
           )}
@@ -733,6 +831,7 @@ export function BudgetEditor({ id }: { id: string }) {
                           .includes(search.toLocaleLowerCase()),
                       )
                       .map((l) => {
+                        const identifier = lineIdentifier(l);
                         const result = calculation?.lines.find(
                           (c) => c.sourceLineId === l.key,
                         );
@@ -744,7 +843,7 @@ export function BudgetEditor({ id }: { id: string }) {
                           (i) => i.lineKey === l.key,
                         );
                         return (
-                          <div key={l.key} className="budget-line">
+                          <div key={l.key} className="budget-line" data-budget-line={l.key}>
                             <div>
                               <button
                                 className="budget-line-name"
@@ -752,6 +851,7 @@ export function BudgetEditor({ id }: { id: string }) {
                               >
                                 {l.name}
                               </button>
+                              {identifier && <div className="small muted">{identifier}</div>}
                               <div className="small muted">
                                 {l.unit} ·{' '}
                                 {l.status === 'EXCLUDED'
@@ -760,6 +860,21 @@ export function BudgetEditor({ id }: { id: string }) {
                                     ? 'Incluida en otra partida'
                                     : 'Composición del costo'}
                               </div>
+                              {editable && (
+                                <div className="row budget-line-actions">
+                                  <Button variant="sec" size="sm" onClick={() => setContext(l.key)}>
+                                    <Pencil size={14} aria-hidden="true" /> Editar partida
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={removalBlocked}
+                                    onClick={() => requestRemoval(l.key)}
+                                  >
+                                    <Trash2 size={14} aria-hidden="true" /> Quitar
+                                  </Button>
+                                </div>
+                              )}
                             </div>
                             <TextField
                               label="Cantidad"
@@ -808,15 +923,6 @@ export function BudgetEditor({ id }: { id: string }) {
                                 <div className="small err">
                                   Falta informar {missingCosts.join(' · ')}.
                                 </div>
-                              )}
-                              {editable && (hasIssue || missingCosts.length > 0) && (
-                                <Button
-                                  variant="sec"
-                                  size="sm"
-                                  onClick={() => setContext(l.key)}
-                                >
-                                  Completar costos
-                                </Button>
                               )}
                             </div>
                           </div>
@@ -906,7 +1012,7 @@ export function BudgetEditor({ id }: { id: string }) {
                 onChange={(e) => set({ observations: e.target.value })}
                 disabled={!editable}
               />
-              <div className="row">
+              <div className="row" style={{ flexWrap: 'wrap' }}>
                 {editable && (
                   <>
                     <Button
@@ -919,19 +1025,54 @@ export function BudgetEditor({ id }: { id: string }) {
                     <Button
                       onClick={emit}
                       loading={issue.pending}
-                      disabled={!calculation?.complete}
+                      disabled={!currentCalculation?.complete || pdfBlocked || save.pending}
                     >
                       Emitir y descargar
                     </Button>
                   </>
                 )}
               </div>
-              {editable && calculation?.complete === false && (
-                <p className="small err">
-                  {calculation.issues.length
-                    ? 'Completá los costos o cantidades pendientes en Cómputo y costos antes de emitir.'
-                    : 'Agregá al menos una partida con costo y cantidad mayor a cero antes de emitir.'}
-                </p>
+              {pdfBlocked && (
+                <div
+                  className="alert warn stack"
+                  ref={pdfIssuesRef}
+                  tabIndex={-1}
+                  role="region"
+                  aria-label="Todavía no se puede generar el PDF"
+                >
+                  <b>Todavía no se puede generar el PDF</b>
+                  {issuesByLine.size === 0 ? (
+                    <p>
+                      {content.lines.length
+                        ? 'Completá al menos una partida activa con cantidad mayor a cero y costos completos para generar el PDF.'
+                        : 'Agregá al menos una actividad con cantidad y costos completos para generar el PDF.'}
+                    </p>
+                  ) : (
+                    <>
+                      <p>Hay datos pendientes en el presupuesto. Revisá las siguientes partidas.</p>
+                      <ul className="stack">
+                        {[...issuesByLine].map(([key, messages]) => {
+                          const line = content.lines.find((item) => item.key === key);
+                          const identifier = line && lineIdentifier(line);
+                          const prefix = line ? `${line.name}: ` : '';
+                          return (
+                            <li key={key ?? ''}>
+                              {line && <b>{line.name}{identifier && ` · ${identifier}`}</b>}
+                              {messages.map((message, index) => (
+                                <p key={index}>{prefix && message.startsWith(prefix) ? message.slice(prefix.length) : message}</p>
+                              ))}
+                              {editable && (
+                                <Button variant="sec" size="sm" onClick={() => goToCorrection(line)}>
+                                  Ir a corregir
+                                </Button>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  )}
+                </div>
               )}
             </Card>
           )}
@@ -1042,8 +1183,8 @@ export function BudgetEditor({ id }: { id: string }) {
                 </b>
               </div>
             </div>
-            {calculation?.issues.map((i) => (
-              <p key={i.lineKey} className="small err">
+            {step !== 2 && calculation?.issues.map((i, index) => (
+              <p key={index} className="small err">
                 {i.message}
               </p>
             ))}
@@ -1051,8 +1192,8 @@ export function BudgetEditor({ id }: { id: string }) {
         </>
       )}
       <ErrorBox error={calcError} />
-      <ErrorBox error={save.error} />
-      <ErrorBox error={issue.error} />
+      <ErrorBox error={removal ? null : save.error} />
+      <ErrorBox error={incompleteIssues(issue.error) ? null : issue.error} />
       <Modal
         open={pick}
         onClose={() => setPick(false)}
@@ -1523,8 +1664,8 @@ export function BudgetEditor({ id }: { id: string }) {
                 {editable && (
                   <Button
                     variant="danger"
-                    disabled={save.pending || issue.pending || valuation?.reviewing}
-                    onClick={() => removeLine(selected)}
+                    disabled={removalBlocked}
+                    onClick={() => requestRemoval(selected.key)}
                   >
                     Quitar del presupuesto
                   </Button>
@@ -1534,6 +1675,39 @@ export function BudgetEditor({ id }: { id: string }) {
           )
         )}
       </Modal>
+      <Confirm
+        open={editable && !!removal}
+        title="Quitar partida del presupuesto"
+        confirmLabel="Quitar partida"
+        tone="danger"
+        onClose={() => setRemovalKey(null)}
+        onConfirm={removeLine}
+        pending={save.pending}
+        error={save.error}
+      >
+        {removal && (
+          <div className="stack">
+            <div>
+              <b>{removal.name}</b>
+              {(lineIdentifier(removal) || removal.code) && (
+                <div className="small muted">{lineIdentifier(removal) || removal.code}</div>
+              )}
+              <div className="small muted">Rubro · {removal.category}</div>
+            </div>
+            <DefList items={[
+              ['Cantidad', `${formatQty(removal.quantity)} ${removal.unit}`],
+              ['Costo unitario', formatMoney(removalCost?.totalUnitCost ?? removalSubtotal?.totalUnitCost, content?.currency)],
+              ['Subtotal', formatMoney(
+                removalCost?.zeroQuantity && !removalCost.missingCosts.length && removal.status === 'ACTIVE'
+                  ? '0'
+                  : removalSubtotal?.totalCost,
+                content?.currency,
+              )],
+            ]} />
+            <p>Esta partida se quitará del presupuesto actual. El cómputo original, el catálogo de actividades y las revisiones emitidas no se modificarán.</p>
+          </div>
+        )}
+      </Confirm>
       <Modal
         open={!!priceChanges}
         onClose={() => { costReviewSequence.current++; setPriceChanges(undefined); }}

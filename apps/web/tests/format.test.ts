@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareDecimal, formatDecimal, formatMoney, parseDecimalInput } from '@/lib/format';
+import { compareDecimal, formatDecimal, formatMoney, parseDecimalInput, pricePerBaseUnit } from '@/lib/format';
 
 describe('formatDecimal (sin pérdida de precisión)', () => {
   it('formatea con separadores argentinos sin pasar por Number', () => {
@@ -11,6 +11,22 @@ describe('formatDecimal (sin pérdida de precisión)', () => {
   it('importes con dos decimales mínimos', () => {
     expect(formatMoney('10', 'ARS')).toBe('ARS 10,00');
     expect(formatMoney(null)).toBe('—');
+  });
+});
+
+describe('pricePerBaseUnit', () => {
+  it('redondea a ocho decimales con HALF_UP y conserva importes grandes', () => {
+    expect(pricePerBaseUnit('1', '3')).toBe('0.33333333');
+    expect(pricePerBaseUnit('1', '512')).toBe('0.00195313');
+    expect(pricePerBaseUnit('9999999999999999.99999999', '0.01')).toBe('999999999999999999.99999900');
+    expect(pricePerBaseUnit('1e-8', '1')).toBe('0.00000001');
+    expect(pricePerBaseUnit('1e-8', '3')).toBeNull();
+  });
+
+  it('requiere una cantidad base positiva y válida', () => {
+    for (const quantity of ['', '0.000', '-1', 'kg', 'NaN']) {
+      expect(pricePerBaseUnit('15000', quantity)).toBeNull();
+    }
   });
 });
 

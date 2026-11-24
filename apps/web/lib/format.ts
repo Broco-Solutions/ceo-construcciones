@@ -25,6 +25,24 @@ export function formatMoney(value: string | null | undefined, currency?: string 
   return currency ? `${currency} ${v}` : v;
 }
 
+/** Normaliza un precio con la misma escala de 8 decimales y redondeo HALF_UP de la comparación de precios. */
+export function pricePerBaseUnit(price: string, baseQuantity: string): string | null {
+  const scale = 100_000_000n;
+  const scaled = (value: string) => {
+    const match = /^(\d+)(?:\.(\d+))?(?:e([+-]?\d{1,2}))?$/i.exec(value);
+    if (!match) return null;
+    const [, integer, fraction = '', exponent = '0'] = match;
+    const power = 8 + Number(exponent) - fraction.length;
+    return power >= 0 ? BigInt(integer + fraction) * 10n ** BigInt(power) : null;
+  };
+  const amount = scaled(price);
+  const quantity = scaled(baseQuantity);
+  if (amount === null || !quantity) return null;
+  const rounded = (amount * scale * 2n + quantity) / (quantity * 2n);
+  if (amount > 0n && rounded === 0n) return null;
+  return `${rounded / scale}.${String(rounded % scale).padStart(8, '0')}`;
+}
+
 /** Entrada del usuario ("4,5" / "1.234,5") -> "4.5" para la API; null si no es un decimal válido. */
 export function parseDecimalInput(input: string): string | null {
   let s = input.trim().replace(/\s/g, '');

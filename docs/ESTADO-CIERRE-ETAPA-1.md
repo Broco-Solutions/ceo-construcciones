@@ -1,5 +1,7 @@
 # Estado del cierre de Etapa 1
 
+**24/11/2026 · Usabilidad de costos de referencia y presupuestos.** Ajuste local vinculado a los puntos 3.5, 3.6 y 3.8–3.11 de V1. El [estado del proyecto](ESTADO-PROYECTO.md) registra las comprobaciones de la demo y sus pruebas. La validación de CEO del punto 7.7 sigue pendiente.
+
 **19/11/2026 · Recorrido de cómputo a presupuesto.** Validación técnica local del punto 3.6 en API/PostgreSQL y Chromium. El editor comercial permite reutilizar actividades y cantidades de la obra, y conserva la consulta de históricos. Se comprobó el recorrido hasta R1/PDF y materiales previstos. El [estado del proyecto](ESTADO-PROYECTO.md) registra la evidencia de esta entrega local.
 
 ## Pasada de cierre técnico para pruebas manuales — validación local aprobada

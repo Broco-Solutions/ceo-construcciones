@@ -12,14 +12,14 @@ La implementación funcional F1–F7 está verificada. El estado de candidato/CI
 | R04 | Obras V1 extendidas y proyección compatible | core/db.ts; catalog.ts; obras/ | catalog-integration-gaps; release-compatibility | T01–03/T52 |
 | R05 | Proveedores e historia conservados | catalog.ts; procurement.ts; proveedores/ | integration; procurement; journey.spec | T06/T35 |
 | R06 | Materiales, unidades y rubros conservados | catalog.ts; base-template.ts | catalog-integration-gaps; automatic-codes; journey.spec | T06/T23 |
-| R07 | Actividades, costo por unidad y composición | ApuForm.tsx; BudgetEditor.tsx; budgets.ts | commercial.integration; closure.spec; visual.spec | T07/T09–12 |
+| R07 | Actividades, costo por unidad y acceso a la composición por partida | ApuForm.tsx; BudgetEditor.tsx; budgets.ts | commercial.integration; closure.spec; visual.spec; editor-corrections.spec | T07/T09–12 y checklist 3.5 |
 | R08 | Plantillas, BASE, copia desde revisión y reutilización independiente de un cómputo de la obra | base-template.ts; commercial.ts; presupuestos/nuevo; data/base-template.json | commercial.integration; closure.spec; zz-base.spec; historical-db-fixture | T08/T10 y checklist 3.6 |
-| R09 | Grilla, cálculo inmediato, ayuda aritmética y conflicto | commercial-domain.ts; BudgetEditor.tsx | commercial.test; commercial.integration; closure.spec | T09/T13/T14 |
+| R09 | Grilla, cálculo inmediato, ayuda aritmética, conflicto y confirmación de baja por partida | commercial-domain.ts; BudgetEditor.tsx | commercial.test; commercial.integration; closure.spec; editor-corrections.spec | T09/T13/T14 y checklist 3.6/3.8 |
 | R10 | Directos y VARIOS sin porcentaje impuesto | commercial-domain.ts; budgets.ts; ApuItem.directCost | commercial.test; commercial.integration; DG real | T11 |
 | R11 | Recargo general y excepciones que reemplazan | commercial-domain.ts; BudgetEditor.tsx | commercial.test; closure.spec; DG real | T12 |
-| R12 | Borrador optimista, R1/R2 inmutables y referencia separada | commercial.ts; BudgetDraft; BudgetIssue | commercial.integration; net-needs.integration; closure.spec | T15–18/T53 |
-| R13 | PDF comercial, preview y datos congelados | commercial-pdf.ts; commercial.ts | commercial.integration; closure.spec; PDF DG renderizado | T19–21 |
-| R14 | Historia y actualización deliberada de borrador | reference-prices.ts; commercial.ts; PriceComparison.tsx | reference-prices.integration; commercial.integration | T10/T22 |
+| R12 | Borrador optimista, R1/R2 inmutables y referencia separada | commercial.ts; BudgetDraft; BudgetIssue | commercial.integration; net-needs.integration; closure.spec; editor-corrections.spec | T15–18/T53 y checklist 3.10 |
+| R13 | PDF comercial, preview, datos congelados y acceso a corregir faltantes | commercial-pdf.ts; commercial.ts; BudgetEditor.tsx | commercial.integration; closure.spec; PDF DG renderizado; editor-corrections.spec | T19–21 y checklist 3.11 |
+| R14 | Historia, precio por unidad base y actualización deliberada de borrador | reference-prices.ts; commercial.ts; PriceComparison.tsx; PriceTable.tsx | reference-prices.integration; commercial.integration; reference-costs.spec; format.test | T10/T22 y checklist 3.9 |
 | R15 | Tres corralones, equivalencias y revisión mensual | reference-prices.ts; PriceComparison.tsx | reference-prices.test; reference-prices.integration | T23/T24 |
 | R16 | XLSX, mapeo, diferencias y commit atómico | reference-prices.ts; imports.ts; PriceImport.tsx | reference-prices.integration; imports.integration | T25–28 |
 | R17 | Pedido manual y permisos preservados | procurement.ts; pedidos/nuevo/ | procurement; net-needs.integration; flows.spec; journey.spec | T29/T35 |

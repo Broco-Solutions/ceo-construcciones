@@ -9,6 +9,7 @@ import {
   formatDateTime,
   formatMoney,
   formatQty,
+  pricePerBaseUnit,
 } from '@/lib/format';
 import {
   Button,
@@ -75,6 +76,11 @@ export function PriceTable({
     return pr
       ? `1 ${pr.name} (${formatQty(p.baseQuantity, u)})`
       : formatQty(p.baseQuantity, u);
+  };
+  const basePrice = (p: MaterialPrice) => {
+    const unit = unitOf(p);
+    const value = unit ? pricePerBaseUnit(p.price, p.baseQuantity) : null;
+    return value === null ? '—' : `${formatMoney(value, p.currency)}/${unit}`;
   };
   return (
     <>
@@ -153,6 +159,7 @@ export function PriceTable({
             render: (p) => <b>{formatMoney(p.price, p.currency)}</b>,
           },
           { key: 'per', header: 'Por', render: (p) => per(p, unitOf(p)) },
+          { key: 'base-price', header: 'Precio por unidad base', align: 'r', render: basePrice },
           {
             key: 'tax',
             header: 'Base impositiva',
@@ -193,6 +200,7 @@ export function PriceTable({
               {!supplierId &&
                 ` · ${p.supplierId ? (p.supplier?.name ?? suppliers.map.get(p.supplierId)?.name ?? '…') : 'sin proveedor'}`}
             </span>
+            <span className="small">Precio por unidad base · {basePrice(p)}</span>
             {p.referenceState === 'HISTORICAL' && (
               <span className="small muted">
                 Referencia histórica

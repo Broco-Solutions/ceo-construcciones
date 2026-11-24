@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import {
   apiAs,
   byCode,
@@ -15,8 +15,7 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
   test.setTimeout(180000);
   const api = await apiAs('GERENCIA'),
     suffix = SUFFIX();
-  const evidence = 'docs/evidencia/costos';
-  await mkdir(evidence, { recursive: true });
+  const evidence = test.info().outputDir;
   try {
     const unit = await unitBySymbol<Schemas['Unit']>(api, 'kg'),
       category = await byCode<Schemas['Category']>(api, '/categories', 'REV');
@@ -343,6 +342,53 @@ test('costos de referencia: tarifa central, actividad, borrador explícito y R1 
       test.info().outputPath('R2-costos.pdf'),
       await r2pdf.body(),
     );
+  } finally {
+    await api.dispose();
+  }
+});
+
+test('precio por unidad base en referencias históricas, en escritorio y móvil', async ({ page }) => {
+  const api = await apiAs('GERENCIA');
+  const suffix = SUFFIX();
+  try {
+    const references = [
+      { symbol: 'kg', presentation: 'Bolsa de 50 kg', quantity: '50', price: '15000', normalized: 'ARS 300,00/kg' },
+      { symbol: 'L', presentation: 'Balde de 20 L', quantity: '20', price: '57800', normalized: 'ARS 2.890,00/L' },
+    ];
+    const materials = await Promise.all(references.map(async ({ symbol, presentation, quantity, price }, index) => {
+      const unit = await unitBySymbol<Schemas['Unit']>(api, symbol);
+      const material = await api.send<Schemas['Material']>('POST', '/materials', {
+        code: `BASE-${index}-${suffix}`, name: `Unidad base ${symbol} ${suffix}`, unitId: unit.id,
+      });
+      const pack = await api.send<Schemas['Presentation']>('POST', '/presentations', {
+        materialId: material.id, name: presentation, baseQuantity: quantity,
+      });
+      await api.send('POST', '/prices', {
+        materialId: material.id, presentationId: pack.id, baseQuantity: quantity,
+        price, currency: 'ARS', taxBasis: 'EXCLUDED', source: 'Historial sintético de unidad base',
+        effectiveAt: '2020-01-01T12:00:00Z',
+      });
+      return material;
+    }));
+    await login(page, 'GERENCIA');
+    for (const width of [1280, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const [index, reference] of references.entries()) {
+        await page.goto('/costos');
+        await pickMaterial(page, materials[index].code, 'Filtrar por material');
+        if (width === 1280) {
+          await expect(page.getByRole('columnheader', { name: 'Precio por unidad base' })).toBeVisible();
+          const columns = await page.getByRole('columnheader').allTextContents();
+          expect(columns[columns.indexOf('Por') + 1]).toBe('Precio por unidad base');
+          const row = page.getByRole('row').filter({ hasText: reference.presentation });
+          await expect(row.getByRole('cell', { name: reference.normalized, exact: true })).toBeVisible();
+          await expect(row.getByText('Historial sintético de unidad base')).toBeVisible();
+        } else {
+          await expect(page.getByText(`Precio por unidad base · ${reference.normalized}`, { exact: true })).toBeVisible();
+          await expect(page.getByText(new RegExp(`^por 1 ${reference.presentation}`))).toBeVisible();
+        }
+      }
+    }
   } finally {
     await api.dispose();
   }

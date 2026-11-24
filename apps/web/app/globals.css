@@ -402,6 +402,7 @@ textarea.input{min-height:72px;resize:vertical}
 .budget-category[open] > summary svg { transform: rotate(90deg); }
 .budget-line { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(110px, 1fr); gap: 16px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line2); }
 .budget-line-name { border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; text-align: left; cursor: pointer; padding: 4px 0; }
+.budget-line-actions { flex-wrap: wrap; gap: 4px; margin-top: 4px; }
 .budget-line > div > b, .budget-summary b { display: block; }
 .budget-summary { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .budget-summary span { font-size: .85rem; color: var(--muted); }

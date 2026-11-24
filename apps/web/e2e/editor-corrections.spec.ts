@@ -682,3 +682,218 @@ test('H04: sustituir un agregado por composición comprobada evita doble suma y 
   );
   await api.dispose();
 });
+
+for (const width of [1280, 390]) {
+  test(`partidas repetidas, corrección de PDF y cómputo independiente · ${width}px`, async ({ page }) => {
+    const api = await apiAs('GERENCIA');
+    const suffix = SUFFIX();
+    try {
+      const [category, unit, kg, work] = await Promise.all([
+        byCode<Schemas['Category']>(api, '/categories', 'REV'),
+        unitBySymbol<Schemas['Unit']>(api, 'm²'),
+        unitBySymbol<Schemas['Unit']>(api, 'kg'),
+        api.send<Schemas['Work']>('POST', '/works', { code: `OB-PINT-${suffix}`, name: `Obra partidas ${suffix}` }),
+      ]);
+      const material = await api.send<Schemas['Material']>('POST', '/materials', {
+        code: `MAT-PINT-${suffix}`, name: `Pintura de prueba ${suffix}`, unitId: kg.id,
+      });
+      const name = `Pintura interior ${suffix}`;
+      const activity = { name, categoryId: category.id, unitId: unit.id, laborCurrency: 'ARS', laborTaxBasis: 'EXCLUDED' };
+      const first = await api.send<Schemas['ApuDetail']>('POST', '/apu-items', {
+        ...activity, code: `PINT-A-${suffix}`, laborCost: '10', components: [],
+      });
+      const second = await api.send<Schemas['ApuDetail']>('POST', '/apu-items', {
+        ...activity, code: `PINT-B-${suffix}`, laborCost: '20',
+        components: [{ materialId: material.id, coefficient: '2' }],
+      });
+      const computation = await api.send<Schemas['ComputationWriteResult']>('POST', '/computations', {
+        workId: work.id, name: `Cómputo partidas ${suffix}`,
+        lines: [{ itemId: first.id, quantity: '2' }, { itemId: second.id, quantity: '3' }],
+      });
+      const computationPath = `/computations/${computation.id}`;
+      const original = await api.get<Schemas['ComputationDetail']>(computationPath);
+      const budget = await api.send<Schemas['Budget']>('POST', '/budget-editor', {
+        workId: work.id, computationId: computation.id, name: `Presupuesto partidas ${suffix}`,
+      }, `partidas-${suffix}`);
+      const path = `/budget-editor/${budget.id}`;
+      const { draft } = await api.get<Schemas['BudgetEditor']>(path);
+      const firstKey = draft!.content.lines.find((line) => line.itemId === first.id)!.key;
+      const secondKey = draft!.content.lines.find((line) => line.itemId === second.id)!.key;
+      const content = {
+        ...draft!.content,
+        lines: draft!.content.lines.map((line) => ({
+          ...line,
+          quantity: line.key === firstKey ? null : line.quantity,
+          laborUnitCost: line.key === secondKey ? null : line.laborUnitCost,
+          code: width === 390 ? null : line.code,
+        })),
+      };
+      await api.send('PUT', path, { revision: draft!.revision, content });
+      await page.setViewportSize({ width, height: 900 });
+      await login(page, 'GERENCIA');
+
+      if (width === 390) {
+        await page.goto(`/computos/${computation.id}`);
+        await page.getByRole('button', { name: 'Editar', exact: true }).click();
+        const removeItem = page.getByRole('button', { name: 'Quitar ítem', exact: true });
+        await expect(removeItem).toHaveCount(2);
+        await expect(removeItem.first()).toHaveText('Quitar');
+        await removeItem.first().scrollIntoViewIfNeeded();
+        await expect(removeItem.first()).toBeInViewport();
+        await expect(removeItem.first()).toBeEnabled();
+      }
+
+      await page.goto(`/presupuestos/editor/${budget.id}`);
+      const firstRow = page.locator(`[data-budget-line="${firstKey}"]`);
+      const secondRow = page.locator(`[data-budget-line="${secondKey}"]`);
+      const quantity = firstRow.getByRole('textbox', { name: `Cantidad · ${name}` });
+      if (width === 390) {
+        const position = (key: string) => content.lines.findIndex((line) => line.key === key) + 1;
+        await expect(firstRow).toContainText(`Partida ${position(firstKey)} del rubro`);
+        await expect(secondRow).toContainText(`Partida ${position(secondKey)} del rubro`);
+      } else {
+        await expect(firstRow).toContainText(first.code!);
+        await expect(secondRow).toContainText(second.code!);
+      }
+      const composition = page.getByRole('dialog', { name: 'Composición del costo' });
+      await secondRow.getByRole('button', { name: 'Editar partida' }).click();
+      await expect(composition.getByLabel('Cantidad', { exact: true })).toHaveValue('3');
+      await expect(composition.getByLabel(`${material.name} · precio por kg`)).toBeVisible();
+      await composition.getByRole('button', { name: 'Listo' }).click();
+
+      await page.getByLabel('Buscar partida').fill('filtro sin coincidencia');
+      await page.locator('.budget-category summary').click();
+      const pdfTab = page.getByRole('tab', { name: 'Presentación y PDF' });
+      const pdfIssues = page.getByRole('region', { name: 'Todavía no se puede generar el PDF' });
+      const preview = page.getByRole('button', { name: 'Previsualizar' });
+      const issue = page.getByRole('button', { name: 'Emitir y descargar' });
+      await pdfTab.click();
+      await expect(pdfIssues.getByRole('listitem')).toHaveCount(2);
+      await expect(pdfIssues).toContainText('Cantidad pendiente');
+      await expect(pdfIssues).toContainText('Mano de obra');
+      await expect(pdfIssues).toContainText(`${material.name}: precio`);
+      await expect(issue).toBeDisabled();
+      let previewRequests = 0;
+      page.on('request', (request) => {
+        if (request.url().endsWith(`${path}/preview`)) previewRequests++;
+      });
+      await preview.click();
+      await expect(pdfIssues).toBeFocused();
+      expect(previewRequests).toBe(0);
+
+      await pdfIssues.getByRole('listitem').filter({ hasText: 'Cantidad pendiente' })
+        .getByRole('button', { name: 'Ir a corregir' }).click();
+      await expect(page.getByLabel('Buscar partida')).toHaveValue('');
+      await expect(quantity).toBeFocused();
+      await quantity.fill('2');
+      await pdfTab.click();
+      await expect(pdfIssues.getByRole('listitem')).toHaveCount(1);
+      await expect(pdfIssues).not.toContainText('Cantidad pendiente');
+      await pdfIssues.getByRole('button', { name: 'Ir a corregir' }).click();
+      await expect(composition.getByLabel('Cantidad', { exact: true })).toHaveValue('3');
+      await composition.getByLabel('Mano de obra por unidad', { exact: true }).fill('20');
+      await composition.getByLabel(`${material.name} · precio por kg`).fill('5');
+      await composition.getByRole('button', { name: 'Listo' }).click();
+      await pdfTab.click();
+      await expect(issue).toBeEnabled();
+      await expect(pdfIssues).toHaveCount(0);
+      if (width === 1280) {
+        // Provoca un rechazo real de la API aunque el último cálculo de la pantalla esté completo.
+        await page.route(`**/api/v1${path}/preview`, async (route) => {
+          const submitted: Schemas['EditorContent'] = route.request().postDataJSON();
+          await route.continue({
+            postData: {
+              ...submitted,
+              lines: submitted.lines.map((line) => line.key === firstKey
+                ? { ...line, quantity: '1000000000000000', laborUnitCost: '1000000' }
+                : { ...line, materials: line.materials.map((entry) => ({ ...entry, unitPrice: null })) }),
+            },
+          });
+        }, { times: 1 });
+        await preview.click();
+        const totalIssue = pdfIssues.getByRole('listitem').filter({ hasText: 'El total comercial excede la precisión admitida.' });
+        await expect(totalIssue).toBeVisible();
+        await expect(totalIssue.getByText(name, { exact: false })).toHaveCount(0);
+        await expect(pdfIssues).toContainText(`${material.name}: precio`);
+        await expect(issue).toBeDisabled();
+        await totalIssue.getByRole('button', { name: 'Ir a corregir' }).click();
+        await expect(firstRow).toBeVisible();
+        await expect(composition).toHaveCount(0);
+        await secondRow.getByRole('button', { name: 'Editar partida' }).click();
+        await composition.getByLabel(`${material.name} · precio por kg`).fill('5.0');
+        await composition.getByRole('button', { name: 'Listo' }).click();
+        await pdfTab.click();
+        await expect(issue).toBeEnabled();
+      }
+      await preview.click();
+      const pdf = page.getByRole('dialog', { name: 'Vista previa comercial' });
+      await expect(pdf.getByTitle('PDF comercial del presupuesto')).toBeVisible();
+      await pdf.getByRole('button', { name: 'Cerrar' }).click();
+      const [downloadR1] = await Promise.all([page.waitForEvent('download'), issue.click()]);
+      expect(downloadR1.suggestedFilename()).toMatch(/\.pdf$/);
+      const firstVersion = (await api.get<Schemas['BudgetEditor']>(path)).versions[0];
+      expect(firstVersion.number).toBe(1);
+      const pdfPath = `/api/v1/budget-issues/${firstVersion.id}/pdf`;
+      const originalPdf = await (await page.request.get(pdfPath)).body();
+      expect(originalPdf.subarray(0, 4).toString()).toBe('%PDF');
+
+      await page.getByRole('tab', { name: 'Cómputo y costos' }).click();
+      await expect(page.getByText('ARS 110,00', { exact: true }).first()).toBeVisible();
+      const confirm = page.getByRole('dialog', { name: 'Quitar partida del presupuesto' });
+      const nativeDialogs: string[] = [];
+      page.on('dialog', async (dialog) => {
+        nativeDialogs.push(dialog.type());
+        await dialog.dismiss();
+      });
+      await secondRow.getByRole('button', { name: 'Quitar', exact: true }).click();
+      await expect(confirm).toContainText(name);
+      if (width === 1280) await expect(confirm).toContainText(second.code!);
+      await expect(confirm).toContainText(category.name);
+      await expect(confirm).toContainText('3 m²');
+      await expect(confirm).toContainText('ARS 30,00');
+      await expect(confirm).toContainText('ARS 90,00');
+      await confirm.getByRole('button', { name: 'Cancelar' }).click();
+      await expect(secondRow).toBeVisible();
+      expect((await api.get<Schemas['BudgetEditor']>(path)).draft?.content.lines).toHaveLength(2);
+      await expect(page.getByText('ARS 110,00', { exact: true }).first()).toBeVisible();
+
+      await secondRow.getByRole('button', { name: 'Editar partida' }).click();
+      await composition.getByRole('button', { name: 'Quitar del presupuesto' }).click();
+      await expect(confirm).toBeVisible();
+      await expect(page.getByRole('dialog')).toHaveCount(1);
+      if (width === 1280) {
+        await page.route(`**/api/v1${path}`, (route) => route.abort(), { times: 1 });
+        await confirm.getByRole('button', { name: 'Quitar partida', exact: true }).click();
+        await expect(confirm.getByRole('alert')).toContainText('Sin conexión con el servidor');
+        await expect(secondRow).toBeVisible();
+      }
+      await confirm.getByRole('button', { name: 'Quitar partida', exact: true }).click();
+      await expect(confirm).toHaveCount(0);
+      await expect(secondRow).toHaveCount(0);
+      await expect(firstRow).toContainText('ARS 20,00');
+      await expect(page.getByText('ARS 110,00', { exact: true })).toHaveCount(0);
+      expect(nativeDialogs).toEqual([]);
+      const saved = await api.get<Schemas['BudgetEditor']>(path);
+      expect(saved.draft?.content.lines.map((line) => line.key)).toEqual([firstKey]);
+      expect(await api.get<Schemas['ComputationDetail']>(computationPath)).toEqual(original);
+
+      await pdfTab.click();
+      await Promise.all([page.waitForEvent('download'), issue.click()]);
+      const versions = (await api.get<Schemas['BudgetEditor']>(path)).versions;
+      expect(versions.map((version) => version.number)).toEqual([2, 1]);
+      expect(await (await page.request.get(pdfPath)).body()).toEqual(originalPdf);
+      if (width === 390) {
+        await page.getByRole('tab', { name: 'Cómputo y costos' }).click();
+        await firstRow.getByRole('button', { name: 'Quitar', exact: true }).click();
+        await confirm.getByRole('button', { name: 'Quitar partida', exact: true }).click();
+        await expect(firstRow).toHaveCount(0);
+        await pdfTab.click();
+        await expect(pdfIssues).toContainText('Agregá al menos una actividad con cantidad y costos completos para generar el PDF');
+        await expect(pdfIssues.getByRole('button', { name: 'Ir a corregir' })).toHaveCount(0);
+        await expect(issue).toBeDisabled();
+      }
+    } finally {
+      await api.dispose();
+    }
+  });
+}
