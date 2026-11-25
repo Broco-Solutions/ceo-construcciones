@@ -9,8 +9,8 @@ export default function CostsPage() {
     [tab, setTab] = useState('Materiales');
   return (
     <RequirePerm ok={can('readEconomic')}>
-      <Page title="Costos de referencia" crumb="Catálogo">
-        <div className="tabs" role="tablist" aria-label="Costos de referencia">
+      <Page title="Costos" crumb="Catálogo">
+        <div className="tabs" role="tablist" aria-label="Costos">
           {['Materiales', 'Mano de obra'].map((label) => (
             <button
               key={label}

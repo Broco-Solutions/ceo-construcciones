@@ -144,6 +144,10 @@ table.t{width:100%;border-collapse:collapse;font-size:13px}
 .price-table-supplier,.price-table-presentation{min-width:9rem}
 .price-table-presentation{text-wrap:balance}
 .price-table-source{min-width:7rem}
+.price-table--costs :is(.price-table-material,.price-table-supplier,.price-table-presentation){min-width:0}
+.price-table--costs .price-table-details{margin-bottom:4px;overflow-wrap:anywhere}
+.price-table--costs .price-table-details summary{color:var(--ceo);cursor:pointer;padding-block:4px}
+.price-table--costs .mcards .stack{overflow-wrap:anywhere}
 .t tr.click{cursor:pointer}
 .t tr.click:hover td{background:#f8faff}
 .t tr.hl td{background:#f2fbf6}

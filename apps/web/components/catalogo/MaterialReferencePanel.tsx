@@ -84,6 +84,7 @@ function Inner({ embedded }: { embedded: boolean }) {
             </div>
           </div>
           <PriceTable
+            compactCosts={embedded}
             onRegisterReference={(price) => {
               setReference(price);
               setCreating(true);
