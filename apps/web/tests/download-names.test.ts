@@ -29,3 +29,10 @@ describe('nombres de descargas en español y fecha argentina', () => {
     expect(() => templateFilename('unknown', date)).toThrow('Plantilla no reconocida');
   });
 });
+
+it('nombra las plantillas Excel sin cambiar el nombre CSV anterior', () => {
+  const date = new Date('2026-11-27T01:00:00Z');
+  expect(templateFilename('materials', date, 'xlsx')).toBe('plantilla-materiales-2026-11-26.xlsx');
+  expect(templateFilename('prices', date, 'xlsx')).toBe('plantilla-precios-2026-11-26.xlsx');
+  expect(templateFilename('prices', date)).toBe('plantilla-precios-2026-11-26.csv');
+});

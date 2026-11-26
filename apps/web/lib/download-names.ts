@@ -37,8 +37,12 @@ export function exportFilename(path: string, date = new Date()): string {
   return label + '-' + downloadDateAR(date) + '.xlsx';
 }
 
-export function templateFilename(kind: string, date = new Date()): string {
+export function templateFilename(
+  kind: string,
+  date = new Date(),
+  format: 'csv' | 'xlsx' = 'csv',
+): string {
   const label = TEMPLATE_NAME[kind];
   if (!label) throw new Error('Plantilla no reconocida');
-  return 'plantilla-' + label + '-' + downloadDateAR(date) + '.csv';
+  return 'plantilla-' + label + '-' + downloadDateAR(date) + '.' + format;
 }

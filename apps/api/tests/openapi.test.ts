@@ -449,3 +449,29 @@ describe("contrato OpenAPI completo y sincronizado", () => {
       }
   });
 });
+
+it("documenta las dos descargas, entradas exclusivas, vista previa y permisos por tipo", () => {
+  for (const kind of Object.keys(importSchemas)) {
+    const template = disk.paths[`/imports/${kind}/template`].get;
+    expect(template.parameters).toContainEqual(expect.objectContaining({
+      name: "format", in: "query", required: false,
+      schema: expect.objectContaining({ enum: ["xlsx", "csv"], default: "csv" }),
+    }));
+    expect(Object.keys(template.responses["200"].content)).toEqual([
+      "text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    ]);
+    expect(template["x-roles"]).toEqual(kind === "prices" ? ["GERENCIA", "COMPRAS", "COMPUTO"] : ["GERENCIA"]);
+    for (const action of ["preview", "commit"]) {
+      const op = disk.paths[`/imports/${kind}/${action}`].post;
+      const schema = op.requestBody.content["application/json"].schema;
+      expect(schema.oneOf.map(({ required }: S) => required)).toEqual(
+        kind === "prices" ? [["rows"], ["csv"]] : [["rows"], ["csv"], ["file"]],
+      );
+      expect(op.responses["422"]).toBeDefined();
+      if (action === "preview") {
+        const content = op.responses["200"].content["application/json"].schema;
+        expect(content.properties.data.properties.table.properties.rows.items.properties.automaticCode).toBeDefined();
+      }
+    }
+  }
+});

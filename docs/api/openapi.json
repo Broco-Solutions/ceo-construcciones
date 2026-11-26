@@ -6298,7 +6298,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
+        "description": "Lee Excel XLSX o CSV hasta 1 MB. XLSX con hasta 1000 filas de datos y 100 columnas por hoja, 20 MB expandidos, sin macros ni enlaces activos. Las fórmulas se señalan y deben reemplazarse por valores.",
         "parameters": [
           {
             "name": "Origin",
@@ -26969,15 +26969,29 @@
     "/imports/clients/template": {
       "get": {
         "operationId": "get__imports_clients_template",
-        "summary": "Plantilla CSV clients",
+        "summary": "Plantilla de importación de clients",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -26985,6 +26999,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -27117,7 +27137,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -27168,6 +27188,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -27453,6 +27514,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -27471,22 +27535,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -27513,7 +27572,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -27714,6 +27773,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -27734,22 +27796,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -27770,15 +27827,29 @@
     "/imports/suppliers/template": {
       "get": {
         "operationId": "get__imports_suppliers_template",
-        "summary": "Plantilla CSV suppliers",
+        "summary": "Plantilla de importación de suppliers",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -27786,6 +27857,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -27918,7 +27995,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -27969,6 +28046,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -28254,6 +28372,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -28272,22 +28393,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -28314,7 +28430,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -28515,6 +28631,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -28535,22 +28654,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -28571,15 +28685,29 @@
     "/imports/works/template": {
       "get": {
         "operationId": "get__imports_works_template",
-        "summary": "Plantilla CSV works",
+        "summary": "Plantilla de importación de works",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -28587,6 +28715,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -28719,7 +28853,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -28770,6 +28904,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -29055,6 +29230,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -29073,22 +29251,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -29115,7 +29288,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -29316,6 +29489,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -29336,22 +29512,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -29372,15 +29543,29 @@
     "/imports/materials/template": {
       "get": {
         "operationId": "get__imports_materials_template",
-        "summary": "Plantilla CSV materials",
+        "summary": "Plantilla de importación de materials",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -29388,6 +29573,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -29520,7 +29711,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -29571,6 +29762,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -29856,6 +30088,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -29874,22 +30109,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -29917,7 +30147,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -30118,6 +30348,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -30138,22 +30371,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -30175,7 +30403,7 @@
     "/imports/prices/template": {
       "get": {
         "operationId": "get__imports_prices_template",
-        "summary": "Plantilla CSV prices",
+        "summary": "Plantilla de importación de prices",
         "tags": [
           "imports"
         ],
@@ -30184,8 +30412,22 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -30193,6 +30435,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -30327,7 +30575,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite rows JSON de /price-mapping o el CSV técnico con coma (hasta 1,5 MB). Excel y CSV oficial pasan primero por /price-files. Con reviewPrices devuelve diferencias y baselineHash. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -30378,6 +30626,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -30681,22 +30970,12 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
                   }
                 ]
               },
@@ -30729,7 +31008,7 @@
           "COMPRAS",
           "COMPUTO"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -30950,22 +31229,12 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
                   }
                 ]
               },
@@ -30990,15 +31259,29 @@
     "/imports/purchase-orders/template": {
       "get": {
         "operationId": "get__imports_purchase_orders_template",
-        "summary": "Plantilla CSV purchase-orders",
+        "summary": "Plantilla de importación de purchase-orders",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -31006,6 +31289,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -31138,7 +31427,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -31189,6 +31478,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -31474,6 +31804,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -31492,22 +31825,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -31540,7 +31868,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -31741,6 +32069,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -31761,22 +32092,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -31803,15 +32129,29 @@
     "/imports/initial-stock/template": {
       "get": {
         "operationId": "get__imports_initial_stock_template",
-        "summary": "Plantilla CSV initial-stock",
+        "summary": "Plantilla de importación de initial-stock",
         "tags": [
           "imports"
         ],
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.",
-        "parameters": [],
+        "description": "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "xlsx",
+                "csv"
+              ],
+              "default": "csv"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Operación completada",
@@ -31819,6 +32159,12 @@
               "text/csv": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -31951,7 +32297,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        "description": "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
         "parameters": [
           {
             "name": "Origin",
@@ -32002,6 +32348,47 @@
                         },
                         "confirmationHash": {
                           "type": "string"
+                        },
+                        "table": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "rows": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "row": {
+                                    "type": "integer"
+                                  },
+                                  "values": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "automaticCode": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "row",
+                                  "values"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "columns",
+                            "rows"
+                          ],
+                          "additionalProperties": false
                         },
                         "baselineHash": {
                           "type": "string"
@@ -32287,6 +32674,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -32305,22 +32695,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -32350,7 +32735,7 @@
         "x-roles": [
           "GERENCIA"
         ],
-        "description": "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "description": "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -32551,6 +32936,9 @@
                     "type": "string",
                     "maxLength": 1500000
                   },
+                  "file": {
+                    "$ref": "#/components/schemas/PriceFileInput"
+                  },
                   "confirmationHash": {
                     "type": "string",
                     "pattern": "^[a-f0-9]{64}$"
@@ -32571,22 +32959,17 @@
                   {
                     "required": [
                       "rows"
-                    ],
-                    "not": {
-                      "required": [
-                        "csv"
-                      ]
-                    }
+                    ]
                   },
                   {
                     "required": [
                       "csv"
-                    ],
-                    "not": {
-                      "required": [
-                        "rows"
-                      ]
-                    }
+                    ]
+                  },
+                  {
+                    "required": [
+                      "file"
+                    ]
                   }
                 ]
               },
@@ -43241,6 +43624,7 @@
         "properties": {
           "name": {
             "type": "string",
+            "minLength": 1,
             "maxLength": 200
           },
           "base64": {
@@ -43306,6 +43690,17 @@
           "effectiveAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "rowNumbers": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "exclusiveMinimum": 0
+            },
+            "maxItems": 1000
+          },
+          "official": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -43344,12 +43739,25 @@
                       "type": "string"
                     }
                   }
+                },
+                "rowNumbers": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                "formulaRows": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
                 }
               },
               "required": [
                 "name",
                 "columns",
-                "rows"
+                "rows",
+                "rowNumbers"
               ],
               "additionalProperties": false
             }

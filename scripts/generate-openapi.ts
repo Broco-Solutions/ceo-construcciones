@@ -755,7 +755,10 @@ zod("PriceMappingInput", priceMappingSchema);
 add(
   "PriceFileSheets",
   obj({
-    sheets: arr(obj({ name: str, columns: arr(str), rows: arr(arr(str)) })),
+    sheets: arr(obj(
+      { name: str, columns: arr(str), rows: arr(arr(str)), rowNumbers: arr(integer), formulaRows: arr(integer) },
+      ["name", "columns", "rows", "rowNumbers"],
+    )),
   }),
 );
 extend("ReferencePrice", "MaterialPrice", {
@@ -1540,7 +1543,10 @@ operation(
   "post",
   "Leer archivo XLSX/CSV limitado sin ejecutar contenido activo",
   ref("PriceFileSheets"),
-  { roles: commercial, input: ref("PriceFileInput") },
+  {
+    roles: commercial, input: ref("PriceFileInput"),
+    description: "Lee Excel XLSX o CSV hasta 1 MB. XLSX con hasta 1000 filas de datos y 100 columnas por hoja, 20 MB expandidos, sin macros ni enlaces activos. Las fórmulas se señalan y deben reemplazarse por valores.",
+  },
 );
 operation(
   "/price-mapping",
@@ -2325,22 +2331,28 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
   const properties = {
     rows: { type: "array", items: row, minItems: 1, maxItems: 1000 },
     csv: { type: "string", maxLength: 1500000 },
+    ...(kind !== "prices" ? { file: ref("PriceFileInput") } : {}),
     confirmationHash: { type: "string", pattern: "^[a-f0-9]{64}$" },
     reviewPrices: bool,
     baselineHash: { type: "string", pattern: "^[a-f0-9]{64}$" },
   };
   const input = {
     ...obj(properties, []),
-    oneOf: [
-      { required: ["rows"], not: { required: ["csv"] } },
-      { required: ["csv"], not: { required: ["rows"] } },
-    ],
+    oneOf: Object.keys(properties)
+      .filter((key) => ["rows", "csv", "file"].includes(key))
+      .map((key) => ({ required: [key] })),
   };
-  operation(`/imports/${kind}/template`, "get", `Plantilla CSV ${kind}`, str, {
+  const templatePath = `/imports/${kind}/template`;
+  operation(templatePath, "get", `Plantilla de importación de ${kind}`, str, {
     roles: kind === "prices" ? commercial : ["GERENCIA"],
     raw: true,
     mime: "text/csv",
+    queries: [q("format", { type: "string", enum: ["xlsx", "csv"], default: "csv" })],
+    description: "Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.",
   });
+  paths[templatePath].get.responses[200].content["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] = {
+    schema: { type: "string", format: "binary" },
+  };
   operation(
     `/imports/${kind}/preview`,
     "post",
@@ -2351,6 +2363,10 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
         rowCount: integer,
         errors: arr(obj({ row: integer, message: str })),
         confirmationHash: str,
+        table: obj({
+          columns: arr(str),
+          rows: arr(obj({ row: integer, values: arr(str), automaticCode: bool }, ["row", "values"])),
+        }),
         baselineHash: str,
         normalizedRows: arr(row),
         differences: arr(
@@ -2384,7 +2400,9 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
       roles: kind === "prices" ? commercial : ["GERENCIA"],
       input,
       description:
-        "Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.",
+        kind === "prices"
+          ? "Admite rows JSON de /price-mapping o el CSV técnico con coma (hasta 1,5 MB). Excel y CSV oficial pasan primero por /price-files. Con reviewPrices devuelve diferencias y baselineHash. La revisión no escribe datos."
+          : "Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.",
     },
   );
   operation(
@@ -2398,7 +2416,7 @@ for (const [kind, rowSchema] of Object.entries(importSchemas)) {
       status: 201,
       idempotent: true,
       description:
-        "Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.",
+        "Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.",
     },
   );
 }

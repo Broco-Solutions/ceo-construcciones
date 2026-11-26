@@ -140,3 +140,19 @@ Reportar fallos con ruta, rol y entidad, sin adjuntar claves ni datos privados. 
 ## Preparación local preservada
 
 Si el entorno todavía no existe, `bash CEO_Preparar_Local.sh` comprueba el repositorio, Node/pnpm, Git y Docker local, conserva una copia recuperable fuera del árbol y prepara PostgreSQL exclusivo de pruebas. No instala dependencias, no aplica migraciones ni publica código. Cargar `source "$HOME/.local/state/ceo-construcciones-codex/local.env"` sólo para shells locales, sin imprimir su contenido. Los verificadores ocupan 3000/3001 y no deben competir con otro build. La aplicación manual usa 3100/3101 y su propia base persistente. No borrar bases ni reutilizar un contexto Docker remoto para desbloquear pruebas.
+
+## Importaciones Excel y CSV (5.5)
+
+1. Ingresar como Gerencia a **Administración → Importaciones** y elegir Clientes, Obras históricas, Proveedores, Materiales, Precios, OC abiertas o Stock inicial.
+2. Seleccionar **Descargar plantilla Excel**. Leer **Contexto** para ver campos obligatorios, referencias y ejemplos. Completar **Datos** sin cambiar los encabezados. Usar formato de texto para códigos, CUIT y teléfonos, y números para cantidades y precios. Los ejemplos están en **Contexto** y sirven de guía para completar los datos propios.
+3. Seleccionar **Importar archivo** con un XLSX o un CSV. Al guardar como CSV en español, usar UTF-8 y los encabezados de **Datos**. Se admite coma o punto y coma. Para archivos técnicos anteriores, usar la descarga secundaria **Descargar plantilla CSV técnica**. El límite administrativo de CSV es 1,5 MB. El de XLSX y el de los archivos cargados en el lector de listas de precios es 1 MB.
+4. Verificar el nombre del archivo, la cantidad total, las filas válidas y los errores. La fila 1 de la vista previa es el primer renglón debajo del encabezado. Corregir en el archivo y volver a cargar si hay errores. Sustituir las fórmulas por valores explícitos. Abrir **Confirmar importación** y elegir **Cancelar** para conservar la revisión sin escribir datos, o **Importar** para aplicar el lote y ver el resultado.
+5. Para **Materiales**, usar el símbolo exacto de la unidad, por ejemplo `kg`, o su código o nombre en el catálogo. Usar el código o nombre del rubro si corresponde. Dejar Código vacío para que se genere al confirmar. Verificar el aviso en la vista previa y revisar cualquier coincidencia con un nombre existente.
+
+### Listas de precios
+
+Desde **Administración → Importaciones → Precios** o **Catálogo → Costos → Importar Excel / CSV**, descargar la misma plantilla. Elegir proveedor, moneda (ARS o USD), base impositiva y fecha de vigencia de la lista. Si la referencia es histórica, indicar su fecha original.
+
+Cargar el archivo y seleccionar **Revisar diferencias**. La plantilla asigna sus columnas automáticamente. Para otras listas compatibles, seleccionar la hoja y asignar las columnas. Una presentación se indica por el nombre o identificador exacto de una presentación existente y compatible. Con esa presentación, informar el precio por envase. Con la presentación vacía, informar el precio por unidad base.
+
+Revisar los valores anterior y nuevo, la equivalencia y los errores antes de **Confirmar importación validada**. Gerencia puede usar los CSV técnicos de Precios desde Administración con los datos y vigencias de cada fila. Para el recorrido local con datos sintéticos, una bolsa de 25 kg a ARS 7210 equivale a ARS 288,40/kg y una a ARS 6629,93 equivale a ARS 265,1972/kg. Ambos valores son ilustrativos y se usan como referencias históricas.

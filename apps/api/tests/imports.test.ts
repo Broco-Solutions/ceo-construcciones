@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeImport, parseCsv } from "../src/modules/imports";
+import { inputSchema, normalizeImport, parseCsv, readCsv } from "../src/modules/imports";
 
 describe("plantillas de importación controladas", () => {
   it("lee comillas escapadas, CRLF y texto multilineal sin inventar números", () => {
@@ -112,4 +112,38 @@ describe("plantillas de importación controladas", () => {
       { row: 2, message: "Identificación fiscal duplicada dentro del archivo" },
     ]);
   });
+});
+
+it("lee CSV regional con BOM y decimales intactos, y rechaza un encabezado de delimitación mixta", () => {
+  expect(readCsv('\uFEFFCantidad;Motivo\r\n7.210,50;"Recuento; lote 2"', ["Cantidad", "Motivo"])).toEqual({
+    columns: ["Cantidad", "Motivo"],
+    rows: [["7.210,50", "Recuento; lote 2"]],
+    rowNumbers: [1],
+  });
+  expect(() => readCsv("Código,Material;Unidad\nM,Cemento;kg", ["Código", "Material", "Unidad"])).toThrow(
+    "El archivo contiene columnas que no corresponden a la plantilla.",
+  );
+});
+
+it("exige una sola entrada y traduce problemas de campos y columnas", () => {
+  const file = { name: "datos.xlsx", base64: "AA==" };
+  expect(inputSchema.safeParse({ file }).success).toBe(true);
+  for (const body of [{}, { file, rows: [{}] }, { file, csv: "" }, { rows: [{}], csv: "" }]) {
+    expect(inputSchema.safeParse(body).success).toBe(false);
+  }
+  expect(normalizeImport("materials", [{ name: "Cemento" }]).errors[0].message).toBe(
+    "Falta indicar el código del registro. Falta indicar la unidad de medida.",
+  );
+  expect(normalizeImport("prices", [{}]).errors[0].message).toContain(
+    "Falta indicar el código del material.",
+  );
+  expect(normalizeImport("prices", [{}]).errors[0].message).toContain(
+    "Falta indicar la moneda. Falta indicar la base impositiva. Falta indicar la fecha de vigencia.",
+  );
+  expect(normalizeImport("clients", [{ externalCode: "C" }]).errors[0].message).toBe(
+    "Falta indicar el nombre o razón social.",
+  );
+  expect(normalizeImport("clients", [{ nombre: "Ejemplo" }]).errors[0].message).toContain(
+    "El archivo contiene columnas que no corresponden a la plantilla.",
+  );
 });

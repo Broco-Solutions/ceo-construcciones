@@ -3,17 +3,16 @@ import { undatedPriceIds } from './source-price-basis';
 import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { createHash } from "node:crypto";
-import ExcelJS from "exceljs";
 import { type Actor, requireRoles } from "../core/auth";
 import { db, transaction } from "../core/db";
 import { audit } from "../core/audit";
 import { ApiError } from "../core/errors";
-import { id, ok, parse } from "./shared";
-import { parseCsv } from "./imports";
+import { id, ok } from "./shared";
+import { officialImportColumns, parseImportRequest, readCsv, spanishTaxBasis } from "./imports";
+import { decodeSpreadsheet, readXlsx, spreadsheetFileSchema } from "./import-spreadsheet";
+export { inspectXlsx } from "./import-spreadsheet";
 
-export const priceFileSchema = z
-  .object({ name: z.string().max(200), base64: z.string().max(1400000) })
-  .strict();
+export const priceFileSchema = spreadsheetFileSchema;
 export const priceMappingSchema = z
   .object({
     supplierId: id,
@@ -26,6 +25,8 @@ export const priceMappingSchema = z
     currency: z.enum(["ARS", "USD"]),
     taxBasis: z.enum(["INCLUDED", "EXCLUDED", "UNSPECIFIED"]),
     effectiveAt: z.string().datetime(),
+    rowNumbers: z.array(z.number().int().positive()).max(1000).optional(),
+    official: z.boolean().optional(),
   })
   .strict();
 export function localPrice(value: string) {
@@ -42,37 +43,6 @@ export function monthArgentina(date: Date) {
     year: "numeric",
     month: "2-digit",
   }).format(date);
-}
-export function inspectXlsx(bytes: Buffer) {
-  if (bytes.length > 1_000_000)
-    throw new ApiError(
-      413,
-      "FILE_TOO_LARGE",
-      "El archivo supera 1 MB. Dividí la lista.",
-    );
-  if (bytes.readUInt32LE(0) !== 0x04034b50)
-    throw new ApiError(422, "INVALID_XLSX", "El archivo no es un XLSX válido.");
-  let expanded = 0,
-    entries = 0;
-  for (let offset = 0; offset < bytes.length - 46; offset++)
-    if (bytes.readUInt32LE(offset) === 0x02014b50) {
-      expanded += bytes.readUInt32LE(offset + 24);
-      entries++;
-      const length = bytes.readUInt16LE(offset + 28),
-        name = bytes.subarray(offset + 46, offset + 46 + length).toString();
-      if (/vbaProject|externalLinks/i.test(name))
-        throw new ApiError(
-          422,
-          "ACTIVE_CONTENT",
-          "No se admiten macros ni enlaces externos.",
-        );
-    }
-  if (!entries || entries > 3000 || expanded > 20_000_000)
-    throw new ApiError(
-      413,
-      "FILE_EXPANDED_LIMIT",
-      "El contenido expandido del archivo excede el límite de 20 MB.",
-    );
 }
 export async function handlerReferencePrices(
   request: Request,
@@ -91,77 +61,30 @@ export async function handlerReferencePrices(
     return null;
   requireRoles(actor, "GERENCIA", "COMPRAS", "COMPUTO");
   if (resource === "price-files" && request.method === "POST") {
-    const b = await parse(request, priceFileSchema),
-      bytes = Buffer.from(b.base64, "base64");
-    if (bytes.length > 1_000_000)
-      throw new ApiError(413, "FILE_TOO_LARGE", "La lista admite hasta 1 MB.");
-    if (/\.csv$/i.test(b.name)) {
-      const rows = parseCsv(bytes.toString("utf8")),
-        columns = Object.keys(rows[0]);
-      return ok({
-        sheets: [
-          {
-            name: "CSV",
-            columns,
-            rows: rows.map((r) => columns.map((c) => r[c] ?? "")),
-          },
-        ],
-      });
+    const b = await parseImportRequest(request, priceFileSchema);
+    if (!/\.(csv|xlsx)$/i.test(b.name))
+      throw new ApiError(422, "UNSUPPORTED_FILE", "Las listas de precios admiten archivos .xlsx y .csv.");
+    const bytes = decodeSpreadsheet(b.base64);
+    const official = officialImportColumns.prices.map(([label]) => label);
+    const sheets = /\.csv$/i.test(b.name)
+      ? [{ name: "CSV", ...readCsv(bytes.toString("utf8"), official), formulaRows: [] }]
+      : await readXlsx(bytes);
+    for (const sheet of sheets) {
+      const headers = sheet.columns.filter((column) => column.trim() !== "");
+      if (sheet.formulaRows.includes(0))
+        throw new ApiError(422, "INVALID_HEADERS", "Los encabezados no pueden contener fórmulas.");
+      if (new Set(headers).size !== headers.length ||
+          (official.every((label) => headers.includes(label)) && sheet.columns.length !== official.length))
+        throw new ApiError(422, "INVALID_HEADERS", "Revisá los encabezados duplicados o las columnas que no corresponden a la plantilla.");
     }
-    if (!/\.xlsx$/i.test(b.name))
-      throw new ApiError(
-        422,
-        "UNSUPPORTED_FILE",
-        "Listas de precios: se admiten .xlsx y .csv. El XLS histórico requiere su adaptador de migración.",
-      );
-    if (bytes.length < 4)
-      throw new ApiError(422, "INVALID_XLSX", "Archivo vacío o inválido.");
-    inspectXlsx(bytes);
-    const book = new ExcelJS.Workbook();
-    await book.xlsx.load(
-      bytes as unknown as Parameters<typeof book.xlsx.load>[0],
-    );
-    const sheets = book.worksheets.map((sheet) => {
-      if (sheet.rowCount > 1001 || sheet.columnCount > 100)
-        throw new ApiError(
-          422,
-          "ROW_LIMIT",
-          "Cada hoja admite hasta 1000 filas de datos y 100 columnas.",
-        );
-      const cellText = (value: ExcelJS.CellValue): string => {
-        if (value === null || value === undefined) return "";
-        if (typeof value === "object") {
-          if (value instanceof Date) return value.toISOString();
-          if ("formula" in value || "sharedFormula" in value)
-            return "=FÓRMULA: revisar valor";
-          if ("hyperlink" in value)
-            throw new ApiError(
-              422,
-              "ACTIVE_CONTENT",
-              "La lista contiene enlaces activos. Quitalos antes de importar.",
-            );
-          if ("richText" in value)
-            return value.richText.map((t) => t.text).join("");
-          return String("text" in value ? value.text : "");
-        }
-        return String(value);
-      };
-      const columns = Array.from({ length: sheet.columnCount }, (_, i) =>
-        cellText(sheet.getRow(1).getCell(i + 1).value),
-      );
-      const rows = Array.from(
-        { length: Math.max(0, sheet.rowCount - 1) },
-        (_, n) =>
-          columns.map((_, i) =>
-            cellText(sheet.getRow(n + 2).getCell(i + 1).value),
-          ),
-      );
-      return { name: sheet.name, columns, rows };
-    });
+    const data = sheets.find((sheet) => sheet.name === "Datos" &&
+        official.every((label) => sheet.columns.includes(label)));
+    if (data ? !data.rows.length : !sheets.some((sheet) => sheet.rows.length))
+      throw new ApiError(422, "EMPTY_FILE", "La hoja de datos está vacía. Agregá al menos una fila.");
     return ok({ sheets });
   }
   if (resource === "price-mapping" && request.method === "POST") {
-    const b = await parse(request, priceMappingSchema),
+    const b = await parseImportRequest(request, priceMappingSchema),
       supplier = await db.supplier.findFirst({
         where: { id: b.supplierId, active: true },
       });
@@ -171,24 +94,27 @@ export async function handlerReferencePrices(
         "INVALID_SUPPLIER",
         "Seleccioná un proveedor activo.",
       );
+    if (b.rowNumbers && (b.rowNumbers.length !== b.rows.length ||
+        b.rowNumbers.some((row, i) => i > 0 && row <= b.rowNumbers![i - 1])))
+      throw new ApiError(422, "INVALID_ROWS", "Las filas no coinciden con las del archivo.");
     const materials = await db.material.findMany({
       include: { unit: true, presentations: { where: { active: true } } },
     });
     const errors: { row: number; message: string }[] = [];
     const rows = b.rows.map((r, i) => {
+      const number = b.rowNumbers?.[i] ?? i + 1;
+      const fail = (message: string) => errors.push({ row: number, message });
+      if (r.includes("=FÓRMULA: revisar valor"))
+        fail("Reemplazá la fórmula por un valor en la celda.");
       const cell = (field: string) =>
         b.columns[field] === undefined
           ? ""
           : (r[b.columns[field]]?.trim() ?? "");
       const material = materials.find(
-        (m) => m.code === cell("materialCode") || m.id === cell("materialCode"),
+        (m) => m.code === cell("materialCode") || (!b.official && m.id === cell("materialCode")),
       );
-      if (!material)
-        errors.push({
-          row: i + 1,
-          message:
-            "Material desconocido: resolvé su código exacto contra el catálogo.",
-        });
+      if (!cell("materialCode")) fail("Falta indicar el código del material.");
+      else if (!material) fail("Material desconocido: indicá el código exacto del catálogo.");
       const presentationCode = cell("presentationId");
       const presentations = presentationCode
         ? material?.presentations.filter(
@@ -200,31 +126,21 @@ export async function handlerReferencePrices(
       const presentation =
         presentations?.length === 1 ? presentations[0] : undefined;
       if (presentationCode && !presentation)
-        errors.push({
-          row: i + 1,
-          message:
-            "Presentación desconocida o no equivalente para este material y proveedor. Usá su identificador exacto.",
-        });
+        fail("Presentación desconocida o no equivalente para este material y proveedor. Usá su identificador exacto.");
       const unit = cell("unit");
-      if (
-        !unit ||
-        !material ||
-        ![material.unit.code, material.unit.symbol, presentation?.name]
-          .filter(Boolean)
-          .includes(unit)
-      )
-        errors.push({
-          row: i + 1,
-          message:
-            "Unidad no equivalente. Usá el código o símbolo exacto del catálogo o el nombre de la presentación seleccionada.",
-        });
+      if (!unit) fail("Falta indicar la unidad de medida.");
+      else if (material && ![material.unit.code, material.unit.symbol, ...(!b.official ? [presentation?.name] : [])].includes(unit))
+        fail("Unidad no equivalente. Usá el código o símbolo exacto del catálogo.");
       const date = cell("effectiveAt") || b.effectiveAt;
+      const tax = cell("taxBasis");
+      const price = cell("price");
+      if (price === "") fail("Falta indicar el precio.");
       const row = {
         materialCode: material?.code ?? cell("materialCode"),
         supplierCode: supplier.code,
-        price: localPrice(cell("price")),
+        price: localPrice(price),
         currency: cell("currency") || b.currency,
-        taxBasis: cell("taxBasis") || b.taxBasis,
+        taxBasis: (Object.hasOwn(spanishTaxBasis, tax) ? spanishTaxBasis[tax] : tax) || b.taxBasis,
         effectiveAt: date,
         baseQuantity: presentation?.baseQuantity.toFixed() ?? "1",
         ...(presentation ? { presentationId: presentation.id } : {}),

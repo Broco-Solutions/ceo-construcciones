@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Download, FileUp, Upload } from 'lucide-react';
 import { Page, RequirePerm } from '@/components/shell';
 import {
@@ -14,7 +14,9 @@ import {
 import { api, ApiError } from '@/lib/api';
 import { useMutation } from '@/lib/hooks';
 import { useSession } from '@/lib/session';
-import { parseCsv } from '@/components/admin/csv';
+import { readFileBase64 } from '@/components/admin/csv';
+import { PriceImport } from '@/components/catalogo/PriceImport';
+import type { operations } from '@/lib/openapi';
 import { exportFilename, templateFilename } from '@/lib/download-names';
 
 type Kind =
@@ -34,13 +36,13 @@ const KINDS: { key: Kind; label: string; dep: string }[] = [
   {
     key: 'works',
     label: 'Obras históricas',
-    dep: 'clientCode enlaza el cliente exacto si existe. Sin vínculo, conserva Cliente sin vincular. Crea ubicación propia.',
+    dep: 'El código de cliente es opcional. Cada obra crea su propia ubicación.',
   },
   { key: 'suppliers', label: 'Proveedores', dep: 'Sin dependencias.' },
   {
     key: 'materials',
     label: 'Materiales',
-    dep: 'Requiere unidades y rubros cargados (Catálogo).',
+    dep: 'Requiere una unidad del catálogo. El rubro es opcional.',
   },
   {
     key: 'prices',
@@ -50,7 +52,7 @@ const KINDS: { key: Kind; label: string; dep: string }[] = [
   {
     key: 'purchase-orders',
     label: 'OC abiertas',
-    dep: 'Requiere proveedores, obras, ubicaciones y materiales.',
+    dep: 'Requiere proveedor, destino y materiales. La obra es opcional.',
   },
   {
     key: 'initial-stock',
@@ -67,12 +69,11 @@ const EXPORTS: { path: string; label: string }[] = [
   { path: '/exports/purchase-orders', label: 'Órdenes de compra' },
 ];
 
-type Preview = {
-  valid: boolean;
-  rowCount: number;
-  errors: { row: number; message: string }[];
-  confirmationHash: string;
-};
+type Preview =
+  operations['post__imports_materials_preview']['responses'][200]['content']['application/json']['data'];
+type ImportFile = { csv: string } | { file: { name: string; base64: string } };
+type Result =
+  operations['post__imports_materials_commit']['responses'][201]['content']['application/json']['data'];
 
 export default function ImportacionesPage() {
   const { can } = useSession();
@@ -88,11 +89,11 @@ function Importaciones() {
   const [kind, setKind] = useState<Kind>('works');
   const [busy, setBusy] = useState<string | null>(null);
   const [dlErr, setDlErr] = useState<unknown>(null);
-  const download = async (path: string, name: string) => {
+  const download = async (path: string, name: string, format?: "xlsx") => {
     setBusy(path);
     setDlErr(null);
     try {
-      await api.download(path, undefined, name, true);
+      await api.download(path, { format }, name, true);
     } catch (e) {
       setDlErr(e);
     } finally {
@@ -117,20 +118,27 @@ function Importaciones() {
           onChange={setKind}
         />
         <div className="bd">
-          <ImportKind
-            key={kind}
-            kind={kind}
-            onTemplate={() =>
-              download(`/imports/${kind}/template`, templateFilename(kind))
-            }
-            templateBusy={busy === `/imports/${kind}/template`}
-            onDone={(n) =>
-              toast.success('Importación completada', {
-                description:
-                  n === 1 ? 'Se cargó 1 fila.' : `Se cargaron ${n} filas.`,
-              })
-            }
-          />
+          {kind === 'prices' ? (
+            <PriceImport fromAdministration />
+          ) : (
+            <ImportKind
+              key={kind}
+              kind={kind}
+              onTemplate={(format) =>
+                download(
+                  `/imports/${kind}/template`,
+                  templateFilename(kind, undefined, format),
+                  format === 'xlsx' ? format : undefined,
+                )
+              }
+              templateBusy={busy === `/imports/${kind}/template`}
+              onDone={(n) =>
+                toast.success('Importación completada', {
+                  description: n === 1 ? 'Se cargó 1 fila.' : `Se cargaron ${n} filas.`,
+                })
+              }
+            />
+          )}
         </div>
       </Card>
       <Card title="Exportaciones">
@@ -154,227 +162,169 @@ function Importaciones() {
 }
 
 function ImportKind({
-  kind,
-  onTemplate,
-  templateBusy,
-  onDone,
+  kind, onTemplate, templateBusy, onDone,
 }: {
-  kind: Kind;
-  onTemplate: () => void;
+  kind: Exclude<Kind, 'prices'>;
+  onTemplate: (format: 'csv' | 'xlsx') => void;
   templateBusy: boolean;
   onDone: (n: number) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<{ name: string; text: string } | null>(null);
-  const [preview, setPreview] = useState<Preview | null>(null);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current++; }, []);
+  const [name, setName] = useState('');
+  const [payload, setPayload] = useState<ImportFile>();
+  const [preview, setPreview] = useState<Preview>();
   const [confirm, setConfirm] = useState(false);
-  const [result, setResult] = useState<{
-    importedRows: number;
-    createdIds: string[];
-    confirmationHash?: string;
-  } | null>(null);
-  const [readErr, setReadErr] = useState<string | null>(null);
-  const prev = useMutation(
-    async (_k: string, csv: string) =>
-      (await api.post<{ data: Preview }>(`/imports/${kind}/preview`, { csv }))
-        .data,
+  const [result, setResult] = useState<Result>();
+  const [readError, setReadError] = useState<unknown>();
+  const [reading, setReading] = useState(false);
+  const commit = useMutation(async (key: string, file: ImportFile, confirmationHash: string) =>
+    (await api.post<{ data: Result }>(
+      `/imports/${kind}/commit`,
+      { ...file, confirmationHash },
+      { idempotencyKey: key },
+    )).data,
   );
-  const commit = useMutation(
-    async (key: string, csv: string, hash: string) =>
-      (
-        await api.post<{
-          data: {
-            importedRows: number;
-            createdIds: string[];
-            confirmationHash: string;
-          };
-        }>(
-          `/imports/${kind}/commit`,
-          { csv, confirmationHash: hash },
-          { idempotencyKey: key },
-        )
-      ).data,
-  );
-  const table = useMemo(() => (file ? parseCsv(file.text) : []), [file]);
-  const errByRow = useMemo(() => {
-    const m = new Map<number, string[]>();
+  const errors = useMemo(() => {
+    const byRow = new Map<number, string[]>();
     for (const e of preview?.errors ?? [])
-      m.set(e.row, [...(m.get(e.row) ?? []), e.message]);
-    return m;
+      byRow.set(e.row, [...(byRow.get(e.row) ?? []), e.message]);
+    return byRow;
   }, [preview]);
-  const general = (preview?.errors ?? []).filter(
-    (e) => e.row < 1 || e.row > table.length - 1,
-  );
 
-  const onFile = (f: File | undefined) => {
-    setPreview(null);
-    setResult(null);
-    setReadErr(null);
-    prev.reset();
+  async function onFile(file: File) {
+    const current = ++generation.current;
+    setName(file.name);
+    setPreview(undefined);
+    setPayload(undefined);
+    setResult(undefined);
+    setReadError(undefined);
+    setConfirm(false);
     commit.reset();
-    if (!f) return setFile(null);
-    if (f.size > 1_500_000) return setReadErr('El archivo supera 1,5 MB.');
-    const r = new FileReader();
-    r.onload = () => {
-      const text = String(r.result ?? '');
-      setFile({ name: f.name, text });
-      prev.run(text).then((p) => p && setPreview(p));
-    };
-    r.onerror = () => setReadErr('No se pudo leer el archivo.');
-    r.readAsText(f, 'utf-8');
-  };
-
-  const doCommit = async () => {
-    if (!file || !preview) return;
-    const r = await commit.run(file.text, preview.confirmationHash);
-    if (r) {
-      setConfirm(false);
-      setResult(r);
-      setPreview(null);
-      onDone(r.importedRows);
+    setReading(true);
+    try {
+      const excel = /\.xlsx$/i.test(file.name);
+      if (!excel && !/\.csv$/i.test(file.name)) throw Error('Elegí un archivo .xlsx o .csv.');
+      const limit = excel ? 1_000_000 : 1_500_000;
+      if (file.size > limit) throw Error(`El archivo supera ${excel ? '1 MB' : '1,5 MB'}.`);
+      const data = excel
+        ? { file: { name: file.name, base64: await readFileBase64(file) } }
+        : { csv: await file.text() };
+      if (current !== generation.current) return;
+      const response = await api.post<{ data: Preview }>(`/imports/${kind}/preview`, data);
+      if (current !== generation.current) return;
+      setPayload(data);
+      setPreview(response.data);
+    } catch (error) {
+      if (current === generation.current) setReadError(error);
+    } finally {
+      if (current === generation.current) setReading(false);
     }
-  };
+  }
+
+  async function doCommit() {
+    if (!payload || !preview?.valid || reading || !confirm || stale) return;
+    const current = generation.current;
+    const response = await commit.run(payload, preview.confirmationHash);
+    if (!response || current !== generation.current) return;
+    setConfirm(false);
+    setResult(response);
+    setPreview(undefined);
+    onDone(response.importedRows);
+  }
   const stale = commit.error instanceof ApiError && commit.error.status === 409;
 
   return (
     <div className="stack">
+      <p className="small muted" data-testid="import-preview-note">
+        Descargá la plantilla, completala y cargá el archivo Excel o CSV. El sistema revisará los datos antes de importar.
+      </p>
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
-        <Button variant="sec" onClick={onTemplate} loading={templateBusy}>
-          <Download /> Descargar plantilla CSV
+        <Button variant="sec" onClick={() => onTemplate('xlsx')} loading={templateBusy}>
+          <Download /> Descargar plantilla Excel
         </Button>
-        <Button onClick={() => input.current?.click()} loading={prev.pending}>
-          <FileUp /> Cargar CSV
+        <Button onClick={() => input.current?.click()} disabled={commit.pending}>
+          <FileUp /> Importar archivo
+        </Button>
+        <Button variant="ghost" onClick={() => onTemplate('csv')} disabled={templateBusy}>
+          Descargar plantilla CSV técnica
         </Button>
         <input
           ref={input}
           type="file"
-          accept=".csv,text/csv"
+          aria-label="Archivo de importación"
+          accept=".xlsx,.csv"
           hidden
-          onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ''))}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (file) void onFile(file);
+          }}
         />
-        {file && <span className="small muted">{file.name}</span>}
       </div>
-      {readErr && <div className="alert bad">{readErr}</div>}
-      <ErrorBox error={prev.error} />
-      <div className="note small" data-testid="import-preview-note">
-        La vista previa muestra el archivo tal como lo cargaste. Antes de
-        importar, el sistema revisa cada fila e indica cuáles tienen errores; no
-        corrige ni completa datos. La fila 1 es la primera fila de datos (el
-        encabezado no se cuenta).
-      </div>
+      {name && <span className="small muted">{name}</span>}
+      {reading && <div className="note" role="status">Revisando el archivo…</div>}
+      <ErrorBox error={readError} />
       {commit.pending && (
         <div className="note" role="status" data-testid="import-commit-status">
           Importando… no cierres la página.
         </div>
       )}
-      {commit.error && !confirm && <ErrorBox error={commit.error} />}
+      {commit.error && (!confirm || stale) && <ErrorBox error={commit.error} />}
       {result && (
-        <div
-          className="alert ok"
-          role="status"
-          data-testid="import-commit-result"
-        >
-          <b>Importación confirmada:</b> {result.importedRows} filas importadas
-          · {result.createdIds.length} registros creados.
-          {result.confirmationHash && (
-            <div className="small mono">
-              Huella: {result.confirmationHash.slice(0, 16)}…
-            </div>
-          )}
+        <div className="alert ok" role="status" data-testid="import-commit-result">
+          <b>Importación confirmada:</b>{' '}
+          {result.importedRows === 1 ? '1 fila importada' : `${result.importedRows} filas importadas`} ·{' '}
+          {result.createdIds.length === 1 ? '1 registro creado' : `${result.createdIds.length} registros creados`}.
         </div>
       )}
       {preview && (
         <>
           <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-            {preview.valid ? (
-              <Pill tone="ok">Archivo válido</Pill>
-            ) : (
-              <Pill tone="bad">Con errores</Pill>
-            )}
+            <Pill tone={preview.valid ? 'ok' : 'bad'}>{preview.valid ? 'Archivo válido' : 'Con errores'}</Pill>
             <span className="small" data-testid="import-preview-summary">
               Resultado de la revisión: {preview.rowCount} filas ·{' '}
-              {preview.rowCount - errByRow.size} válidas · {errByRow.size} con
-              errores
-            </span>
-            <span className="small muted mono">
-              Huella {preview.confirmationHash.slice(0, 12)}…
+              {preview.rowCount - errors.size} válidas · {errors.size} con errores
             </span>
             <span style={{ flex: 1 }} />
-            <Button
-              variant="ok"
-              disabled={!preview.valid}
-              onClick={() => setConfirm(true)}
-            >
+            <Button variant="ok" disabled={!preview.valid || reading || commit.pending || stale}
+              onClick={() => setConfirm(true)}>
               <Upload /> Confirmar importación
             </Button>
           </div>
-          {!preview.valid && (
-            <div className="note">
-              Corregí el archivo y volvé a cargarlo. No se importa nada mientras
-              haya errores.
-            </div>
-          )}
-          {general.length > 0 && (
-            <div className="alert bad">
-              <ul>
-                {general.map((e, i) => (
-                  <li key={i}>
-                    {e.row ? `Fila ${e.row}: ` : ''}
-                    {e.message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {table.length > 1 && (
-            <div
-              className="tblwrap"
-              style={{ maxHeight: '55vh', overflow: 'auto' }}
-            >
+          {!preview.valid && <div className="note">Corregí las filas indicadas y volvé a cargar el archivo.</div>}
+          {preview.table && (
+            <div className="tblwrap" style={{ maxHeight: '55vh', overflow: 'auto' }}>
               <table className="t">
                 <thead>
                   <tr>
                     <th>Fila</th>
-                    {table[0].map((h, i) => (
-                      <th key={i}>{h}</th>
-                    ))}
+                    {preview.table.columns.map((column, i) => <th key={i}>{column}</th>)}
                     <th>Validación</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {table.slice(1, 501).map((r, i) => {
-                    const errs = errByRow.get(i + 1);
-                    return (
-                      <tr key={i}>
-                        <td className="mono">{i + 1}</td>
-                        {table[0].map((_, j) => (
-                          <td key={j}>{r[j] ?? ''}</td>
-                        ))}
-                        <td>
-                          {errs ? (
-                            <span style={{ color: 'var(--bad)' }}>
-                              {errs.join('; ')}
-                            </span>
-                          ) : (
-                            <Pill tone="ok">OK</Pill>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {preview.table.rows.map(({ row, values, automaticCode }) => (
+                    <tr key={row}>
+                      <td className="mono">{row}</td>
+                      {values.map((value, i) => <td key={i}>{value}</td>)}
+                      <td>
+                        {errors.has(row) ? (
+                          <span style={{ color: 'var(--bad)' }}>{errors.get(row)?.join(' ')}</span>
+                        ) : <Pill tone="ok">OK</Pill>}
+                        {automaticCode && <div className="small muted">El código se generará al confirmar.</div>}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
-              {table.length > 501 && (
-                <div className="small muted bd">
-                  Se muestran las primeras 500 filas.
-                </div>
-              )}
             </div>
           )}
         </>
       )}
       <Confirm
-        open={confirm}
+        open={confirm && !stale}
         title="Confirmar importación"
         confirmLabel="Importar"
         tone="ok"
@@ -383,13 +333,7 @@ function ImportKind({
         onClose={() => setConfirm(false)}
         onConfirm={doCommit}
       >
-        Se van a importar {preview?.rowCount} filas de <b>{file?.name}</b>. La
-        operación queda registrada en auditoría.
-        {stale && (
-          <div className="note">
-            Los datos cambiaron desde la validación: volvé a cargar el archivo.
-          </div>
-        )}
+        Se van a importar {preview?.rowCount} filas de <b>{name}</b>. La operación queda registrada en auditoría.
       </Confirm>
     </div>
   );

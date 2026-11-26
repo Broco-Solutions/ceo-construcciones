@@ -275,3 +275,99 @@ describe.skipIf(process.env.RUN_INTEGRATION !== "1")(
     });
   },
 );
+
+describe.skipIf(process.env.RUN_INTEGRATION !== "1")("lista oficial de precios y CSV técnico", () => {
+  let fixture: Awaited<ReturnType<typeof closureFixture>>;
+  beforeAll(async () => { fixture = await closureFixture(); });
+
+  it("confirma bolsas de 25 kg históricas, conserva anteriores y admite CSV por unidad base", async () => {
+    const supplier = await db.supplier.create({ data: { code: `PRV-${fixture.tag}`, name: "Proveedor sintético" } });
+    const otherSupplier = await db.supplier.create({ data: { code: `OTRO-${fixture.tag}`, name: "Otro proveedor sintético" } });
+    const unit = await db.unit.findUniqueOrThrow({ where: { code: "UNI-007" } });
+    const setup = async (number: number, name: string) => {
+      const material = await db.material.create({ data: { code: `MAT-DEMO-${number}-${fixture.tag}`, name, unitId: unit.id } });
+      const presentation = await db.presentation.create({ data: {
+        name: "Bolsa 25 kg", materialId: material.id, supplierId: supplier.id, baseQuantity: "25",
+      } });
+      const oldPrice = await db.materialPrice.create({ data: {
+        materialId: material.id, presentationId: presentation.id, supplierId: supplier.id,
+        price: "5000", baseQuantity: "25", currency: "ARS", taxBasis: "EXCLUDED", effectiveAt: new Date("2019-01-01"),
+      } });
+      return { material, presentation, oldPrice };
+    };
+    const cement = await setup(1, "Cemento Portland Loma Negra");
+    const lime = await setup(2, "Cal hidratada extra Avellaneda");
+    const book = new ExcelJS.Workbook();
+    const headers = ["Código material", "Unidad", "Presentación", "Precio"];
+    book.addWorksheet("Contexto").addRows([["Ejemplo"], ["Código ilustrativo"]]);
+    book.addWorksheet("Datos").addRows([
+      headers, [cement.material.code, "kg", "Bolsa 25 kg", 7210],
+      [lime.material.code, "kg", "Bolsa 25 kg", "6629,93"],
+    ]);
+    const excel = await fixture.data("price-files", "POST", {
+      name: "lista-oficial.xlsx", base64: Buffer.from(await book.xlsx.writeBuffer()).toString("base64"),
+    });
+    const sheet = excel.sheets.find((item: { name: string }) => item.name === "Datos");
+    expect(sheet.columns).toEqual(headers);
+    const common = {
+      supplierId: supplier.id, source: "oficial-xlsx", official: true,
+      columns: { materialCode: 0, unit: 1, presentationId: 2, price: 3 },
+      rows: sheet.rows, rowNumbers: sheet.rowNumbers,
+      currency: "ARS", taxBasis: "EXCLUDED", effectiveAt: "2020-06-15T03:00:00.000Z",
+    };
+    const missingDate = await fixture.call("price-mapping", "POST", { ...common, effectiveAt: undefined });
+    expect(missingDate.status).toBe(422);
+    expect((await missingDate.json()).error.message).toBe("Falta indicar la fecha de vigencia.");
+    const incompatible = await fixture.data("price-mapping", "POST", { ...common, supplierId: otherSupplier.id });
+    expect(incompatible.errors.map(({ row }: { row: number }) => row)).toEqual([1, 2]);
+
+    const mapped = await fixture.data("price-mapping", "POST", common);
+    expect(mapped.errors).toEqual([]);
+    expect(mapped.rows.map((r: { presentationId: string }) => r.presentationId)).toEqual([cement.presentation.id, lime.presentation.id]);
+    const request = { rows: mapped.rows, reviewPrices: true };
+    const reviewed = await fixture.data("imports/prices/preview", "POST", request);
+    expect(reviewed.valid).toBe(true);
+    expect(reviewed.differences.map((d: { previous: { price: string } }) => d.previous.price)).toEqual(["5000", "5000"]);
+    await db.presentation.update({ where: { id: lime.presentation.id }, data: { baseQuantity: "30" } });
+    expect((await fixture.call("imports/prices/commit", "POST", {
+      ...request, confirmationHash: reviewed.confirmationHash, baselineHash: reviewed.baselineHash,
+    })).status).toBe(409);
+    expect(await db.materialPrice.count({ where: { materialId: { in: [cement.material.id, lime.material.id] } } })).toBe(2);
+    await db.presentation.update({ where: { id: lime.presentation.id }, data: { baseQuantity: "25" } });
+    const fresh = await fixture.data("imports/prices/preview", "POST", request);
+    await fixture.data("imports/prices/commit", "POST", {
+      ...request, confirmationHash: fresh.confirmationHash, baselineHash: fresh.baselineHash,
+    });
+    for (const [item, value] of [[cement, "288.4"], [lime, "265.1972"]] as const) {
+      const comparison = await fixture.data(`price-comparison?materialId=${item.material.id}&supplierIds=${supplier.id}`);
+      expect(comparison.candidates[0].normalizedPrice).toBe(value);
+      expect(await db.materialPrice.findUnique({ where: { id: item.oldPrice.id } })).toMatchObject({ id: item.oldPrice.id });
+    }
+
+    const confirmCsv = async (payload: { rows: unknown } | { csv: string }) => {
+      const response = await fixture.data("imports/prices/preview", "POST", { ...payload, reviewPrices: true });
+      expect(response.valid).toBe(true);
+      return fixture.data("imports/prices/commit", "POST", {
+        ...payload, reviewPrices: true, confirmationHash: response.confirmationHash, baselineHash: response.baselineHash,
+      });
+    };
+    for (const delimiter of [",", ";"]) {
+      const text = [headers, [cement.material.code, "kg", "", delimiter === "," ? "7210.50" : "7.210,50"]]
+        .map((row) => row.join(delimiter)).join("\n");
+      const file = await fixture.data("price-files", "POST", { name: "lista-oficial.csv", base64: Buffer.from(text).toString("base64") });
+      const { rows, rowNumbers } = file.sheets[0];
+      const normalized = await fixture.data("price-mapping", "POST", {
+        ...common, rows, rowNumbers, source: `csv-${delimiter}`,
+        effectiveAt: delimiter === "," ? "2020-06-16T03:00:00.000Z" : "2020-06-17T03:00:00.000Z",
+      });
+      expect(normalized.errors).toEqual([]);
+      expect(normalized.rows[0]).toMatchObject({ baseQuantity: "1", price: "7210.50" });
+      expect((await confirmCsv({ rows: normalized.rows })).importedRows).toBe(1);
+    }
+    const technical = [
+      "externalCode,materialCode,supplierCode,price,currency,taxBasis,effectiveAt,presentationId,baseQuantity",
+      `legacy-${fixture.tag},${lime.material.code},${supplier.code},7111,ARS,EXCLUDED,2020-06-18T03:00:00.000Z,,1`,
+    ].join("\n");
+    expect((await confirmCsv({ csv: technical })).importedRows).toBe(1);
+  });
+});

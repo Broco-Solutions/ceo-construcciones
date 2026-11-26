@@ -567,7 +567,7 @@ export interface paths {
         put?: never;
         /**
          * Leer archivo XLSX/CSV limitado sin ejecutar contenido activo
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * @description Lee Excel XLSX o CSV hasta 1 MB. XLSX con hasta 1000 filas de datos y 100 columnas por hoja, 20 MB expandidos, sin macros ni enlaces activos. Las fórmulas se señalan y deben reemplazarse por valores.
          */
         post: operations["post__price_files"];
         delete?: never;
@@ -2288,8 +2288,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV clients
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de clients
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_clients_template"];
         put?: never;
@@ -2311,7 +2311,7 @@ export interface paths {
         put?: never;
         /**
          * Validar clients sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_clients_preview"];
         delete?: never;
@@ -2331,7 +2331,7 @@ export interface paths {
         put?: never;
         /**
          * Importar clients atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_clients_commit"];
         delete?: never;
@@ -2348,8 +2348,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV suppliers
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de suppliers
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_suppliers_template"];
         put?: never;
@@ -2371,7 +2371,7 @@ export interface paths {
         put?: never;
         /**
          * Validar suppliers sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_suppliers_preview"];
         delete?: never;
@@ -2391,7 +2391,7 @@ export interface paths {
         put?: never;
         /**
          * Importar suppliers atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_suppliers_commit"];
         delete?: never;
@@ -2408,8 +2408,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV works
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de works
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_works_template"];
         put?: never;
@@ -2431,7 +2431,7 @@ export interface paths {
         put?: never;
         /**
          * Validar works sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_works_preview"];
         delete?: never;
@@ -2451,7 +2451,7 @@ export interface paths {
         put?: never;
         /**
          * Importar works atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_works_commit"];
         delete?: never;
@@ -2468,8 +2468,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV materials
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de materials
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_materials_template"];
         put?: never;
@@ -2491,7 +2491,7 @@ export interface paths {
         put?: never;
         /**
          * Validar materials sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_materials_preview"];
         delete?: never;
@@ -2511,7 +2511,7 @@ export interface paths {
         put?: never;
         /**
          * Importar materials atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_materials_commit"];
         delete?: never;
@@ -2528,8 +2528,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV prices
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de prices
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_prices_template"];
         put?: never;
@@ -2551,7 +2551,7 @@ export interface paths {
         put?: never;
         /**
          * Validar prices sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite rows JSON de /price-mapping o el CSV técnico con coma (hasta 1,5 MB). Excel y CSV oficial pasan primero por /price-files. Con reviewPrices devuelve diferencias y baselineHash. La revisión no escribe datos.
          */
         post: operations["post__imports_prices_preview"];
         delete?: never;
@@ -2571,7 +2571,7 @@ export interface paths {
         put?: never;
         /**
          * Importar prices atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_prices_commit"];
         delete?: never;
@@ -2588,8 +2588,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV purchase-orders
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de purchase-orders
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_purchase_orders_template"];
         put?: never;
@@ -2611,7 +2611,7 @@ export interface paths {
         put?: never;
         /**
          * Validar purchase-orders sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_purchase_orders_preview"];
         delete?: never;
@@ -2631,7 +2631,7 @@ export interface paths {
         put?: never;
         /**
          * Importar purchase-orders atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_purchase_orders_commit"];
         delete?: never;
@@ -2648,8 +2648,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Plantilla CSV initial-stock
-         * @description Autorización backend por rol y recurso; JEFE_OBRA limitado a sus obras y sin campos económicos.
+         * Plantilla de importación de initial-stock
+         * @description Sin parámetro, descarga CSV con encabezados técnicos. Con format=xlsx, devuelve la plantilla oficial con hojas Datos y Contexto.
          */
         get: operations["get__imports_initial_stock_template"];
         put?: never;
@@ -2671,7 +2671,7 @@ export interface paths {
         put?: never;
         /**
          * Validar initial-stock sin escribir
-         * @description Usar rows JSON o csv RFC4180 con coma y encabezados; campos numéricos como texto. No cambia la base. Devuelve rowCount y errores: fila1 es primera fila de datos, sin encabezado. No devuelve filas normalizadas; la vista de contenido CSV/JSON se arma localmente y no debe presentarse como transformación validada.
+         * @description Admite exactamente una entrada: rows JSON, csv técnico con coma o CSV en español con coma o punto y coma (hasta 1,5 MB), o file XLSX base64 (1 MB, 20 MB expandidos, 100 columnas, sin macros ni enlaces activos). Hasta 1000 filas de datos. La primera fila de datos es la número 1. Para archivos devuelve datos originales y errores por fila. La revisión no escribe datos.
          */
         post: operations["post__imports_initial_stock_preview"];
         delete?: never;
@@ -2691,7 +2691,7 @@ export interface paths {
         put?: never;
         /**
          * Importar initial-stock atómicamente
-         * @description Requiere confirmationHash del preview para los mismos datos. Revalida referencias y rechaza duplicados por externalCode. OC abiertas agrupadas por externalCode. No se ejecutó migración real de CEO Obras.
+         * @description Requiere confirmationHash del preview para los mismos datos y baselineHash cuando se revisan diferencias de precios. Revalida referencias y duplicados en una transacción. Si hay errores, rechaza el lote completo.
          */
         post: operations["post__imports_initial_stock_commit"];
         delete?: never;
@@ -4828,12 +4828,16 @@ export interface components {
             taxBasis: "INCLUDED" | "EXCLUDED" | "UNSPECIFIED";
             /** Format: date-time */
             effectiveAt: string;
+            rowNumbers?: number[];
+            official?: boolean;
         };
         PriceFileSheets: {
             sheets: {
                 name: string;
                 columns: string[];
                 rows: string[][];
+                rowNumbers: number[];
+                formulaRows?: number[];
             }[];
         };
         ReferencePrice: {
@@ -24559,7 +24563,9 @@ export interface operations {
     };
     get__imports_clients_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -24573,6 +24579,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -24699,10 +24706,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_clients_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -24721,6 +24729,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_clients_Row"][];
                             differences?: {
@@ -24879,10 +24895,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_clients_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -25004,7 +25021,9 @@ export interface operations {
     };
     get__imports_suppliers_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -25018,6 +25037,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -25144,10 +25164,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_suppliers_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -25166,6 +25187,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_suppliers_Row"][];
                             differences?: {
@@ -25324,10 +25353,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_suppliers_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -25449,7 +25479,9 @@ export interface operations {
     };
     get__imports_works_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -25463,6 +25495,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -25589,10 +25622,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_works_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -25611,6 +25645,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_works_Row"][];
                             differences?: {
@@ -25769,10 +25811,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_works_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -25894,7 +25937,9 @@ export interface operations {
     };
     get__imports_materials_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -25908,6 +25953,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -26035,10 +26081,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_materials_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -26057,6 +26104,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_materials_Row"][];
                             differences?: {
@@ -26216,10 +26271,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_materials_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -26341,7 +26397,9 @@ export interface operations {
     };
     get__imports_prices_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -26355,6 +26413,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -26507,6 +26566,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_prices_Row"][];
                             differences?: {
@@ -26794,7 +26861,9 @@ export interface operations {
     };
     get__imports_purchase_orders_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -26808,6 +26877,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -26940,10 +27010,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_purchase_orders_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -26962,6 +27033,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_purchase_orders_Row"][];
                             differences?: {
@@ -27126,10 +27205,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_purchase_orders_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -27251,7 +27331,9 @@ export interface operations {
     };
     get__imports_initial_stock_template: {
         parameters: {
-            query?: never;
+            query?: {
+                format?: "xlsx" | "csv";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -27265,6 +27347,7 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             /** @description JSON/entrada inválida */
@@ -27394,10 +27477,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_initial_stock_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash?: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {
@@ -27416,6 +27500,14 @@ export interface operations {
                                 message: string;
                             }[];
                             confirmationHash: string;
+                            table?: {
+                                columns: string[];
+                                rows: {
+                                    row: number;
+                                    values: string[];
+                                    automaticCode?: boolean;
+                                }[];
+                            };
                             baselineHash?: string;
                             normalizedRows?: components["schemas"]["Import_initial_stock_Row"][];
                             differences?: {
@@ -27577,10 +27669,11 @@ export interface operations {
                 "application/json": {
                     rows?: components["schemas"]["Import_initial_stock_Row"][];
                     csv?: string;
+                    file?: components["schemas"]["PriceFileInput"];
                     confirmationHash: string;
                     reviewPrices?: boolean;
                     baselineHash?: string;
-                } & (unknown | unknown);
+                } & (unknown | unknown | unknown);
             };
         };
         responses: {

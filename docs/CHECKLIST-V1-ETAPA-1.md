@@ -209,6 +209,7 @@ Los puntos V1 verificados se conservan. Los niveles 5 y 6 pueden prepararse en p
 - [ ] **5.3 [E1] [P] Precios vigentes:** confirmar cotizaciones actuales y distinguirlas de referencias históricas.
 - [ ] **5.4 [E1] [P] Mano de obra:** verificar tarifas aplicables y referencias faltantes.
 - [ ] **5.5 [E1] [V] Importaciones Excel:** previsualización, errores, confirmación y conservación del historial.
+  - **26/11/2026 · Codex · Implementación local en main.** Siete plantillas XLSX y compatibilidad CSV verificadas con datos sintéticos. Se conserva el historial y la confirmación por huella. Evidencia y limitaciones en [Estado del proyecto](ESTADO-PROYECTO.md#26112026--55--plantillas-e-importación-de-xlsx-y-csv). Sin PR ni despliegue. Validación operativa de CEO pendiente.
 - [ ] **5.6 [E1] [P] Seleccionar obra piloto:** elegir obra representativa y responsables.
 - [ ] **5.7 [E1] [P] Preparar inventario inicial:** obtener recuento físico de CEO por material y ubicación.
 - [ ] **5.8 [E1] [D] Mínimos operativos:** acordar mínimos para el piloto.

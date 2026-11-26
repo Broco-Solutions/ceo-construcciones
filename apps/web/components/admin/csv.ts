@@ -30,3 +30,12 @@ export function parseCsv(text: string): string[][] {
   }
   return rows.filter((r) => r.some((c) => c.trim() !== ''));
 }
+
+export function readFileBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(Error('No se pudo leer el archivo. Volvé a seleccionarlo.'));
+    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
+    reader.readAsDataURL(file);
+  });
+}
