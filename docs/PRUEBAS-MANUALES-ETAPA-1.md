@@ -143,7 +143,7 @@ Si el entorno todavía no existe, `bash CEO_Preparar_Local.sh` comprueba el repo
 
 ## Importaciones Excel y CSV (5.5)
 
-1. Ingresar como Gerencia a **Administración → Importaciones** y elegir Clientes, Obras históricas, Proveedores, Materiales, Precios, OC abiertas o Stock inicial.
+1. Ingresar como Gerencia a **Administración → Importaciones**. Leer **¿Cómo preparar tu archivo Excel?**, que explica cómo usar **Datos** y **Contexto**, conservar los encabezados y pegar como valores. Verificar que la guía y **Orden recomendado de carga** sigan visibles al elegir Clientes, Obras históricas, Proveedores, Materiales, Precios, OC abiertas o Stock inicial.
 2. Seleccionar **Descargar plantilla Excel**. Leer **Contexto** para ver campos obligatorios, referencias y ejemplos. Completar **Datos** sin cambiar los encabezados. Usar formato de texto para códigos, CUIT y teléfonos, y números para cantidades y precios. Los ejemplos están en **Contexto** y sirven de guía para completar los datos propios.
 3. Seleccionar **Importar archivo** con un XLSX o un CSV. Al guardar como CSV en español, usar UTF-8 y los encabezados de **Datos**. Se admite coma o punto y coma. Para archivos técnicos anteriores, usar la descarga secundaria **Descargar plantilla CSV técnica**. El límite administrativo de CSV es 1,5 MB. El de XLSX y el de los archivos cargados en el lector de listas de precios es 1 MB.
 4. Verificar el nombre del archivo, la cantidad total, las filas válidas y los errores. La fila 1 de la vista previa es el primer renglón debajo del encabezado. Corregir en el archivo y volver a cargar si hay errores. Sustituir las fórmulas por valores explícitos. Abrir **Confirmar importación** y elegir **Cancelar** para conservar la revisión sin escribir datos, o **Importar** para aplicar el lote y ver el resultado.
@@ -151,7 +151,7 @@ Si el entorno todavía no existe, `bash CEO_Preparar_Local.sh` comprueba el repo
 
 ### Listas de precios
 
-Desde **Administración → Importaciones → Precios** o **Catálogo → Costos → Importar Excel / CSV**, descargar la misma plantilla. Elegir proveedor, moneda (ARS o USD), base impositiva y fecha de vigencia de la lista. Si la referencia es histórica, indicar su fecha original.
+Desde **Administración → Importaciones → Precios**, **Catálogo → Costos → Importar Excel / CSV** o **Proveedores y precios → Importar Excel / CSV**, descargar la misma plantilla. Verificar que las instrucciones de precios indiquen que se pueden usar otras listas compatibles mediante asignación de columnas. Elegir proveedor, moneda (ARS o USD), base impositiva y fecha de vigencia de la lista. Si la referencia es histórica, indicar su fecha original.
 
 Cargar el archivo y seleccionar **Revisar diferencias**. La plantilla asigna sus columnas automáticamente. Para otras listas compatibles, seleccionar la hoja y asignar las columnas. Una presentación se indica por el nombre o identificador exacto de una presentación existente y compatible. Con esa presentación, informar el precio por envase. Con la presentación vacía, informar el precio por unidad base.
 

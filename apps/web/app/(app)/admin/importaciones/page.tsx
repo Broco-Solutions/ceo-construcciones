@@ -102,6 +102,19 @@ function Importaciones() {
   };
   return (
     <Page title="Importaciones y exportaciones" crumb="Administración">
+      <Card title="¿Cómo preparar tu archivo Excel?" bodyClass="bd small stack">
+        <div>Cada tipo de importación tiene su propia plantilla. Utilizá el formato correspondiente para que el sistema pueda reconocer y validar la información.</div>
+        <ol style={{ margin: 0, paddingLeft: 18 }}>
+          <li>Descargá la plantilla Excel de la información que querés importar.</li>
+          <li>Completá la hoja <b>Datos</b> con tu información.</li>
+          <li>Consultá la hoja <b>Contexto</b> si tenés dudas sobre los campos.</li>
+          <li>Importá el archivo, revisá los resultados y confirmá la carga.</li>
+        </ol>
+        <div className="note small">
+          No modifiques los encabezados de las columnas. Si copiás información de otras planillas, pegala como valores, sin fórmulas.
+        </div>
+        <div>El sistema revisa los datos antes de importarlos. No se registra ninguna información hasta que confirmás la operación.</div>
+      </Card>
       <Card title="Orden recomendado de carga">
         <ol className="small" style={{ margin: 0, paddingLeft: 18 }}>
           {KINDS.map((k) => (
@@ -238,7 +251,7 @@ function ImportKind({
   return (
     <div className="stack">
       <p className="small muted" data-testid="import-preview-note">
-        Descargá la plantilla, completala y cargá el archivo Excel o CSV. El sistema revisará los datos antes de importar.
+        Formatos admitidos: XLSX y CSV.
       </p>
       <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
         <Button variant="sec" onClick={() => onTemplate('xlsx')} loading={templateBusy}>

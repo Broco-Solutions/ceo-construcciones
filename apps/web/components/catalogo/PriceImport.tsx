@@ -212,7 +212,9 @@ export function PriceImport({ fromAdministration = false }: { fromAdministration
     <Card title="Importar lista Excel / CSV">
       <div className="stack">
         <p className="small muted">
-          Descargá la plantilla, completala y cargá el archivo Excel o CSV. El sistema revisará los datos antes de importar.
+          {fromAdministration
+            ? 'Formatos admitidos: XLSX y CSV. La plantilla oficial de precios reconoce las columnas automáticamente. También podés utilizar otras listas compatibles asignando sus columnas.'
+            : 'Descargá la plantilla Excel y completá la hoja Datos sin modificar sus encabezados. Consultá la hoja Contexto para conocer el formato. También podés importar otras listas Excel o CSV compatibles asignando sus columnas.'}
         </p>
         <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
           <Button variant="sec" onClick={() => download('xlsx')} loading={downloading}>

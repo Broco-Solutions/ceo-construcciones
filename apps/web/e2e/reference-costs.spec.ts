@@ -438,10 +438,12 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
     await page.screenshot({ path: test.info().outputPath('proveedor-1440.png') });
     await supplierFilter.selectOption('');
 
-    for (const width of [1440, 1280, 900, 768, 390, 360]) {
+    const expectCompactPrices = async (path: '/costos' | '/proveedores/precios', width: number) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto('/costos');
+      await page.goto(path);
       const desktop = width > 820;
+      const supplierPrices = path === '/proveedores/precios';
+      const screenshotPrefix = supplierPrices ? 'proveedores-precios' : 'costos';
       await expect(table).toHaveClass('price-table price-table--costs');
       if (desktop) {
         await expect(headers).toHaveText(compactHeaders);
@@ -451,7 +453,24 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
         await expect(visibleCard.getByText(`Proveedor · ${supplier.name}`, { exact: true })).toBeVisible();
       }
       await expectPageToFit();
-      await page.screenshot({ path: test.info().outputPath(`costos-${width}.png`) });
+      await page.screenshot({ path: test.info().outputPath(`${screenshotPrefix}-${width}.png`) });
+
+      if (supplierPrices) {
+        await supplierFilter.selectOption(supplier.id);
+        if (desktop) {
+          await expect(headers).toHaveText(compactHeaders.filter((name) => name !== 'Proveedor'));
+          await expect(table.getByRole('checkbox', { name: 'Seleccionar página visible' })).toBeVisible();
+        }
+        for (const { material } of records) {
+          const item = desktop
+            ? table.getByRole('row').filter({ hasText: material.name })
+            : table.locator('.pcard').filter({ hasText: material.name });
+          await expect(item).toBeVisible();
+          await expect(item.getByText(supplier.name, { exact: false })).toHaveCount(0);
+        }
+        await supplierFilter.selectOption('');
+      }
+
       for (const { material, pack, record, presentation, quantity, symbol, formatted, normalized } of records) {
         await pickMaterial(page, material.code, 'Filtrar por material');
         const equivalence = `1 ${presentation} (${quantity} ${symbol})`;
@@ -471,6 +490,11 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
           await expect(row.getByText(`Presentación · ${equivalence}`, { exact: true })).toBeVisible();
           await expect(row.getByText('Fecha de vigencia · diciembre de 2019', { exact: true })).toBeVisible();
         }
+        if (supplierPrices) {
+          await expect(page.getByLabel('Filtrar por material', { exact: true })).toHaveAttribute('data-selected-id', material.id);
+          await expect(row.getByText(material.name, { exact: true })).toHaveCount(0);
+          await expect(row.locator('b').getByText(normalized, { exact: true })).toBeVisible();
+        }
         await expect(row.getByText(formatted, { exact: true })).toBeVisible();
         await expect(row.getByText('Sin IVA (neto)', { exact: true })).toBeVisible();
         await expect(row.getByText('Referencia histórica · día no informado', { exact: true })).toBeVisible();
@@ -489,32 +513,42 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
         await expect(detailFields.first()).toBeVisible();
         await expect(detailFields.last()).toBeVisible();
         await expectPageToFit();
-        await page.screenshot({ path: test.info().outputPath(`material-${symbol}-${width}.png`) });
+        const detailPrefix = supplierPrices ? 'proveedores-precios-material' : 'material';
+        await page.screenshot({ path: test.info().outputPath(`${detailPrefix}-${symbol}-${width}.png`) });
         await summary.click();
         await expect(details).toHaveJSProperty('open', false);
         await expect(detailFields.first()).toBeHidden();
         await expect(detailFields.last()).toBeHidden();
 
         if ([1280, 390].includes(width)) {
+          const pricesPath = `/prices?materialId=${material.id}`;
+          const before = supplierPrices ? await api.list<Schemas['MaterialPrice']>(pricesPath) : undefined;
           await row.getByRole('button', { name: 'Actualizar costo', exact: true }).click();
           const dialog = page.getByRole('dialog', { name: 'Registrar precio', exact: true });
           await expect(dialog.getByLabel('Fuente', { exact: true })).toHaveValue(record.source!);
           await expect(dialog.getByLabel('Presentación', { exact: true })).toHaveAttribute('data-selected-id', pack.id);
           await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click();
           await expect(dialog).toHaveCount(0);
-          const { data } = await api.list<Schemas['MaterialPrice']>(`/prices?materialId=${material.id}`);
-          expect(data.map((price) => price.id)).toEqual([record.id]);
+          const after = await api.list<Schemas['MaterialPrice']>(pricesPath);
+          expect(after.data.map((price) => price.id)).toEqual([record.id]);
+          if (before) expect(after).toEqual(before);
         }
       }
+    };
+
+    for (const width of [1440, 1280, 900, 768, 390, 360]) {
+      await expectCompactPrices('/costos', width);
+    }
+    for (const width of [1440, 1280, 900, 390]) {
+      await expectCompactPrices('/proveedores/precios', width);
     }
 
     await page.setViewportSize({ width: 1440, height: 900 });
     const { material, record } = records[0];
     const commonHeaders = ['Precio', 'Presentación', 'Precio por unidad base', 'Base impositiva', 'Fuente', 'Registrado'];
-    for (const { path, columns, hasUpdateAction } of [
-      { path: '/proveedores/precios', columns: ['', '', 'Fecha de referencia', 'Material', 'Proveedor'], hasUpdateAction: true },
-      { path: `/materiales/${material.id}`, columns: ['', 'Fecha de referencia', 'Proveedor'], hasUpdateAction: false },
-      { path: `/proveedores/${supplier.id}`, columns: ['', 'Fecha de referencia', 'Material'], hasUpdateAction: false },
+    for (const { path, columns } of [
+      { path: `/materiales/${material.id}`, columns: ['', 'Fecha de referencia', 'Proveedor'] },
+      { path: `/proveedores/${supplier.id}`, columns: ['', 'Fecha de referencia', 'Material'] },
     ]) {
       await page.goto(path);
       await expect(table).toHaveClass('price-table');
@@ -523,17 +557,14 @@ test('precio por unidad base en referencias históricas, en escritorio y móvil'
       await expect(row.getByRole('cell', { name: record.source!, exact: true })).toBeVisible();
       await expect(row.getByRole('cell', { name: formatDateTime(record.createdAt), exact: true })).toBeVisible();
       await expect(row.getByText('Ver detalle', { exact: true })).toHaveCount(0);
-      await expect(row.getByRole('button', { name: 'Actualizar esta referencia', exact: true })).toHaveCount(hasUpdateAction ? 1 : 0);
+      await expect(row.getByRole('button', { name: 'Actualizar esta referencia', exact: true })).toHaveCount(0);
 
       await page.setViewportSize({ width: 390, height: 900 });
-      const cards = table.locator('.pcard').filter({ hasText: records[0].presentation });
-      const card = path === '/proveedores/precios'
-        ? cards.filter({ hasText: material.name })
-        : cards;
+      const card = table.locator('.pcard').filter({ hasText: records[0].presentation });
       await expect(card.getByText(/Presentación · 1 Bolsa de 50 kg \(50 kg\) · desde diciembre de 2019/)).toBeVisible();
       await expect(card.getByText('Precio por unidad base · ARS 300,00/kg', { exact: true })).toBeVisible();
       await expect(card.getByText('Ver detalle', { exact: true })).toHaveCount(0);
-      await expect(card.getByRole('button', { name: 'Actualizar esta referencia', exact: true })).toHaveCount(hasUpdateAction ? 1 : 0);
+      await expect(card.getByRole('button', { name: 'Actualizar esta referencia', exact: true })).toHaveCount(0);
       await page.setViewportSize({ width: 1440, height: 900 });
     }
   } finally {

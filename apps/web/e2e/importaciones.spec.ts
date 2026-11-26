@@ -29,7 +29,42 @@ async function uploadCsv(page: Page, label: string, csv: string, name: string) {
 test('Administración carga XLSX directo, cancela, conserva la última revisión y confirma los materiales', async ({ page }) => {
   await login(page, 'GERENCIA');
   await page.goto('/admin/importaciones');
+  const guideTitle = page.getByRole('heading', { name: '¿Cómo preparar tu archivo Excel?', exact: true });
+  const guide = page.locator('section').filter({ has: guideTitle });
+  const order = page.getByRole('heading', { name: 'Orden recomendado de carga', exact: true });
+  const tabs = page.getByRole('tab');
+  const orderList = page.locator('section').filter({ has: order }).getByRole('listitem');
+  const kinds = ['Clientes', 'Obras históricas', 'Proveedores', 'Materiales', 'Precios', 'OC abiertas', 'Stock inicial'];
+
+  await expect(page.getByRole('tab', { name: 'Obras históricas', exact: true })).toHaveAttribute('aria-selected', 'true');
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 850 });
+    await expect(tabs).toHaveText(kinds);
+    await expect(orderList.locator('b')).toHaveText(kinds);
+    for (const kind of kinds) {
+      const tab = page.getByRole('tab', { name: kind, exact: true });
+      await tab.click();
+      await expect(tab).toHaveAttribute('aria-selected', 'true');
+      await expect(guideTitle).toBeVisible();
+      await expect(order).toBeVisible();
+    }
+    await expect(guide.getByRole('listitem')).toHaveCount(4);
+    await expect(guide.getByText('Datos', { exact: true })).toBeVisible();
+    await expect(guide.getByText('Contexto', { exact: true })).toBeVisible();
+    await expect(guide.getByText('No modifiques los encabezados de las columnas. Si copiás información de otras planillas, pegala como valores, sin fórmulas.', { exact: true })).toBeVisible();
+    await expect(guide.getByText('El sistema revisa los datos antes de importarlos. No se registra ninguna información hasta que confirmás la operación.', { exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() =>
+      document.documentElement.scrollWidth - window.innerWidth,
+    )).toBeLessThanOrEqual(1);
+    await guide.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: test.info().outputPath(`guia-importaciones-${width}.png`) });
+  }
+
   await page.getByRole('tab', { name: 'Materiales' }).click();
+  await expect(page.getByTestId('import-preview-note')).toHaveText('Formatos admitidos: XLSX y CSV.');
+  const csvDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Descargar plantilla CSV técnica' }).click();
+  expect((await csvDownload).suggestedFilename()).toMatch(/^plantilla-materiales-\d{4}-\d{2}-\d{2}\.csv$/);
   const label = 'Archivo de importación';
   const book = await downloadTemplate(page, 'materiales');
   const sheet = book.getWorksheet('Datos')!;
@@ -115,6 +150,8 @@ test('Precios comparte flujo entre Administración y Catálogo y reconoce la pla
     await login(page, 'GERENCIA');
     await page.goto('/admin/importaciones');
     await page.getByRole('tab', { name: 'Precios' }).click();
+    const adminInstructions = page.getByText('Formatos admitidos: XLSX y CSV. La plantilla oficial de precios reconoce las columnas automáticamente. También podés utilizar otras listas compatibles asignando sus columnas.', { exact: true });
+    await expect(adminInstructions).toBeVisible();
     const fileLabel = 'Archivo de precios (.xlsx / .csv)';
     const book = await downloadTemplate(page, 'precios');
     book.getWorksheet('Datos')!.addRow([materialCode, 'kg', 'Bolsa 25 kg', 7210]);
@@ -131,6 +168,7 @@ test('Precios comparte flujo entre Administración y Catálogo y reconoce la pla
     await expect(confirm).toBeEnabled();
     for (const width of [1440, 1280, 390]) {
       await page.setViewportSize({ width, height: 850 });
+      await expect(adminInstructions).toBeVisible();
       await confirm.scrollIntoViewIfNeeded();
       await expect(confirm).toBeVisible();
       await expect.poll(() => page.evaluate(() =>
@@ -157,6 +195,15 @@ test('Precios comparte flujo entre Administración y Catálogo y reconoce la pla
     await page.goto('/costos');
     await page.getByRole('link', { name: 'Importar Excel / CSV' }).click();
     await expect(page).toHaveURL(/\/proveedores\/importar-precios$/);
+    const catalogInstructions = page.getByText('Descargá la plantilla Excel y completá la hoja Datos sin modificar sus encabezados. Consultá la hoja Contexto para conocer el formato. También podés importar otras listas Excel o CSV compatibles asignando sus columnas.', { exact: true });
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 850 });
+      await expect(catalogInstructions).toBeVisible();
+      await expect.poll(() => page.evaluate(() =>
+        document.documentElement.scrollWidth - window.innerWidth,
+      )).toBeLessThanOrEqual(1);
+      await page.screenshot({ path: test.info().outputPath(`guia-listas-precios-${width}.png`) });
+    }
     await page.getByLabel('Proveedor de la lista').selectOption(supplier.id);
     await page.getByLabel('Fecha de vigencia', { exact: true }).fill('2020-03-01');
     await uploadCsv(page, fileLabel, `Artículo,Medida,Importe\n${materialCode},kg,305.50`, 'lista-manual.csv');
